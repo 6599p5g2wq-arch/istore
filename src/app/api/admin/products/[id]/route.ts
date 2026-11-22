@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireAdmin, bad } from "@/lib/admin-api";
+import { sendStockAlert } from "@/lib/notify";
+import { getSetting } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -12,14 +14,28 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (!existing) return bad("المنتج غير موجود", 404);
   const dup = db.prepare("SELECT id FROM products WHERE slug = ? AND id != ?").get(b.slug?.trim() || "", params.id);
   if (dup) return bad("هذا الـ slug مستخدم مسبقاً");
+  const prev = db.prepare("SELECT stock FROM products WHERE id = ?").get(params.id) as { stock: number };
+  const newStock = Number(b.stock) || 0;
   db.prepare(
     `UPDATE products SET name=?, slug=?, category_id=?, description=?, price=?, old_price=?, stock=?, image=?, images=?, badge=?, featured=?, active=?, rating=? WHERE id=?`
   ).run(
     b.name?.trim() || "", b.slug?.trim() || "", b.category_id || null, b.description || "",
-    Number(b.price) || 0, b.old_price ? Number(b.old_price) : null, Number(b.stock) || 0,
+    Number(b.price) || 0, b.old_price ? Number(b.old_price) : null, newStock,
     b.image || "", JSON.stringify(Array.isArray(b.images) ? b.images : []),
     b.badge || "", b.featured ? 1 : 0, b.active ? 1 : 0, Number(b.rating) || 4.8, params.id
   );
+  // Back-in-stock: notify everyone waiting when stock returns.
+  if (prev.stock <= 0 && newStock > 0) {
+    const waiting = db.prepare("SELECT id, contact FROM stock_alerts WHERE product_id = ? AND notified = 0").all(params.id) as { id: number; contact: string }[];
+    if (waiting.length > 0) {
+      const base = getSetting("site_url", "").replace(/\/$/, "");
+      const url = `${base}/product/${b.slug?.trim() || ""}`;
+      Promise.allSettled(waiting.map((w) => sendStockAlert(w.contact, b.name?.trim() || "منتج", url))).then(() => {
+        const mark = db.prepare("UPDATE stock_alerts SET notified = 1 WHERE id = ?");
+        for (const w of waiting) mark.run(w.id);
+      }).catch(() => {});
+    }
+  }
   return NextResponse.json({ ok: true });
 }
 

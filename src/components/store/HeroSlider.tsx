@@ -1,7 +1,7 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { ChevronRight, ChevronLeft, Sparkles } from "lucide-react";
 import type { HeroSlide } from "@/lib/types";
 
@@ -9,6 +9,14 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(1);
   const n = slides.length;
+
+  // Cinematic scroll: the visual drifts and zooms as you scroll, the headline counters.
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
+  const imgY = useTransform(scrollYProgress, [0, 1], [0, 90]);
+  const imgScale = useTransform(scrollYProgress, [0, 1], [1, 1.16]);
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -70]);
+  const fade = useTransform(scrollYProgress, [0, 0.85], [1, 0.2]);
 
   const go = useCallback((d: number) => {
     setDir(d);
@@ -25,8 +33,8 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const s = slides[index];
 
   return (
-    <section className="relative mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-      <div className="relative overflow-hidden rounded-[2rem] bg-neutral-950 text-white shadow-2xl">
+    <section ref={sectionRef} className="relative mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+      <div className="relative overflow-hidden rounded-[2rem] bg-neutral-950 text-white shadow-2xl ring-1 ring-white/10">
         <AnimatePresence mode="wait" custom={dir}>
           <motion.div
             key={s.id}
@@ -35,11 +43,12 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: dir * -60 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="relative grid min-h-[480px] items-center gap-8 p-8 sm:p-14 lg:grid-cols-2"
+            className="relative grid min-h-[540px] items-center gap-8 p-8 sm:p-14 lg:min-h-[640px] lg:grid-cols-2"
           >
-            <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[var(--accent)] opacity-20 blur-3xl" />
-            <div className="absolute -bottom-40 -right-20 h-96 w-96 rounded-full bg-purple-600 opacity-20 blur-3xl" />
-            <div className="relative z-10 order-2 lg:order-1">
+            <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[var(--accent)] opacity-25 blur-3xl" />
+            <div className="absolute -bottom-40 -right-20 h-96 w-96 rounded-full bg-purple-600 opacity-25 blur-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            <motion.div style={{ y: textY, opacity: fade }} className="relative z-10 order-2 lg:order-1">
               <motion.span
                 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
                 className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-bold backdrop-blur"
@@ -48,7 +57,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
               </motion.span>
               <motion.h1
                 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.7 }}
-                className="text-balance whitespace-pre-line text-4xl font-black leading-[1.15] sm:text-5xl lg:text-6xl"
+                className="text-balance whitespace-pre-line text-4xl font-black leading-[1.12] tracking-tight sm:text-5xl lg:text-7xl"
               >
                 {s.title}
               </motion.h1>
@@ -59,21 +68,21 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                 {s.subtitle}
               </motion.p>
               <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.7 }} className="mt-8 flex flex-wrap items-center gap-4">
-                <Link href={s.cta_link} className="group inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 font-bold text-black shadow-lg transition hover:scale-[1.03] hover:shadow-xl">
+                <Link href={s.cta_link} className="group inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 font-bold text-black shadow-lg transition hover:scale-[1.03] hover:shadow-[0_10px_40px_-6px_rgba(255,255,255,.4)]">
                   {s.cta_text}
                   <ChevronLeft size={18} className="transition-transform group-hover:-translate-x-1" />
                 </Link>
               </motion.div>
-            </div>
-            <div className="relative z-10 order-1 lg:order-2">
+            </motion.div>
+            <motion.div style={{ y: imgY, scale: imgScale }} className="relative z-10 order-1 lg:order-2">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, rotate: 3 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                className="animate-float-slow relative mx-auto aspect-square w-full max-w-md overflow-hidden rounded-[2rem]"
+                className="animate-float-slow relative mx-auto aspect-square w-full max-w-md overflow-hidden rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={s.image} alt={s.title} className="h-full w-full object-cover" />
               </motion.div>
-            </div>
+            </motion.div>
           </motion.div>
         </AnimatePresence>
 

@@ -37,6 +37,15 @@ const SECTIONS: { title: string; fields: { key: string; label: string; area?: bo
     fields: [{ key: "free_shipping_threshold", label: "حد الشحن المجاني (0 لتعطيله)", ltr: true }],
   },
   {
+    title: "التتبع والتحليلات",
+    fields: [
+      { key: "site_url", label: "رابط المتجر العلني (للخريطة والإشعارات)", ltr: true },
+      { key: "meta_pixel_id", label: "معرف بكسل فيسبوك (Meta Pixel ID)", ltr: true },
+      { key: "tiktok_pixel_id", label: "معرف بكسل تيك توك (TikTok Pixel ID)", ltr: true },
+      { key: "ga_id", label: "معرف قوقل أناليتكس (G-XXXX)", ltr: true },
+    ],
+  },
+  {
     title: "صفحة من نحن",
     fields: [
       { key: "about_text", label: "نبذة عن المتجر", area: true },

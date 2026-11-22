@@ -42,6 +42,7 @@ export default function OrderDetail({ params }: { params: { id: string } }) {
           <h2 className="mb-4 font-extrabold">الملخص المالي</h2>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-neutral-500"><span>المنتجات</span><span className="font-bold text-black">{formatPrice(order.subtotal, s.currency)}</span></div>
+            {order.discount > 0 && <div className="flex justify-between text-emerald-600"><span>الخصم{order.coupon_code ? ` (${order.coupon_code})` : ""}</span><span className="font-bold">- {formatPrice(order.discount, s.currency)}</span></div>}
             <div className="flex justify-between text-neutral-500"><span>التوصيل</span><span className="font-bold text-black">{order.delivery_fee === 0 ? "مجاني" : formatPrice(order.delivery_fee, s.currency)}</span></div>
             <div className="flex justify-between border-t pt-3 text-base"><span className="font-bold">الإجمالي</span><span className="font-black text-[var(--accent)]">{formatPrice(order.total, s.currency)}</span></div>
           </div>

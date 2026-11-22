@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
 import { formatPrice, formatDate } from "@/lib/format";
-import { ShoppingCart, Package, Banknote, Clock, AlertTriangle, ChevronLeft } from "lucide-react";
+import { ShoppingCart, Package, Banknote, Clock, AlertTriangle, ChevronLeft, Eye, Users, ShoppingBag } from "lucide-react";
 import type { Order, Product } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +27,11 @@ export default function AdminDashboard() {
   };
   const recent = db.prepare("SELECT * FROM orders ORDER BY id DESC LIMIT 8").all() as Order[];
   const lowStock = db.prepare("SELECT id, name, stock FROM products WHERE active = 1 AND stock <= 5 ORDER BY stock ASC LIMIT 8").all() as Pick<Product, "id" | "name" | "stock">[];
+  const viewsToday = (db.prepare("SELECT COUNT(*) c FROM page_views WHERE date(created_at) = date('now')").get() as { c: number }).c;
+  const viewsWeek = (db.prepare("SELECT COUNT(*) c FROM page_views WHERE created_at >= datetime('now', '-7 days')").get() as { c: number }).c;
+  const leadsCount = (db.prepare("SELECT COUNT(*) c FROM cart_leads WHERE reminded = 0").get() as { c: number }).c;
+  const customersCount = (db.prepare("SELECT COUNT(*) c FROM customers").get() as { c: number }).c;
+  const topPages = db.prepare("SELECT path, COUNT(*) c FROM page_views WHERE created_at >= datetime('now', '-7 days') GROUP BY path ORDER BY c DESC LIMIT 6").all() as { path: string; c: number }[];
 
   const days: { day: string; total: number; count: number }[] = [];
   for (let i = 6; i >= 0; i--) {
@@ -58,6 +63,32 @@ export default function AdminDashboard() {
             <p className="text-sm text-neutral-400">{c.label}</p>
           </div>
         ))}
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="rounded-3xl bg-white p-5 shadow-sm">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-sky-500 text-white"><Eye size={20} /></span>
+          <p className="mt-4 text-2xl font-black">{viewsToday}</p>
+          <p className="text-sm text-neutral-400">زيارات اليوم ({viewsWeek} هذا الأسبوع)</p>
+        </div>
+        <div className="rounded-3xl bg-white p-5 shadow-sm">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-orange-500 text-white"><ShoppingBag size={20} /></span>
+          <p className="mt-4 text-2xl font-black">{leadsCount}</p>
+          <p className="text-sm text-neutral-400">سلات مهجورة بانتظار التذكير</p>
+        </div>
+        <div className="rounded-3xl bg-white p-5 shadow-sm">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-indigo-500 text-white"><Users size={20} /></span>
+          <p className="mt-4 text-2xl font-black">{customersCount}</p>
+          <p className="text-sm text-neutral-400">حسابات الزبائن</p>
+        </div>
+        <div className="rounded-3xl bg-white p-5 shadow-sm">
+          <h2 className="mb-2 text-sm font-extrabold">أكثر الصفحات زيارة (7 أيام)</h2>
+          {topPages.length === 0 ? <p className="text-xs text-neutral-400">لا بيانات بعد</p> : (
+            <ul className="space-y-1 text-xs">
+              {topPages.map((p) => <li key={p.path} className="flex justify-between gap-2"><span className="line-clamp-1 text-neutral-500" dir="ltr">{p.path}</span><b>{p.c}</b></li>)}
+            </ul>
+          )}
+        </div>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">

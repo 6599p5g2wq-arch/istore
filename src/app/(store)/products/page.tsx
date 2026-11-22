@@ -52,9 +52,9 @@ export default function ProductsPage({ searchParams }: { searchParams: Record<st
       <ProductsToolbar categories={cats} />
 
       {products.length === 0 ? (
-        <div className="grid place-items-center rounded-3xl bg-[#f5f5f7] py-24 text-center">
-          <p className="text-lg font-bold text-neutral-400">لا توجد منتجات مطابقة</p>
-          <p className="mt-1 text-sm text-neutral-400">جرّب تعديل الفلاتر أو البحث بكلمة أخرى</p>
+        <div className="grid place-items-center rounded-3xl bg-white/5 py-24 text-center">
+          <p className="text-lg font-bold text-neutral-300">لا توجد منتجات مطابقة</p>
+          <p className="mt-1 text-sm text-neutral-500">جرّب تعديل الفلاتر أو البحث بكلمة أخرى</p>
         </div>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">

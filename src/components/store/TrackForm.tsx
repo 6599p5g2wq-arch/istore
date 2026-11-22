@@ -5,11 +5,11 @@ import { Search, Loader2, Package, Truck, CheckCircle2, Clock, XCircle } from "l
 import { formatPrice, formatDate } from "@/lib/format";
 
 const STATUS: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  new: { label: "قيد المراجعة", icon: Clock, color: "text-amber-500 bg-amber-50" },
-  confirmed: { label: "تم التأكيد", icon: CheckCircle2, color: "text-blue-500 bg-blue-50" },
-  shipped: { label: "في الطريق إليك", icon: Truck, color: "text-purple-500 bg-purple-50" },
-  delivered: { label: "تم التوصيل", icon: CheckCircle2, color: "text-emerald-500 bg-emerald-50" },
-  cancelled: { label: "ملغي", icon: XCircle, color: "text-red-500 bg-red-50" },
+  new: { label: "قيد المراجعة", icon: Clock, color: "text-amber-400 bg-amber-500/10" },
+  confirmed: { label: "تم التأكيد", icon: CheckCircle2, color: "text-blue-400 bg-blue-500/10" },
+  shipped: { label: "في الطريق إليك", icon: Truck, color: "text-purple-400 bg-purple-500/10" },
+  delivered: { label: "تم التوصيل", icon: CheckCircle2, color: "text-emerald-400 bg-emerald-500/10" },
+  cancelled: { label: "ملغي", icon: XCircle, color: "text-red-400 bg-red-500/10" },
 };
 
 type Result = { code: string; status: string; total: number; city: string; created_at: string; items: { name: string; qty: number }[] };
@@ -33,26 +33,26 @@ export default function TrackForm() {
     setLoading(false);
   };
 
-  const inputCls = "w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3.5 outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10";
+  const inputCls = "w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20";
 
   return (
     <div className="mt-10">
-      <form onSubmit={submit} className="space-y-4 rounded-3xl border border-neutral-100 bg-white p-6 shadow-sm">
-        <label className="block text-sm font-bold">
+      <form onSubmit={submit} className="space-y-4 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+        <label className="block text-sm font-bold text-neutral-200">
           رقم الطلب
           <input dir="ltr" required value={code} onChange={(e) => setCode(e.target.value)} className={`mt-1.5 text-left ${inputCls}`} placeholder="IST-XXXXXX" />
         </label>
-        <label className="block text-sm font-bold">
+        <label className="block text-sm font-bold text-neutral-200">
           رقم الهاتف المستخدم في الطلب
           <input dir="ltr" required value={phone} onChange={(e) => setPhone(e.target.value)} className={`mt-1.5 text-left ${inputCls}`} placeholder="09XXXXXXXX" />
         </label>
-        <motion.button whileTap={{ scale: 0.97 }} disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-full bg-black py-3.5 font-bold text-white transition hover:bg-neutral-800 disabled:opacity-60">
+        <motion.button whileTap={{ scale: 0.97 }} disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3.5 font-bold text-black transition hover:bg-neutral-200 disabled:opacity-60">
           {loading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />} تتبع
         </motion.button>
       </form>
-      {error && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-center text-sm font-bold text-red-600">{error}</p>}
+      {error && <p className="mt-4 rounded-2xl bg-red-500/10 px-4 py-3 text-center text-sm font-bold text-red-400">{error}</p>}
       {result && (
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6 rounded-3xl border border-neutral-100 bg-white p-6 shadow-sm">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
           {(() => {
             const st = STATUS[result.status] || STATUS.new;
             return (
@@ -66,14 +66,14 @@ export default function TrackForm() {
               </div>
             );
           })()}
-          <ul className="mt-4 space-y-2 text-sm">
+          <ul className="mt-4 space-y-2 text-sm text-neutral-200">
             {result.items.map((it, i) => (
-              <li key={i} className="flex items-center gap-2"><Package size={14} className="text-neutral-300" /> {it.name} <span className="text-neutral-400">× {it.qty}</span></li>
+              <li key={i} className="flex items-center gap-2"><Package size={14} className="text-neutral-500" /> {it.name} <span className="text-neutral-500">× {it.qty}</span></li>
             ))}
           </ul>
-          <div className="mt-4 flex justify-between border-t border-neutral-100 pt-4 text-sm">
-            <span className="text-neutral-500">{result.city} — {formatDate(result.created_at)}</span>
-            <span className="font-extrabold">{formatPrice(result.total)}</span>
+          <div className="mt-4 flex justify-between border-t border-white/10 pt-4 text-sm">
+            <span className="text-neutral-400">{result.city} — {formatDate(result.created_at)}</span>
+            <span className="font-extrabold text-white">{formatPrice(result.total)}</span>
           </div>
         </motion.div>
       )}
