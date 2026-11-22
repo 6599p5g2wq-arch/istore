@@ -1,11 +1,12 @@
 import React from "react";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
 import { formatPrice, formatDate } from "@/lib/format";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
-import { Phone, MapPin, StickyNote, ChevronRight } from "lucide-react";
+import { Phone, MapPin, StickyNote, ArrowRight } from "lucide-react";
 import type { Order, OrderItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,13 @@ const STATUS_LABEL: Record<string, string> = { new: "جديد", confirmed: "مؤ
 export default function OrderDetail({ params }: { params: { id: string } }) {
   const db = getDb();
   const s = getSettings();
+  // الرجوع يحافظ على حالة القائمة (فلتر الحالة) إن جاء المستخدم منها
+  let backHref = "/admin/orders";
+  try {
+    const ref = headers().get("referer") || "";
+    const u = new URL(ref);
+    if (u.pathname === "/admin/orders") backHref = u.pathname + u.search;
+  } catch { /* لا مُحيل صالح */ }
   const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(params.id) as Order | undefined;
   if (!order) notFound();
   const items = db.prepare("SELECT * FROM order_items WHERE order_id = ?").all(order.id) as OrderItem[];
@@ -30,7 +38,9 @@ export default function OrderDetail({ params }: { params: { id: string } }) {
 
   return (
     <div className="max-w-3xl">
-      <Link href="/admin/orders" className="flex items-center gap-1 text-sm font-bold text-neutral-400 hover:text-black"><ChevronRight size={15} /> رجوع للطلبات</Link>
+      <Link href={backHref} className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-6 py-3 font-bold text-neutral-700 shadow-sm transition hover:bg-neutral-100">
+        <ArrowRight size={18} /> رجوع للطلبات
+      </Link>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-black sm:text-3xl" dir="ltr">{order.code}</h1>
         <OrderStatusSelect id={order.id} status={order.status} labels={STATUS_LABEL} />
