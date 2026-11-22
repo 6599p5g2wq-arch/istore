@@ -146,7 +146,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
         <section className="mt-24">
           <Reveal><h2 className="mb-8 text-2xl font-black text-white sm:text-3xl">منتجات مشابهة</h2></Reveal>
           <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-            {related.map((p) => <ProductCard key={p.id} product={p} currency={s.currency} />)}
+            {related.map((p, i) => <ProductCard key={p.id} product={p} currency={s.currency} index={i} />)}
           </div>
         </section>
       )}

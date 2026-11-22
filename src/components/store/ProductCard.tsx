@@ -8,7 +8,7 @@ import WishlistButton from "./WishlistButton";
 import { formatPrice } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
-export default function ProductCard({ product, currency = "د.ل" }: { product: Product; currency?: string }) {
+export default function ProductCard({ product, currency = "د.ل", index }: { product: Product; currency?: string; index?: number }) {
   const { add } = useCart();
   const out = product.stock <= 0;
   const tiltRef = useRef<HTMLDivElement>(null);
@@ -41,7 +41,7 @@ export default function ProductCard({ product, currency = "د.ل" }: { product: 
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, delay: Math.min((index ?? 0) * 0.05, 0.35), ease: [0.22, 1, 0.36, 1] }}
     >
       <div
         ref={tiltRef}

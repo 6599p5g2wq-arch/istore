@@ -69,7 +69,7 @@ export default function HomePage() {
           </div>
         </Reveal>
         <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-          {featured.map((p) => <ProductCard key={p.id} product={p} currency={s.currency} />)}
+          {featured.map((p, i) => <ProductCard key={p.id} product={p} currency={s.currency} index={i} />)}
         </div>
       </section>
 
@@ -108,7 +108,7 @@ export default function HomePage() {
             </div>
           </Reveal>
           <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-            {offers.slice(0, 4).map((p) => <ProductCard key={p.id} product={p} currency={s.currency} />)}
+            {offers.slice(0, 4).map((p, i) => <ProductCard key={p.id} product={p} currency={s.currency} index={i} />)}
           </div>
         </section>
       )}
@@ -122,7 +122,7 @@ export default function HomePage() {
           </div>
         </Reveal>
         <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-          {newest.slice(0, 4).map((p) => <ProductCard key={p.id} product={p} currency={s.currency} />)}
+          {newest.slice(0, 4).map((p, i) => <ProductCard key={p.id} product={p} currency={s.currency} index={i} />)}
         </div>
       </section>
 

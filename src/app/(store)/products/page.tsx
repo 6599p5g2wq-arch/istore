@@ -62,7 +62,7 @@ export default function ProductsPage({ searchParams }: { searchParams: Record<st
         </div>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-          {products.map((p) => <ProductCard key={p.id} product={p} currency={s.currency} />)}
+          {products.map((p, i) => <ProductCard key={p.id} product={p} currency={s.currency} index={i % 8} />)}
         </div>
       )}
       <p className="mt-6 text-sm text-neutral-400">{products.length} منتج</p>

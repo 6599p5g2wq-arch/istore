@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { Tag } from "lucide-react";
 import { getDb } from "@/lib/db";
+import Reveal from "@/components/store/Reveal";
 import type { Brand } from "@/lib/types";
 import type { Metadata } from "next";
 
@@ -26,9 +27,9 @@ export default function BrandsPage() {
         </div>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-          {brands.map((b) => (
+          {brands.map((b, i) => (
+            <Reveal key={b.slug} delay={i * 0.06}>
             <Link
-              key={b.slug}
               href={`/products?brand=${b.slug}`}
               className="group flex flex-col items-center gap-4 rounded-3xl bg-white/5 p-8 text-center transition hover:bg-white/10"
             >
@@ -43,6 +44,7 @@ export default function BrandsPage() {
                 <span className="mt-1 block text-sm text-neutral-500">{b.products_count} منتج</span>
               </span>
             </Link>
+            </Reveal>
           ))}
         </div>
       )}

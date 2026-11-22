@@ -3,6 +3,8 @@ import { CartProvider } from "@/components/store/CartContext";
 import { WishlistProvider } from "@/components/store/WishlistContext";
 import Analytics from "@/components/store/Analytics";
 import Header from "@/components/store/Header";
+import BackToTop from "@/components/store/BackToTop";
+import MotionProvider from "@/components/store/MotionProvider";
 import Footer from "@/components/store/Footer";
 import { getSettings } from "@/lib/settings";
 import { getDb } from "@/lib/db";
@@ -15,6 +17,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
   const db = getDb();
   const cats = db.prepare("SELECT name, slug FROM categories WHERE active = 1 ORDER BY sort_order").all() as Pick<Category, "name" | "slug">[];
   return (
+    <MotionProvider>
     <CartProvider>
       <WishlistProvider>
         <Analytics metaPixel={s.meta_pixel_id || ""} tiktokPixel={s.tiktok_pixel_id || ""} gaId={s.ga_id || ""} />
@@ -24,7 +27,9 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
         <Header storeName={s.store_name || "آي ستور"} categories={cats} />
         <main className="min-h-[60vh]">{children}</main>
         <Footer />
+        <BackToTop />
       </WishlistProvider>
     </CartProvider>
+    </MotionProvider>
   );
 }
