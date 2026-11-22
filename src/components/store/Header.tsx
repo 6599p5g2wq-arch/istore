@@ -33,9 +33,9 @@ export default function Header({ storeName, categories }: { storeName: string; c
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between gap-4">
-            <Link href="/" className="flex items-center gap-2 font-extrabold text-xl tracking-tight text-white">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--text)] text-[var(--bg)]"><Store size={20} /></span>
-              {storeName}
+            <Link href="/" className="flex items-center gap-2 font-extrabold text-lg sm:text-xl tracking-tight text-white">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--text)] text-[var(--bg)]"><Store size={20} /></span>
+              <span className="max-[360px]:hidden">{storeName}</span>
             </Link>
             <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-[var(--text-dim)]">
               <Link href="/products" className="hover:text-[var(--text)] transition-colors">كل المنتجات</Link>
@@ -45,13 +45,13 @@ export default function Header({ storeName, categories }: { storeName: string; c
               ))}
             </nav>
             <div className="flex items-center gap-1">
-              <ThemeToggle />
+              <div className="hidden sm:block"><ThemeToggle /></div>
               <button onClick={() => setSearch(true)} aria-label="بحث" className="grid h-10 w-10 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)] transition-colors"><Search size={20} /></button>
               <Link href="/wishlist" aria-label="المفضلة" className="relative grid h-10 w-10 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)] transition-colors">
                 <Heart size={20} />
                 {wishCount > 0 && <span className="absolute -top-0.5 -left-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">{wishCount}</span>}
               </Link>
-              <Link href="/account" aria-label="حسابي" className="hidden sm:grid h-10 w-10 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)] transition-colors"><UserRound size={20} /></Link>
+              <Link href="/account" aria-label="حسابي" className="grid h-10 w-10 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)] transition-colors"><UserRound size={20} /></Link>
               <button onClick={() => setOpen(true)} aria-label="السلة" className="relative grid h-10 w-10 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)] transition-colors">
                 <ShoppingBag size={20} />
                 <AnimatePresence>
@@ -86,7 +86,12 @@ export default function Header({ storeName, categories }: { storeName: string; c
                   <Link key={c.slug} onClick={() => setMenu(false)} href={`/products?category=${c.slug}`} className="rounded-lg px-3 py-2.5 hover:bg-[var(--chip)] text-[var(--text-dim)]">{c.name}</Link>
                 ))}
                 <div className="my-2 border-t border-[var(--border)]" />
+                <Link onClick={() => setMenu(false)} href="/account" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]"><UserRound size={18} /> حسابي</Link>
                 <Link onClick={() => setMenu(false)} href="/track" className="rounded-lg px-3 py-2.5 hover:bg-[var(--chip)] text-[var(--text-dim)]">تتبع طلبك</Link>
+                <div className="mt-2 flex items-center justify-between rounded-lg px-3 py-2.5 text-[var(--text-dim)]">
+                  <span>المظهر</span>
+                  <ThemeToggle />
+                </div>
               </nav>
             </motion.div>
           </motion.div>
