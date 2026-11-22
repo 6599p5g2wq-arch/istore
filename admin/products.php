@@ -24,20 +24,21 @@ $products = $search
 admin_header('المنتجات', 'products.php');
 ?>
 <div class="flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-2xl font-black sm:text-3xl">المنتجات <span class="text-base font-bold text-neutral-400">(<?= count($products) ?>)</span></h1>
+  <h1 class="text-2xl font-black sm:text-3xl">المنتجات <span class="text-base font-bold text-neutral-400">(<span id="products-count"><?= count($products) ?></span>)</span></h1>
   <a href="<?= e(admin_url('product-form.php')) ?>" class="admin-btn"><?= icon('plus', 16) ?> منتج جديد</a>
 </div>
 <?php admin_msg(); ?>
 <form class="mt-5 flex gap-2">
-  <input name="q" value="<?= e($search) ?>" placeholder="بحث بالاسم..." class="admin-input max-w-xs">
+  <input id="products-search" name="q" value="<?= e($search) ?>" placeholder="بحث بالاسم..." autocomplete="off" class="admin-input max-w-xs">
   <button class="admin-btn-ghost"><?= icon('search', 16) ?> بحث</button>
 </form>
 <div class="admin-card mt-5 overflow-x-auto">
   <table class="admin-table w-full min-w-[760px]">
     <thead><tr><th>المنتج</th><th>التصنيف</th><th>الماركة</th><th>السعر</th><th>المخزون</th><th>مميز</th><th>ظاهر</th><th></th></tr></thead>
     <tbody>
+      <tr id="products-empty" style="display:none"><td colspan="8" class="p-6 text-center text-sm font-bold text-neutral-400">لا توجد منتجات مطابقة</td></tr>
     <?php foreach ($products as $p): ?>
-      <tr class="<?= $p['active'] ? '' : 'opacity-50' ?>">
+      <tr data-name="<?= e(mb_strtolower($p['name'])) ?>" class="js-product-row <?= $p['active'] ? '' : 'opacity-50' ?>">
         <td><div class="flex items-center gap-3"><img src="<?= e(img_url($p['image'])) ?>" class="h-11 w-11 rounded-xl object-cover" alt=""><a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="max-w-[220px] truncate font-bold hover:text-violet-700"><?= e($p['name']) ?></a></div></td>
         <td><?= e($p['cat'] ?? '—') ?></td>
         <td><?= e($p['brand'] ?? '—') ?></td>
@@ -54,5 +55,22 @@ admin_header('المنتجات', 'products.php');
     <?php if (!$products): ?><tr><td colspan="8" class="py-10 text-center text-neutral-400">لا توجد منتجات</td></tr><?php endif; ?>
     </tbody>
   </table>
+  <script>
+  // بحث حي: يفلتر مع كل حرف بدون زر، وتفريغ الحقل يعيد كل المنتجات
+  (function () {
+    var input = document.getElementById('products-search');
+    if (!input) return;
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase(), visible = 0;
+      document.querySelectorAll('.js-product-row').forEach(function (row) {
+        var show = !q || (row.dataset.name || '').indexOf(q) !== -1;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      document.getElementById('products-count').textContent = visible;
+      document.getElementById('products-empty').style.display = visible === 0 ? '' : 'none';
+    });
+  })();
+  </script>
 </div>
 <?php admin_footer(); ?>
