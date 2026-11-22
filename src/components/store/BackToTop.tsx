@@ -28,7 +28,7 @@ export default function BackToTop() {
           transition={{ duration: 0.25 }}
           onClick={toTop}
           aria-label="العودة للأعلى"
-          className="fixed bottom-6 left-6 z-40 grid h-11 w-11 place-items-center rounded-full bg-[var(--accent)] text-white shadow-lg shadow-black/40 transition hover:brightness-110"
+          className="glow-btn fixed bottom-6 left-6 z-40 grid h-11 w-11 place-items-center rounded-full transition hover:brightness-110"
         >
           <ArrowUp size={20} />
         </motion.button>

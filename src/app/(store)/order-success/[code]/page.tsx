@@ -52,7 +52,7 @@ export default function OrderSuccessPage({ params }: { params: { code: string } 
       </Reveal>
 
       <Reveal delay={0.25} className="mt-8 flex flex-wrap justify-center gap-4">
-        <Link href="/track" className="rounded-full bg-[var(--accent)] px-8 py-3.5 font-bold text-white shadow-lg transition hover:opacity-90">تتبع طلبك</Link>
+        <Link href="/track" className="glow-btn rounded-full px-8 py-3.5 font-bold transition hover:opacity-90">تتبع طلبك</Link>
         <Link href="/products" className="rounded-full border border-[var(--border-strong)] px-8 py-3.5 font-bold text-[var(--text)] transition hover:bg-[var(--chip)]">متابعة التسوق</Link>
         {s.whatsapp && (
           <a href={`https://wa.me/${s.whatsapp}?text=${encodeURIComponent(`مرحباً، أريد الاستفسار عن طلبي ${order.code}`)}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-full bg-emerald-500 px-8 py-3.5 font-bold text-white shadow-lg transition hover:opacity-90">

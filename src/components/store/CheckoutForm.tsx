@@ -190,7 +190,7 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
             whileTap={{ scale: 0.97 }}
             type="submit"
             disabled={loading}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-white py-4 text-lg font-bold text-black shadow-lg transition hover:bg-neutral-200 disabled:opacity-60"
+            className="glow-btn mt-6 flex w-full items-center justify-center gap-2 rounded-full py-4 text-lg font-bold transition hover:brightness-110 disabled:opacity-60"
           >
             {loading ? <Loader2 size={20} className="animate-spin" /> : <Banknote size={20} />}
             {loading ? "جاري تأكيد الطلب…" : "تأكيد الطلب"}

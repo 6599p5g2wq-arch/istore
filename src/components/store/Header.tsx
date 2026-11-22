@@ -29,7 +29,7 @@ export default function Header({ storeName, categories }: { storeName: string; c
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "glass shadow-lg shadow-black/30 border-b border-[var(--border)]" : "bg-[var(--bg)]"}`}
+        className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "glass shadow-lg shadow-black/30 border-b border-[var(--border)]" : "bg-transparent"}`}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between gap-4">

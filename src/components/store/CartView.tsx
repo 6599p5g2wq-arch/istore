@@ -56,7 +56,7 @@ export default function CartView() {
           <span className="font-bold text-white">الإجمالي التقريبي</span>
           <span className="font-extrabold text-[var(--accent)]">{formatPrice(total)}</span>
         </div>
-        <Link href="/checkout" className="mt-6 flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] py-3.5 font-bold text-white shadow-lg transition hover:opacity-90">
+        <Link href="/checkout" className="glow-btn mt-6 flex items-center justify-center gap-2 rounded-full py-3.5 font-bold transition hover:opacity-90">
           إتمام الطلب <ArrowLeft size={17} />
         </Link>
         <Link href="/products" className="mt-3 block text-center text-sm font-bold text-[var(--text-dim)] hover:text-[var(--text)]">متابعة التسوق</Link>

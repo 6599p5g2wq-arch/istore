@@ -40,7 +40,7 @@ export default function StockAlertForm({ productId }: { productId: number }) {
           placeholder="بريدك الإلكتروني أو رقم هاتفك"
           className="flex-1 rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2.5 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-[var(--accent)]"
         />
-        <button disabled={state === "loading"} className="rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60">
+        <button disabled={state === "loading"} className="glow-btn rounded-xl px-5 py-2.5 text-sm font-bold disabled:opacity-60">
           {state === "loading" ? <Loader2 size={16} className="animate-spin" /> : "أعلمني"}
         </button>
       </div>

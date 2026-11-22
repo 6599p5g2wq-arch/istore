@@ -32,7 +32,7 @@ export default function AddToCartPanel({ product }: { product: Product }) {
         whileTap={{ scale: 0.96 }}
         disabled={out}
         onClick={() => { add(item, qty); router.push("/checkout"); }}
-        className={`flex items-center justify-center gap-2 rounded-full py-4 font-bold shadow-lg transition px-8 ${out ? "cursor-not-allowed bg-neutral-200 text-[var(--text-dim)]" : "bg-[var(--accent)] text-white hover:opacity-90"}`}
+        className={`flex items-center justify-center gap-2 rounded-full py-4 font-bold shadow-lg transition px-8 ${out ? "cursor-not-allowed bg-neutral-200 text-[var(--text-dim)]" : "glow-btn hover:opacity-90"}`}
       >
         <Zap size={19} /> اشترِ الآن
       </motion.button>

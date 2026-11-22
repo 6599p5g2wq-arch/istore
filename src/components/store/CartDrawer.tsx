@@ -60,7 +60,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
                   <span className="text-[var(--text-dim)]">المجموع الفرعي</span>
                   <span className="text-xl font-extrabold text-white">{formatPrice(total)}</span>
                 </div>
-                <Link href="/checkout" onClick={onClose} className="block rounded-full bg-[var(--accent)] py-3.5 text-center font-bold text-white hover:opacity-90 transition-opacity">إتمام الطلب</Link>
+                <Link href="/checkout" onClick={onClose} className="glow-btn block rounded-full py-3.5 text-center font-bold hover:opacity-90 transition-opacity">إتمام الطلب</Link>
                 <Link href="/cart" onClick={onClose} className="mt-2 block rounded-full border border-[var(--border-strong)] py-3 text-center text-sm font-bold text-[var(--text)] hover:bg-[var(--card)] transition-colors">عرض السلة</Link>
               </div>
             )}

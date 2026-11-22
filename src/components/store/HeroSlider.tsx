@@ -34,7 +34,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
 
   return (
     <section ref={sectionRef} className="relative mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-      <div className="relative overflow-hidden rounded-[2rem] bg-neutral-950 text-white shadow-2xl ring-1 ring-white/10">
+      <div className="on-dark relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#140b30]/85 text-white shadow-[0_30px_90px_-20px_rgba(123,47,247,.45)] backdrop-blur-xl">
         <AnimatePresence mode="wait" custom={dir}>
           <motion.div
             key={s.id}
@@ -68,7 +68,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                 {s.subtitle}
               </motion.p>
               <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.7 }} className="mt-8 flex flex-wrap items-center gap-4">
-                <Link href={s.cta_link} className="group inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 font-bold text-black shadow-lg transition hover:scale-[1.03] hover:shadow-[0_10px_40px_-6px_rgba(255,255,255,.4)]">
+                <Link href={s.cta_link} className="glow-btn group inline-flex items-center gap-2 rounded-full px-8 py-3.5 font-bold transition hover:scale-[1.03]">
                   {s.cta_text}
                   <ChevronLeft size={18} className="transition-transform group-hover:-translate-x-1" />
                 </Link>
