@@ -28,7 +28,9 @@ html.light {
   color-scheme: light;
 }
 .glow-btn { background: linear-gradient(90deg,#00c6ff,#7b2ff7); color: #fff; box-shadow: 0 10px 34px -8px rgba(123,47,247,.55); }
-.glow-btn:hover { filter: brightness(1.1); }
+@media (hover: hover) {
+  .glow-btn:hover { filter: brightness(1.1); }
+}
 html.light .glow-btn { color: #fff; }
 .glass-card { backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 html { scroll-behavior: smooth; }
@@ -71,7 +73,9 @@ html.light .shadow-black\/30 { --tw-shadow-color: rgba(0,0,0,.08); }
 .glass { background: rgba(16,9,42,.62); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 ::-webkit-scrollbar-track { background: #150b33; }
 ::-webkit-scrollbar-thumb { background: #3b2f63; }
-::-webkit-scrollbar-thumb:hover { background: #51417f; }
+@media (hover: hover) {
+  ::-webkit-scrollbar-thumb:hover { background: #51417f; }
+}
 html.light ::-webkit-scrollbar-track { background: #e8ecf8; }
 html.light ::-webkit-scrollbar-thumb { background: #b9c3e2; }
 .text-balance { text-wrap: balance; }
@@ -80,8 +84,8 @@ html.light ::-webkit-scrollbar-thumb { background: #b9c3e2; }
 .no-scrollbar { scrollbar-width:none; }
 
 /* ظهور العناصر عند التمرير (بديل Framer Motion) */
-.reveal { opacity: 0; transform: translateY(24px); transition: opacity .55s cubic-bezier(.22,1,.36,1), transform .55s cubic-bezier(.22,1,.36,1); }
-.reveal.in { opacity: 1; transform: none; }
+.reveal { opacity: 0; transition: opacity .55s cubic-bezier(.22,1,.36,1); }
+.reveal.in { opacity: 1; }
 
 /* السلايدر الرئيسي */
 .hero-slide { opacity: 0; transform: translateX(-36px) scale(.99); transition: opacity .85s cubic-bezier(.32,.72,0,1), transform .85s cubic-bezier(.32,.72,0,1); pointer-events: none; position: absolute; inset: 0; }

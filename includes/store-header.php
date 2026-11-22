@@ -18,7 +18,7 @@ try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=matchMedia
 </script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
-tailwind.config = { corePlugins: { preflight: true }, theme: { extend: {} } };
+tailwind.config = { future: { hoverOnlyWhenSupported: true }, corePlugins: { preflight: true }, theme: { extend: {} } };
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
