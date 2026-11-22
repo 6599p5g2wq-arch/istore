@@ -18,6 +18,11 @@ define('DB_SOCKET', ''); // اتركه فارغاً إلا إذا طُلب من�
 define('RESEND_API_KEY', '');
 define('NOTIFY_EMAIL', ''); // بريدك لاستقبال إشعار عند كل طلب جديد
 
+// ---- إشعارات تيليجرام ----
+// اضبطهما هنا أو من لوحة /control (إعدادات اللوحة تتقدم على هذه القيم)
+define('TELEGRAM_BOT_TOKEN', ''); // من @BotFather
+define('TELEGRAM_CHAT_ID', ''); // معرف المحادثة مع البوت
+
 // ---- لوحة التحكم (/admin) ----
 define('ADMIN_USERNAME', 'admin');
 define('ADMIN_PASSWORD', 'admin123'); // غيّرها فوراً من لوحة التحكم بعد أول دخول

@@ -75,4 +75,9 @@ try {
         'items' => $lines, 'subtotal' => $subtotal, 'discount' => $discount, 'couponCode' => $couponCode, 'deliveryFee' => $deliveryFee,
         'total' => $subtotal - $discount + $deliveryFee]);
 } catch (Throwable $e) { /* ignore */ }
+// تنبيه تيليجرام للمالك — لا يؤثر على إتمام الطلب إطلاقاً
+try {
+    tg_order_alert(['order_id' => $orderId, 'code' => $code, 'customer' => $name, 'phone' => $phone, 'city' => $city,
+        'items' => $lines, 'total' => $subtotal - $discount + $deliveryFee]);
+} catch (Throwable $e) { /* ignore */ }
 json_response(['ok' => true, 'code' => $code]);

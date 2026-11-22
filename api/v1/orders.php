@@ -99,6 +99,11 @@ if ($m === 'POST') {
             'items' => $lines, 'subtotal' => $subtotal, 'discount' => $discount, 'couponCode' => $couponCode, 'deliveryFee' => $deliveryFee,
             'total' => $subtotal - $discount + $deliveryFee]);
     } catch (Throwable $e) { /* ignore */ }
+    // تنبيه تيليجرام للمالك — لا يؤثر على إتمام الطلب إطلاقاً
+    try {
+        tg_order_alert(['order_id' => $orderId, 'code' => $code, 'customer' => $name, 'phone' => $phone, 'city' => $city,
+            'items' => $lines, 'total' => $subtotal - $discount + $deliveryFee]);
+    } catch (Throwable $e) { /* ignore */ }
     api_ok(['code' => $code, 'total' => $subtotal - $discount + $deliveryFee, 'delivery_fee' => $deliveryFee, 'discount' => $discount], 201);
 }
 api_fail('Method not allowed', 405);

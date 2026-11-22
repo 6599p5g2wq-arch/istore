@@ -5,6 +5,7 @@ require APP_ROOT . '/config.php';
 require APP_ROOT . '/includes/db.php';
 require APP_ROOT . '/includes/helpers.php';
 require APP_ROOT . '/includes/variants.php';
+require APP_ROOT . '/includes/telegram.php';
 
 // رابط جذر الموقع تلقائياً (يعمل داخل مجلد فرعي في XAMPP أو على جذر الدومين)
 if (!defined('BASE_URL')) {
