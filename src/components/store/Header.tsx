@@ -38,6 +38,7 @@ export default function Header({ storeName, categories }: { storeName: string; c
             </Link>
             <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-neutral-400">
               <Link href="/products" className="hover:text-white transition-colors">كل المنتجات</Link>
+              <Link href="/brands" className="hover:text-white transition-colors">الماركات</Link>
               {categories.slice(0, 5).map((c) => (
                 <Link key={c.slug} href={`/products?category=${c.slug}`} className="hover:text-white transition-colors">{c.name}</Link>
               ))}
@@ -77,6 +78,7 @@ export default function Header({ storeName, categories }: { storeName: string; c
               <nav className="flex flex-col gap-1 text-base font-medium">
                 <Link onClick={() => setMenu(false)} href="/" className="rounded-lg px-3 py-2.5 text-neutral-100 hover:bg-white/10">الرئيسية</Link>
                 <Link onClick={() => setMenu(false)} href="/products" className="rounded-lg px-3 py-2.5 text-neutral-100 hover:bg-white/10">كل المنتجات</Link>
+                <Link onClick={() => setMenu(false)} href="/brands" className="rounded-lg px-3 py-2.5 text-neutral-100 hover:bg-white/10">الماركات</Link>
                 <div className="my-2 border-t border-white/10" />
                 {categories.map((c) => (
                   <Link key={c.slug} onClick={() => setMenu(false)} href={`/products?category=${c.slug}`} className="rounded-lg px-3 py-2.5 hover:bg-white/10 text-neutral-400">{c.name}</Link>
