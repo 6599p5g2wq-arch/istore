@@ -49,6 +49,22 @@ html.light :is(.on-dark, .bg-red-500, .bg-emerald-500, .bg-emerald-600, .bg-gree
 html.light .text-white:is(.on-dark, .bg-red-500, .bg-emerald-500, .bg-emerald-600, .bg-green-500, .bg-green-600, .bg-black, .bg-neutral-950, .bg-neutral-900, [class*="bg-[var(--accent)]"]) { color: #fff; }
 html.light .glass { background: rgba(255,255,255,.66); }
 html.light .shadow-black\/30 { --tw-shadow-color: rgba(0,0,0,.08); }
+/* Admin & control panels are always light UIs, independent of the storefront theme */
+.light-scope {
+  --bg: #eef1fb;
+  --surface: rgba(255,255,255,0.66);
+  --surface-2: rgba(255,255,255,0.5);
+  --card: rgba(255,255,255,0.62);
+  --chip: rgba(15,20,60,0.06);
+  --chip-hover: rgba(15,20,60,0.1);
+  --border: rgba(15,20,60,0.1);
+  --border-strong: rgba(15,20,60,0.16);
+  --text: #171b33;
+  --text-dim: #4c5270;
+  --text-faint: #7a7f99;
+  color: #171b33;
+  color-scheme: light;
+}
 ::selection { background: var(--accent); color: white; }
 ::-webkit-scrollbar { width: 10px; height: 8px; }
 ::-webkit-scrollbar-thumb { border-radius: 8px; }

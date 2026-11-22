@@ -12,7 +12,7 @@ export default function ControlPanelLayout({ children }: { children: React.React
   if (!getControlSession()) redirect("/control/login");
   const s = getSettings();
   return (
-    <div className="min-h-screen bg-[#f5f5f7]">
+    <div className="light-scope min-h-screen bg-[#f5f5f7]">
       <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-8">
           <div className="flex items-center gap-2.5 font-extrabold">

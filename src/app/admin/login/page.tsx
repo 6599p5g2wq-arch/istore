@@ -11,7 +11,7 @@ export default function AdminLoginPage() {
   if (getSessionAdmin()) redirect("/admin");
   const s = getSettings();
   return (
-    <div className="grid min-h-screen place-items-center bg-neutral-950 p-4">
+    <div className="light-scope grid min-h-screen place-items-center bg-neutral-950 p-4">
       <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
         <div className="mb-8 text-center">
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-black text-white"><Lock size={24} /></span>
