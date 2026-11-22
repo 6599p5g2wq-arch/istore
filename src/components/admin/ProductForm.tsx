@@ -1,7 +1,8 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Loader2, Save, Plus, Trash2, ArrowRight } from "lucide-react";
 import ImagePicker from "./ImagePicker";
 import type { Brand, Category, Product, ProductOption, ProductVariant } from "@/lib/types";
 
@@ -236,6 +237,9 @@ export default function ProductForm({ product, categories, brands, variants }: {
         <button disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-full bg-black py-4 font-bold text-white shadow-lg transition hover:bg-neutral-800 disabled:opacity-60">
           {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} {isEdit ? "حفظ التعديلات" : "إضافة المنتج"}
         </button>
+        <Link href="/admin/products" className="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white py-3.5 font-bold text-neutral-700 transition hover:bg-neutral-100">
+          <ArrowRight size={18} /> رجوع بدون حفظ
+        </Link>
       </div>
     </form>
   );
