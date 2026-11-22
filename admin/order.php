@@ -26,6 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['status'] ?? '', $v
     redirect_admin('order.php?id=' . $id);
 }
 $items = qall('SELECT * FROM order_items WHERE order_id = ?', [$id]);
+// الرجوع يحافظ على حالة القائمة (فلتر الحالة) إن جاء المستخدم منها
+$backUrl = admin_url('orders.php');
+$ref = $_SERVER['HTTP_REFERER'] ?? '';
+if ($ref && preg_match('~^https?://' . preg_quote($_SERVER['HTTP_HOST'] ?? '', '~') . '~', $ref) && str_contains($ref, '/admin/orders.php')) {
+    $backUrl = $ref;
+}
 // رسالة واتساب جاهزة للعميل: كود الطلب + حالته — قابلة للتعديل في واتساب قبل الإرسال
 $waPhone = preg_replace('/\D+/', '', preg_replace('/^0/', '218', $order['phone']));
 $waText = 'السلام عليكم ' . $order['customer_name'] . '، معك ' . setting('store_name', 'آي ستور') . ".
@@ -38,7 +44,7 @@ admin_header('طلب ' . $order['code'], 'orders.php');
 ?>
 <div class="flex flex-wrap items-center justify-between gap-3">
   <h1 class="text-2xl font-black sm:text-3xl">طلب <span dir="ltr"><?= e($order['code']) ?></span></h1>
-  <a href="<?= e(admin_url('orders.php')) ?>" class="admin-btn-ghost"><?= icon('arrow-left', 16) ?> كل الطلبات</a>
+  <a href="<?= e($backUrl) ?>" class="admin-btn-ghost"><?= icon('arrow-left', 16) ?> رجوع للطلبات</a>
 </div>
 <?php admin_msg(); ?>
 <div class="mt-6 grid gap-5 lg:grid-cols-3">
