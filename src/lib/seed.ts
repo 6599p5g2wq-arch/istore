@@ -124,5 +124,8 @@ export function seedIfEmpty(db: Database.Database) {
   for (const b of BANNERS) insertBanner.run(b.title, b.subtitle, b.image, b.link, b.sort_order);
 
   const salt = crypto.randomBytes(16).toString("hex");
-  db.prepare("INSERT INTO admin_users (username, pass_hash, salt) VALUES (?, ?, ?)").run("admin", hashPassword("admin123", salt), salt);
+  const adminUser = process.env.ADMIN_USERNAME || "admin";
+  const adminPass = process.env.ADMIN_PASSWORD || "admin123";
+  if (!process.env.ADMIN_PASSWORD) console.warn("[seed] ADMIN_PASSWORD not set - seeding the default starter admin credential. Set ADMIN_PASSWORD in production.");
+  db.prepare("INSERT INTO admin_users (username, pass_hash, salt) VALUES (?, ?, ?)").run(adminUser, hashPassword(adminPass, salt), salt);
 }
