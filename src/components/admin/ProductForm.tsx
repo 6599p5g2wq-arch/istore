@@ -3,19 +3,20 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save } from "lucide-react";
 import ImagePicker from "./ImagePicker";
-import type { Category, Product } from "@/lib/types";
+import type { Brand, Category, Product } from "@/lib/types";
 
-export default function ProductForm({ product, categories }: { product?: Product; categories: Category[] }) {
+export default function ProductForm({ product, categories, brands }: { product?: Product; categories: Category[]; brands: Brand[] }) {
   const router = useRouter();
   const isEdit = !!product;
   const [form, setForm] = useState<{
-    name: string; slug: string; category_id: number | ""; description: string;
+    name: string; slug: string; category_id: number | ""; brand_id: number | ""; description: string;
     price: number | ""; old_price: number | ""; stock: number; image: string;
     badge: string; rating: number; featured: boolean; active: boolean;
   }>({
     name: product?.name || "",
     slug: product?.slug || "",
     category_id: product?.category_id || (categories[0]?.id ?? ""),
+    brand_id: product?.brand_id ?? "",
     description: product?.description || "",
     price: product?.price ?? "",
     old_price: product?.old_price ?? "",
@@ -37,6 +38,7 @@ export default function ProductForm({ product, categories }: { product?: Product
     const payload = {
       ...form,
       category_id: form.category_id === "" ? null : Number(form.category_id),
+      brand_id: form.brand_id === "" ? null : Number(form.brand_id),
       price: Number(form.price) || 0,
       old_price: form.old_price === "" ? null : Number(form.old_price),
       stock: Number(form.stock) || 0,
@@ -81,6 +83,13 @@ export default function ProductForm({ product, categories }: { product?: Product
             <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value === "" ? "" : Number(e.target.value) })} className={`mt-1.5 ${inputCls}`}>
               <option value="">بدون تصنيف</option>
               {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </label>
+          <label className="block text-sm font-bold">
+            الماركة
+            <select value={form.brand_id} onChange={(e) => setForm({ ...form, brand_id: e.target.value === "" ? "" : Number(e.target.value) })} className={`mt-1.5 ${inputCls}`}>
+              <option value="">بدون ماركة</option>
+              {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
           </label>
           <div className="grid grid-cols-2 gap-3">

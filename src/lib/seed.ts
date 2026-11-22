@@ -103,6 +103,11 @@ export function seedIfEmpty(db: Database.Database) {
     catIds[c.slug] = Number(r.lastInsertRowid);
   }
 
+  const insertBrand = db.prepare("INSERT INTO brands (name, slug, image, sort_order) VALUES (?, ?, '', ?)");
+  for (const [name, slug, sort] of [["Apple", "apple", 1], ["Anker", "anker", 2], ["Belkin", "belkin", 3], ["Baseus", "baseus", 4]]) {
+    insertBrand.run(name, slug, sort);
+  }
+
   const insertProduct = db.prepare(
     `INSERT INTO products (name, slug, category_id, description, price, old_price, stock, image, badge, featured, rating)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
@@ -113,6 +118,7 @@ export function seedIfEmpty(db: Database.Database) {
     insertProduct.run(name, slug, catIds[cat], desc, price, oldPrice, stock, image, badge, featured, ratings[i % ratings.length]);
     i++;
   }
+  db.prepare("UPDATE products SET brand_id = (SELECT id FROM brands WHERE slug = 'apple')").run();
 
   const insertCity = db.prepare("INSERT INTO cities (name, fee, sort_order) VALUES (?, ?, ?)");
   for (const [name, fee, order] of CITIES) insertCity.run(name, fee, order);

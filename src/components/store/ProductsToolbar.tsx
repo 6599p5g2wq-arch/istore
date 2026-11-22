@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 
-export default function ProductsToolbar({ categories }: { categories: { name: string; slug: string }[] }) {
+export default function ProductsToolbar({ categories, brands }: { categories: { name: string; slug: string }[]; brands?: { name: string; slug: string }[] }) {
   const router = useRouter();
   const sp = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
@@ -25,6 +25,16 @@ export default function ProductsToolbar({ categories }: { categories: { name: st
           <button onClick={() => setShowFilters(!showFilters)} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${showFilters ? "bg-[var(--accent)] text-white" : "bg-white/10 text-neutral-200 hover:bg-white/15"}`}>
             <SlidersHorizontal size={15} /> فلاتر
           </button>
+          {brands && brands.length > 0 && (
+            <select
+              value={sp.get("brand") || ""}
+              onChange={(e) => set("brand", e.target.value)}
+              className="rounded-full border border-white/15 bg-[#0e0e16] px-4 py-2 text-sm font-bold text-neutral-100 outline-none"
+            >
+              <option value="">كل الماركات</option>
+              {brands.map((b) => <option key={b.slug} value={b.slug}>{b.name}</option>)}
+            </select>
+          )}
           <select
             value={sp.get("sort") || "newest"}
             onChange={(e) => set("sort", e.target.value)}

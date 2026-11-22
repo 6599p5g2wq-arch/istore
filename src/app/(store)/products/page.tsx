@@ -3,7 +3,7 @@ import { getDb } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
 import ProductCard from "@/components/store/ProductCard";
 import ProductsToolbar from "@/components/store/ProductsToolbar";
-import type { Category, Product } from "@/lib/types";
+import type { Brand, Category, Product } from "@/lib/types";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +20,7 @@ export default function ProductsPage({ searchParams }: { searchParams: Record<st
   const db = getDb();
   const s = getSettings();
   const cats = db.prepare("SELECT * FROM categories WHERE active = 1 ORDER BY sort_order").all() as Category[];
+  const brands = db.prepare("SELECT * FROM brands WHERE active = 1 ORDER BY sort_order").all() as Brand[];
 
   const cat = searchParams.category || "";
   const q = (searchParams.q || "").trim();
@@ -31,13 +32,16 @@ export default function ProductsPage({ searchParams }: { searchParams: Record<st
   const where: string[] = ["p.active = 1"];
   const params: unknown[] = [];
   if (cat) { where.push("c.slug = ?"); params.push(cat); }
+  const brand = searchParams.brand || "";
+  if (brand) { where.push("b.slug = ?"); params.push(brand); }
   if (q) { where.push("(p.name LIKE ? OR p.description LIKE ?)"); params.push(`%${q}%`, `%${q}%`); }
   if (offers) { where.push("p.old_price IS NOT NULL AND p.old_price > p.price"); }
   if (min !== null) { where.push("p.price >= ?"); params.push(min); }
   if (max !== null) { where.push("p.price <= ?"); params.push(max); }
 
   const products = db.prepare(
-    `SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id = p.category_id
+    `SELECT p.*, c.name AS category_name, b.name AS brand_name, b.slug AS brand_slug FROM products p
+     LEFT JOIN categories c ON c.id = p.category_id LEFT JOIN brands b ON b.id = p.brand_id
      WHERE ${where.join(" AND ")} ORDER BY ${sort}`
   ).all(...params) as Product[];
 
@@ -49,7 +53,7 @@ export default function ProductsPage({ searchParams }: { searchParams: Record<st
       {activeCat?.description && <p className="mt-2 text-neutral-500">{activeCat.description}</p>}
       {q && <p className="mt-2 text-neutral-500">نتائج البحث عن «{q}»: {products.length} منتج</p>}
 
-      <ProductsToolbar categories={cats} />
+      <ProductsToolbar categories={cats} brands={brands} />
 
       {products.length === 0 ? (
         <div className="grid place-items-center rounded-3xl bg-white/5 py-24 text-center">

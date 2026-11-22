@@ -170,12 +170,21 @@ function initSchema(db: Database.Database) {
     customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
     expires_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS brands (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    image TEXT NOT NULL DEFAULT '',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1
+  );
   `);
   // Migrations for databases created before these columns existed.
   for (const stmt of [
     "ALTER TABLE orders ADD COLUMN discount REAL NOT NULL DEFAULT 0",
     "ALTER TABLE orders ADD COLUMN coupon_code TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE orders ADD COLUMN customer_id INTEGER",
+    "ALTER TABLE products ADD COLUMN brand_id INTEGER",
   ]) {
     try { db.exec(stmt); } catch { /* column already exists */ }
   }

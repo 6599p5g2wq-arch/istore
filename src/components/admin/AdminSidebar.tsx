@@ -2,12 +2,13 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Package, Grid3X3, ShoppingCart, Image, Images, Truck, Settings, Users, LogOut, Store, Menu, X, Apple, TicketPercent, Star, BellRing, ShoppingBag } from "lucide-react";
+import { LayoutDashboard, Package, Grid3X3, ShoppingCart, Image, Images, Truck, Settings, Users, LogOut, Store, Menu, X, Apple, Tag, TicketPercent, Star, BellRing, ShoppingBag } from "lucide-react";
 
 const LINKS = [
   { href: "/admin", label: "لوحة المعلومات", icon: LayoutDashboard, exact: true },
   { href: "/admin/products", label: "المنتجات", icon: Package },
   { href: "/admin/categories", label: "التصنيفات", icon: Grid3X3 },
+  { href: "/admin/brands", label: "الماركات", icon: Tag },
   { href: "/admin/orders", label: "الطلبات", icon: ShoppingCart },
   { href: "/admin/leads", label: "السلات المهجورة", icon: ShoppingBag },
   { href: "/admin/coupons", label: "أكواد الخصم", icon: TicketPercent },

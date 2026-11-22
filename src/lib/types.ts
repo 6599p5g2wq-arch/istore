@@ -1,9 +1,13 @@
 export type Category = { id: number; name: string; slug: string; description: string; image: string; sort_order: number; active: number };
+export type Brand = { id: number; name: string; slug: string; image: string; sort_order: number; active: number };
 export type Product = {
   id: number; name: string; slug: string; category_id: number | null; description: string;
   price: number; old_price: number | null; stock: number; image: string; images: string;
   badge: string; featured: number; active: number; rating: number; created_at: string;
+  brand_id: number | null;
   category_name?: string;
+  brand_name?: string;
+  brand_slug?: string;
 };
 export type Order = {
   id: number; code: string; customer_name: string; phone: string; city: string; address: string;

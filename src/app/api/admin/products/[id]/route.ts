@@ -17,9 +17,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const prev = db.prepare("SELECT stock FROM products WHERE id = ?").get(params.id) as { stock: number };
   const newStock = Number(b.stock) || 0;
   db.prepare(
-    `UPDATE products SET name=?, slug=?, category_id=?, description=?, price=?, old_price=?, stock=?, image=?, images=?, badge=?, featured=?, active=?, rating=? WHERE id=?`
+    `UPDATE products SET name=?, slug=?, category_id=?, brand_id=?, description=?, price=?, old_price=?, stock=?, image=?, images=?, badge=?, featured=?, active=?, rating=? WHERE id=?`
   ).run(
-    b.name?.trim() || "", b.slug?.trim() || "", b.category_id || null, b.description || "",
+    b.name?.trim() || "", b.slug?.trim() || "", b.category_id || null, b.brand_id || null, b.description || "",
     Number(b.price) || 0, b.old_price ? Number(b.old_price) : null, newStock,
     b.image || "", JSON.stringify(Array.isArray(b.images) ? b.images : []),
     b.badge || "", b.featured ? 1 : 0, b.active ? 1 : 0, Number(b.rating) || 4.8, params.id

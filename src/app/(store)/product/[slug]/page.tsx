@@ -28,7 +28,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
   const db = getDb();
   const s = getSettings();
   const product = db.prepare(
-    `SELECT p.*, c.name AS category_name, c.slug AS category_slug FROM products p LEFT JOIN categories c ON c.id = p.category_id WHERE p.slug = ? AND p.active = 1`
+    `SELECT p.*, c.name AS category_name, c.slug AS category_slug, b.name AS brand_name, b.slug AS brand_slug FROM products p LEFT JOIN categories c ON c.id = p.category_id LEFT JOIN brands b ON b.id = p.brand_id WHERE p.slug = ? AND p.active = 1`
   ).get(params.slug) as (Product & { category_slug?: string }) | undefined;
   if (!product) notFound();
 
@@ -78,6 +78,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
           <div>
             <div className="flex items-center gap-3 text-sm">
               {product.category_name && <Link href={`/products?category=${product.category_slug}`} className="rounded-full bg-white/10 px-3 py-1 font-bold text-neutral-300 hover:bg-white/15">{product.category_name}</Link>}
+              {product.brand_name && <Link href={`/products?brand=${product.brand_slug}`} className="rounded-full bg-white/10 px-3 py-1 font-bold text-neutral-300 hover:bg-white/15">{product.brand_name}</Link>}
               <span className="flex items-center gap-1 text-amber-400"><Star size={15} fill="currentColor" /><b>{avgRating.toFixed(1)}</b>{reviews.length > 0 && <span className="text-neutral-500">({reviews.length})</span>}</span>
             </div>
             <h1 className="mt-4 text-3xl font-black leading-snug text-white sm:text-4xl">{product.name}</h1>
