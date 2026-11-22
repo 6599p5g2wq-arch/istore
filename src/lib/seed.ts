@@ -7,6 +7,7 @@ function hashPassword(password: string, salt: string): string {
 
 const DEFAULT_SETTINGS: Record<string, string> = {
   store_name: "آي ستور",
+  site_url: "https://istore-vzrb.onrender.com",
   store_tagline: "وجهتك الأولى لإكسسوارات ومنتجات Apple الأصلية في ليبيا",
   announcement: "توصيل سريع لكل المدن الليبية — الدفع عند الاستلام",
   currency: "د.ل",
