@@ -46,6 +46,13 @@ const SECTIONS: { title: string; fields: { key: string; label: string; area?: bo
     ],
   },
   {
+    title: "إشعارات الطلبات (تيليجرام)",
+    fields: [
+      { key: "telegram_chat_id", label: "معرف المحادثة (Chat ID)", ltr: true },
+      { key: "telegram_bot_token", label: "توكن البوت (Bot Token)", ltr: true },
+    ],
+  },
+  {
     title: "صفحة من نحن",
     fields: [
       { key: "about_text", label: "نبذة عن المتجر", area: true },
@@ -55,19 +62,34 @@ const SECTIONS: { title: string; fields: { key: string; label: string; area?: bo
   },
 ];
 
-export default function SettingsForm({ settings }: { settings: Record<string, string> }) {
+export default function SettingsForm({ settings, telegramTokenSaved = false }: { settings: Record<string, string>; telegramTokenSaved?: boolean }) {
   const router = useRouter();
-  const [form, setForm] = useState(settings);
+  // التوكن لا يُعرض أبداً بعد حفظه: يبدأ الحقل فارغاً ويُحدَّث فقط إن كُتبت قيمة جديدة
+  const [form, setForm] = useState<Record<string, string>>({ ...settings, telegram_bot_token: "" });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [testState, setTestState] = useState<"idle" | "sending" | "ok" | "fail">("idle");
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setSaved(false);
-    await fetch("/api/control/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+    const body: Record<string, string> = { ...form };
+    if (!body.telegram_bot_token) delete body.telegram_bot_token;
+    await fetch("/api/control/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     setLoading(false); setSaved(true);
     router.refresh();
     setTimeout(() => setSaved(false), 2500);
+  };
+
+  const testTelegram = async () => {
+    setTestState("sending");
+    try {
+      const r = await fetch("/api/control/telegram-test", { method: "POST" });
+      setTestState(r.ok ? "ok" : "fail");
+    } catch {
+      setTestState("fail");
+    }
+    setTimeout(() => setTestState("idle"), 4000);
   };
 
   const inputCls = "w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-black focus:ring-4 focus:ring-black/5";
@@ -84,13 +106,26 @@ export default function SettingsForm({ settings }: { settings: Record<string, st
                 {f.area ? (
                   <textarea rows={3} value={form[f.key] || ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} className={`mt-1.5 resize-y ${inputCls}`} />
                 ) : (
-                  <input dir={f.ltr ? "ltr" : undefined} value={form[f.key] || ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} className={`mt-1.5 ${f.ltr ? "text-left" : ""} ${inputCls}`} />
+                  <input
+                    dir={f.ltr ? "ltr" : undefined}
+                    type={f.key === "telegram_bot_token" ? "password" : "text"}
+                    autoComplete="off"
+                    value={form[f.key] || ""}
+                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                    placeholder={f.key === "telegram_bot_token" ? (telegramTokenSaved ? "محفوظ — اتركه فارغاً للإبقاء عليه" : "من @BotFather") : undefined}
+                    className={`mt-1.5 ${f.ltr ? "text-left" : ""} ${inputCls}`}
+                  />
                 )}
               </label>
             ))}
           </div>
         </div>
       ))}
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" onClick={testTelegram} disabled={testState === "sending"} className="rounded-full border border-neutral-300 bg-white px-6 py-3 text-sm font-bold text-neutral-600 transition hover:bg-neutral-100 disabled:opacity-60">
+          {testState === "sending" ? "جارٍ الإرسال..." : testState === "ok" ? "وصلت الرسالة التجريبية ✓" : testState === "fail" ? "فشل الإرسال — راجع التوكن والمعرف" : "إرسال رسالة تجريبية عبر تيليجرام"}
+        </button>
+      </div>
       <button disabled={loading} className="flex items-center gap-2 rounded-full bg-black px-10 py-4 font-bold text-white shadow-lg transition hover:bg-neutral-800 disabled:opacity-60">
         {loading ? <Loader2 size={18} className="animate-spin" /> : saved ? <CheckCircle2 size={18} className="text-emerald-400" /> : <Save size={18} />}
         {saved ? "تم الحفظ" : "حفظ الإعدادات"}

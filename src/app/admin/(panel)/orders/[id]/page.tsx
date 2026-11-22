@@ -19,6 +19,15 @@ export default function OrderDetail({ params }: { params: { id: string } }) {
   if (!order) notFound();
   const items = db.prepare("SELECT * FROM order_items WHERE order_id = ?").all(order.id) as OrderItem[];
 
+  // رسالة واتساب جاهزة للعميل: كود الطلب + حالته الحالية — قابلة للتعديل في واتساب قبل الإرسال
+  const waPhone = order.phone.replace(/[^\d]/g, "").replace(/^0/, "218");
+  const waText = [
+    `السلام عليكم ${order.customer_name}، معك ${s.store_name || "آي ستور"}.`,
+    `طلبك رقم ${order.code}`,
+    `حالة الطلب: ${STATUS_LABEL[order.status] || order.status}`,
+  ].join("\n");
+  const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}`;
+
   return (
     <div className="max-w-3xl">
       <Link href="/admin/orders" className="flex items-center gap-1 text-sm font-bold text-neutral-400 hover:text-black"><ChevronRight size={15} /> رجوع للطلبات</Link>
@@ -35,7 +44,7 @@ export default function OrderDetail({ params }: { params: { id: string } }) {
           <p className="mt-2 flex items-center gap-2 text-sm text-neutral-500"><Phone size={15} /> <a dir="ltr" href={`tel:${order.phone}`} className="hover:text-[var(--accent)]">{order.phone}</a></p>
           <p className="mt-2 flex items-center gap-2 text-sm text-neutral-500"><MapPin size={15} /> {order.city}{order.address ? ` — ${order.address}` : ""}</p>
           {order.notes && <p className="mt-2 flex items-start gap-2 text-sm text-neutral-500"><StickyNote size={15} className="mt-0.5 shrink-0" /> {order.notes}</p>}
-          <a href={`https://wa.me/${order.phone.replace(/[^\d]/g, "").replace(/^0/, "218")}`} target="_blank" rel="noreferrer"
+          <a href={waUrl} target="_blank" rel="noreferrer"
             className="mt-4 inline-block rounded-full bg-emerald-500 px-5 py-2 text-sm font-bold text-white transition hover:opacity-90">مراسلة واتساب</a>
         </div>
         <div className="rounded-3xl bg-white p-6 shadow-sm">

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getDb } from "@/lib/db";
 import { notifyNewOrder } from "@/lib/notify";
+import { sendTelegram } from "@/lib/telegram";
+import { getSetting } from "@/lib/settings";
 import { validateCoupon } from "@/lib/coupons";
 import { getSessionCustomer } from "@/lib/customer-auth";
 import { parseOptions } from "@/lib/variants";
@@ -88,17 +90,31 @@ export async function POST(req: NextRequest) {
     }
     const discountAmt = couponCode ? (validateCoupon(db, couponCode, subtotal) as { ok: true; discount: number }).discount : 0;
     const deliveryFeeFinal = freeThreshold > 0 && subtotal - discountAmt >= freeThreshold ? 0 : cityRow.fee;
-    return { code, lines, subtotal, discount: discountAmt, deliveryFee: deliveryFeeFinal };
+    return { code, orderId, lines, subtotal, discount: discountAmt, deliveryFee: deliveryFeeFinal };
   });
 
   try {
-    const { code, lines, subtotal, discount, deliveryFee } = tx();
+    const { code, orderId, lines, subtotal, discount, deliveryFee } = tx();
     const currency = (db.prepare("SELECT value FROM settings WHERE key = 'currency'").get() as { value: string } | undefined)?.value || "د.ل";
     // Checkout completed: clear any abandoned-cart lead for this phone.
     db.prepare("DELETE FROM cart_leads WHERE phone = ?").run(phone);
     const notifyLines = lines.map((l) => ({ name: l.label ? `${l.name} — ${l.label}` : l.name, price: l.price, qty: l.qty }));
     // Fire-and-forget: never let the notification delay or break checkout.
     notifyNewOrder({ code, customer: name, phone, city, address, notes, items: notifyLines, subtotal, discount, couponCode, deliveryFee, total: subtotal - discount + deliveryFee, currency }).catch(() => {});
+    // تنبيه تيليجرام للمالك — لا يؤثر على إتمام الطلب إطلاقاً
+    const money = (n: number) => `${n.toLocaleString("en-US")} ${currency}`;
+    const siteUrl = getSetting("site_url");
+    const orderUrl = siteUrl ? `${siteUrl.replace(/\/$/, "")}/admin/orders/${orderId}` : "";
+    const tgText = [
+      `🛒 طلب جديد: ${code}`,
+      `الزبون: ${name}`,
+      `الهاتف: ${phone}`,
+      `المدينة: ${city}`,
+      ...notifyLines.map((l) => `• ${l.name} × ${l.qty} — ${money(l.price * l.qty)}`),
+      `الإجمالي: ${money(subtotal - discount + deliveryFee)}`,
+      orderUrl,
+    ].join("\n");
+    sendTelegram(tgText).catch(() => {});
     return NextResponse.json({ ok: true, code });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "حدث خطأ" }, { status: 400 });
