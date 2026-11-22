@@ -108,6 +108,7 @@ admin_header($p ? 'تعديل منتج' : 'منتج جديد', 'products.php');
       <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="active" <?= ($p['active'] ?? 1) ? 'checked' : '' ?> class="h-4 w-4"> ظاهر في المتجر</label>
     </div>
     <button class="admin-btn w-full justify-center py-3.5 text-base"><?= icon('check', 18) ?> حفظ المنتج</button>
+    <a href="<?= e(admin_url('products.php')) ?>" class="admin-btn-ghost w-full justify-center py-3"><?= icon('arrow-left', 16) ?> رجوع بدون حفظ</a>
   </div>
 </form>
 <script>
