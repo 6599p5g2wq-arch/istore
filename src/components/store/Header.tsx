@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, Search, Menu, X, Apple, Heart, UserRound } from "lucide-react";
+import { ShoppingBag, Search, Menu, X, Store, Heart, UserRound } from "lucide-react";
 import { useCart } from "./CartContext";
 import { useWishlist } from "./WishlistContext";
 import CartDrawer from "./CartDrawer";
@@ -34,7 +34,7 @@ export default function Header({ storeName, categories }: { storeName: string; c
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-2 font-extrabold text-xl tracking-tight text-white">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--text)] text-[var(--bg)]"><Apple size={20} /></span>
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--text)] text-[var(--bg)]"><Store size={20} /></span>
               {storeName}
             </Link>
             <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-[var(--text-dim)]">

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Package, Grid3X3, ShoppingCart, Image, Images, Truck, Settings, Users, LogOut, Store, Menu, X, Apple, Tag, TicketPercent, Star, BellRing, ShoppingBag } from "lucide-react";
+import { LayoutDashboard, Package, Grid3X3, ShoppingCart, Image, Images, Truck, Settings, Users, LogOut, Store, Menu, X, Tag, TicketPercent, Star, BellRing, ShoppingBag } from "lucide-react";
 
 const LINKS = [
   { href: "/admin", label: "لوحة المعلومات", icon: LayoutDashboard, exact: true },
@@ -35,7 +35,7 @@ export default function AdminSidebar({ storeName, username }: { storeName: strin
   const nav = (
     <nav className="flex h-full flex-col bg-neutral-950 text-white">
       <div className="flex items-center gap-2 border-b border-white/10 p-5">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-black"><Apple size={19} /></span>
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-black"><Store size={19} /></span>
         <div>
           <p className="font-extrabold leading-tight">{storeName}</p>
           <p className="text-xs text-white/50">لوحة التحكم</p>

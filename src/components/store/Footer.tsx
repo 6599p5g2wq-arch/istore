@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Apple, Phone, Mail, MapPin, Facebook, Instagram, Music2, Clock } from "lucide-react";
+import { Store, Phone, Mail, MapPin, Facebook, Instagram, Music2, Clock } from "lucide-react";
 import { getSettings } from "@/lib/settings";
 import { getDb } from "@/lib/db";
 import type { Category } from "@/lib/types";
@@ -16,7 +16,7 @@ export default function Footer() {
         <div className="grid gap-10 md:grid-cols-4">
           <div>
             <div className="flex items-center gap-2 text-xl font-extrabold text-white">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-black"><Apple size={20} /></span>
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-black"><Store size={20} /></span>
               {s.store_name}
             </div>
             <p className="mt-4 text-sm leading-7 text-neutral-400">{s.store_tagline}</p>
