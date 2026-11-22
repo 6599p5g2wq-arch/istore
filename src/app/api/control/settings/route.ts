@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, bad } from "@/lib/admin-api";
+import { getControlSession } from "@/lib/control-auth";
 import { setSetting } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
 export async function PUT(req: NextRequest) {
-  const auth = requireAdmin(); if (auth) return auth;
+  if (!getControlSession()) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   const b = await req.json().catch(() => ({}));
-  if (typeof b !== "object" || !b) return bad("بيانات غير صالحة");
+  if (typeof b !== "object" || !b) return NextResponse.json({ error: "بيانات غير صالحة" }, { status: 400 });
   for (const [k, v] of Object.entries(b)) {
     if (typeof v === "string" && k.length <= 60 && v.length <= 5000) setSetting(k, v);
   }

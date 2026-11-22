@@ -64,7 +64,7 @@ export default function SettingsForm({ settings }: { settings: Record<string, st
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setSaved(false);
-    await fetch("/api/admin/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+    await fetch("/api/control/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
     setLoading(false); setSaved(true);
     router.refresh();
     setTimeout(() => setSaved(false), 2500);
