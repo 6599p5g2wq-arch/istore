@@ -7,6 +7,8 @@ import { formatPrice } from "@/lib/format";
 import ProductCard from "@/components/store/ProductCard";
 import Reveal from "@/components/store/Reveal";
 import AddToCartPanel from "@/components/store/AddToCartPanel";
+import PurchasePanel from "@/components/store/PurchasePanel";
+import { parseOptions, getVariants } from "@/lib/variants";
 import ProductViewer from "@/components/store/ProductViewer";
 import StockAlertForm from "@/components/store/StockAlertForm";
 import ReviewForm from "@/components/store/ReviewForm";
@@ -41,6 +43,8 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
   const discount = product.old_price && product.old_price > product.price ? Math.round((1 - product.price / product.old_price) * 100) : 0;
   const reviews = db.prepare("SELECT * FROM reviews WHERE product_id = ? AND approved = 1 ORDER BY id DESC LIMIT 20").all(product.id) as Review[];
   const avgRating = reviews.length > 0 ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : product.rating;
+  const productOptions = parseOptions(product.options);
+  const variants = productOptions.length > 0 ? getVariants(db, product.id) : [];
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
@@ -82,25 +86,30 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
               <span className="flex items-center gap-1 text-amber-400"><Star size={15} fill="currentColor" /><b>{avgRating.toFixed(1)}</b>{reviews.length > 0 && <span className="text-[var(--text-faint)]">({reviews.length})</span>}</span>
             </div>
             <h1 className="mt-4 text-3xl font-black leading-snug text-white sm:text-4xl">{product.name}</h1>
-            <div className="mt-5 flex items-baseline gap-3">
-              <span className="text-4xl font-black text-[var(--accent)]">{formatPrice(product.price, s.currency)}</span>
-              {product.old_price && product.old_price > product.price && (
-                <span className="text-xl text-[var(--text-faint)] line-through">{formatPrice(product.old_price, s.currency)}</span>
-              )}
-            </div>
             <p className="mt-6 whitespace-pre-line leading-8 text-[var(--text-dim)]">{product.description}</p>
 
-            <div className="mt-6">
-              {product.stock <= 0 ? (
-                <span className="inline-block rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400">نفدت الكمية — قريباً</span>
-              ) : product.stock <= 5 ? (
-                <span className="inline-block rounded-full bg-orange-500/10 px-4 py-2 text-sm font-bold text-orange-400">باقي {product.stock} فقط — اطلب الآن</span>
-              ) : (
-                <span className="inline-block rounded-full bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-400">متوفر في المخزون</span>
-              )}
-            </div>
-
-            <AddToCartPanel product={product} />
+            {productOptions.length > 0 ? (
+              <PurchasePanel product={product} options={productOptions} variants={variants} currency={s.currency} />
+            ) : (
+              <>
+                <div className="mt-5 flex items-baseline gap-3">
+                  <span className="text-4xl font-black text-[var(--accent)]">{formatPrice(product.price, s.currency)}</span>
+                  {product.old_price && product.old_price > product.price && (
+                    <span className="text-xl text-[var(--text-faint)] line-through">{formatPrice(product.old_price, s.currency)}</span>
+                  )}
+                </div>
+                <div className="mt-6">
+                  {product.stock <= 0 ? (
+                    <span className="inline-block rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400">نفدت الكمية — قريباً</span>
+                  ) : product.stock <= 5 ? (
+                    <span className="inline-block rounded-full bg-orange-500/10 px-4 py-2 text-sm font-bold text-orange-400">باقي {product.stock} فقط — اطلب الآن</span>
+                  ) : (
+                    <span className="inline-block rounded-full bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-400">متوفر في المخزون</span>
+                  )}
+                </div>
+                <AddToCartPanel product={product} />
+              </>
+            )}
             <WhatsAppOrderButton product={product} whatsapp={s.whatsapp} currency={s.currency} />
             {product.stock <= 0 && <StockAlertForm productId={product.id} />}
 

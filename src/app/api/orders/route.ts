@@ -4,10 +4,12 @@ import { getDb } from "@/lib/db";
 import { notifyNewOrder } from "@/lib/notify";
 import { validateCoupon } from "@/lib/coupons";
 import { getSessionCustomer } from "@/lib/customer-auth";
+import { parseOptions } from "@/lib/variants";
+import type { ProductVariant } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-type Item = { id: number; qty: number };
+type Item = { id: number; qty: number; variant_id?: number | null };
 
 export async function POST(req: NextRequest) {
   let body: { name?: string; phone?: string; city?: string; address?: string; notes?: string; coupon?: string; items?: Item[] };
@@ -36,18 +38,32 @@ export async function POST(req: NextRequest) {
 
   const freeThreshold = Number((db.prepare("SELECT value FROM settings WHERE key = 'free_shipping_threshold'").get() as { value: string } | undefined)?.value || 0);
 
-  const getProduct = db.prepare("SELECT id, name, price, stock, active FROM products WHERE id = ?");
+  const getProduct = db.prepare("SELECT id, name, price, stock, active, options FROM products WHERE id = ?");
+  const getVariants = db.prepare("SELECT * FROM product_variants WHERE product_id = ?");
 
   const tx = db.transaction(() => {
     let subtotal = 0;
-    const lines: { id: number; name: string; price: number; qty: number }[] = [];
+    const lines: { id: number; variantId: number | null; name: string; label: string; price: number; qty: number }[] = [];
     for (const it of items) {
-      const p = getProduct.get(it.id) as { id: number; name: string; price: number; stock: number; active: number } | undefined;
+      const p = getProduct.get(it.id) as { id: number; name: string; price: number; stock: number; active: number; options: string } | undefined;
       if (!p || !p.active) throw new Error(`منتج غير متوفر: #${it.id}`);
       const qty = Math.min(Math.floor(it.qty), 99);
-      if (p.stock < qty) throw new Error(`الكمية المطلوبة من «${p.name}» غير متوفرة (المتوفر: ${p.stock})`);
-      subtotal += p.price * qty;
-      lines.push({ id: p.id, name: p.name, price: p.price, qty });
+      let price = p.price;
+      let stockAvail = p.stock;
+      let variantId: number | null = null;
+      let label = "";
+      if (parseOptions(p.options).length > 0) {
+        const variants = getVariants.all(p.id) as ProductVariant[];
+        const v = variants.find((x) => x.id === Number(it.variant_id));
+        if (!v) throw new Error(`يرجى اختيار الخيار المطلوب لـ «${p.name}»`);
+        variantId = v.id;
+        label = v.label;
+        price = v.price ?? p.price;
+        stockAvail = v.stock;
+      }
+      if (stockAvail < qty) throw new Error(`الكمية المطلوبة من «${p.name}${label ? " — " + label : ""}» غير متوفرة (المتوفر: ${stockAvail})`);
+      subtotal += price * qty;
+      lines.push({ id: p.id, variantId, name: p.name, label, price, qty });
     }
     let discount = 0;
     if (couponCode) {
@@ -62,11 +78,13 @@ export async function POST(req: NextRequest) {
       "INSERT INTO orders (code, customer_name, phone, city, address, notes, subtotal, discount, coupon_code, delivery_fee, total, customer_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     ).run(code, name, phone, city, address, notes, subtotal, discount, discount > 0 ? couponCode.toUpperCase() : "", deliveryFee, subtotal - discount + deliveryFee, customer?.id ?? null);
     const orderId = Number(r.lastInsertRowid);
-    const insertItem = db.prepare("INSERT INTO order_items (order_id, product_id, name, price, qty) VALUES (?, ?, ?, ?, ?)");
+    const insertItem = db.prepare("INSERT INTO order_items (order_id, product_id, variant_id, name, variant_label, price, qty) VALUES (?, ?, ?, ?, ?, ?, ?)");
     const decStock = db.prepare("UPDATE products SET stock = stock - ? WHERE id = ?");
+    const decVariant = db.prepare("UPDATE product_variants SET stock = stock - ? WHERE id = ?");
     for (const l of lines) {
-      insertItem.run(orderId, l.id, l.name, l.price, l.qty);
+      insertItem.run(orderId, l.id, l.variantId, l.name, l.label, l.price, l.qty);
       decStock.run(l.qty, l.id);
+      if (l.variantId) decVariant.run(l.qty, l.variantId);
     }
     const discountAmt = couponCode ? (validateCoupon(db, couponCode, subtotal) as { ok: true; discount: number }).discount : 0;
     const deliveryFeeFinal = freeThreshold > 0 && subtotal - discountAmt >= freeThreshold ? 0 : cityRow.fee;
@@ -78,8 +96,9 @@ export async function POST(req: NextRequest) {
     const currency = (db.prepare("SELECT value FROM settings WHERE key = 'currency'").get() as { value: string } | undefined)?.value || "د.ل";
     // Checkout completed: clear any abandoned-cart lead for this phone.
     db.prepare("DELETE FROM cart_leads WHERE phone = ?").run(phone);
+    const notifyLines = lines.map((l) => ({ name: l.label ? `${l.name} — ${l.label}` : l.name, price: l.price, qty: l.qty }));
     // Fire-and-forget: never let the notification delay or break checkout.
-    notifyNewOrder({ code, customer: name, phone, city, address, notes, items: lines, subtotal, discount, couponCode, deliveryFee, total: subtotal - discount + deliveryFee, currency }).catch(() => {});
+    notifyNewOrder({ code, customer: name, phone, city, address, notes, items: notifyLines, subtotal, discount, couponCode, deliveryFee, total: subtotal - discount + deliveryFee, currency }).catch(() => {});
     return NextResponse.json({ ok: true, code });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "حدث خطأ" }, { status: 400 });

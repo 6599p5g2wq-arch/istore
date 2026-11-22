@@ -56,7 +56,7 @@ export default function OrderDetail({ params }: { params: { id: string } }) {
           <tbody>
             {items.map((it) => (
               <tr key={it.id} className="border-b border-neutral-50 last:border-0">
-                <td className="py-2.5 font-bold">{it.name}</td>
+                <td className="py-2.5 font-bold">{it.name}{it.variant_label ? <span className="block text-xs font-bold text-neutral-400">{it.variant_label}</span> : null}</td>
                 <td className="py-2.5 text-neutral-500">{formatPrice(it.price, s.currency)}</td>
                 <td className="py-2.5">{it.qty}</td>
                 <td className="py-2.5 font-bold">{formatPrice(it.price * it.qty, s.currency)}</td>

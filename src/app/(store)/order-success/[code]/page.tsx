@@ -36,7 +36,7 @@ export default function OrderSuccessPage({ params }: { params: { code: string } 
           <ul className="mt-4 space-y-2.5 text-sm text-[var(--text)]">
             {items.map((it) => (
               <li key={it.id} className="flex justify-between">
-                <span>{it.name} <span className="text-[var(--text-dim)]">× {it.qty}</span></span>
+                <span>{it.name}{it.variant_label ? ` — ${it.variant_label}` : ""} <span className="text-[var(--text-dim)]">× {it.qty}</span></span>
                 <span className="font-bold">{formatPrice(it.price * it.qty, s.currency)}</span>
               </li>
             ))}

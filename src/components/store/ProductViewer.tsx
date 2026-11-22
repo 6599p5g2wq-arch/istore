@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, useSpring } from "framer-motion";
 import { RotateCw } from "lucide-react";
 
@@ -13,6 +13,14 @@ export default function ProductViewer({ src, alt, badge, discount }: { src: stri
   const wrapRef = useRef<HTMLDivElement>(null);
   const rotateX = useSpring(0, { stiffness: 140, damping: 15 });
   const rotateY = useSpring(0, { stiffness: 140, damping: 15 });
+  const [overrideSrc, setOverrideSrc] = useState("");
+
+  // Variant selections can swap the main image (e.g. per-color photos).
+  useEffect(() => {
+    const onSwap = (e: Event) => setOverrideSrc(String((e as CustomEvent).detail || ""));
+    window.addEventListener("variant-image", onSwap);
+    return () => window.removeEventListener("variant-image", onSwap);
+  }, []);
 
   const apply = (clientX: number, clientY: number) => {
     const el = wrapRef.current;
@@ -39,7 +47,7 @@ export default function ProductViewer({ src, alt, badge, discount }: { src: stri
         className={dragging ? "drop-shadow-[0_30px_40px_rgba(0,0,0,.5)]" : ""}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt} draggable={false} className="aspect-square w-full object-cover" />
+        <img src={overrideSrc || src} alt={alt} draggable={false} className="aspect-square w-full object-cover" />
       </motion.div>
       {badge && <span className="pointer-events-none absolute right-4 top-4 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-black">{badge}</span>}
       {discount > 0 && <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-red-500 px-4 py-1.5 text-xs font-bold text-white">خصم {discount}%</span>}

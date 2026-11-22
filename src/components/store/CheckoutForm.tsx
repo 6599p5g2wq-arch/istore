@@ -32,7 +32,7 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
       fetch("/api/cart-leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: form.phone.trim(), items: items.map((i) => ({ name: i.name, qty: i.qty, price: i.price })), total }),
+        body: JSON.stringify({ phone: form.phone.trim(), items: items.map((i) => ({ name: i.variant_label ? `${i.name} — ${i.variant_label}` : i.name, qty: i.qty, price: i.price })), total }),
       }).catch(() => {});
     }, 1500);
     return () => clearTimeout(t);
@@ -63,7 +63,7 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
       const r = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coupon: applied?.code || "", items: items.map((i) => ({ id: i.id, qty: i.qty })) }),
+        body: JSON.stringify({ ...form, coupon: applied?.code || "", items: items.map((i) => ({ id: i.id, qty: i.qty, variant_id: i.variant_id ?? null })) }),
       });
       const d = await r.json();
       if (!r.ok) { setError(d.error || "حدث خطأ، حاول مرة أخرى"); setLoading(false); return; }
@@ -162,6 +162,7 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
                 <img src={it.image} alt="" className="h-14 w-14 rounded-xl bg-[var(--surface-2)] object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-1 text-sm font-bold text-[var(--text)]">{it.name}</p>
+                  {it.variant_label && <p className="text-xs font-bold text-[var(--text-faint)]">{it.variant_label}</p>}
                   <p className="text-xs text-[var(--text-faint)]">الكمية: {it.qty}</p>
                 </div>
                 <span className="text-sm font-bold text-white">{formatPrice(it.price * it.qty, currency)}</span>

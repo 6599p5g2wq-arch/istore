@@ -48,8 +48,20 @@ function initSchema(db: Database.Database) {
     featured INTEGER NOT NULL DEFAULT 0,
     active INTEGER NOT NULL DEFAULT 1,
     rating REAL NOT NULL DEFAULT 4.8,
+    options TEXT NOT NULL DEFAULT '[]',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+  CREATE TABLE IF NOT EXISTS product_variants (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    label TEXT NOT NULL DEFAULT '',
+    options TEXT NOT NULL DEFAULT '{}',
+    price REAL,
+    stock INTEGER NOT NULL DEFAULT 0,
+    image TEXT NOT NULL DEFAULT '',
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE INDEX IF NOT EXISTS idx_variants_product ON product_variants(product_id);
   CREATE TABLE IF NOT EXISTS orders (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     code TEXT NOT NULL UNIQUE,
@@ -68,7 +80,9 @@ function initSchema(db: Database.Database) {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
     product_id INTEGER,
+    variant_id INTEGER,
     name TEXT NOT NULL,
+    variant_label TEXT NOT NULL DEFAULT '',
     price REAL NOT NULL,
     qty INTEGER NOT NULL DEFAULT 1
   );
@@ -185,6 +199,9 @@ function initSchema(db: Database.Database) {
     "ALTER TABLE orders ADD COLUMN coupon_code TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE orders ADD COLUMN customer_id INTEGER",
     "ALTER TABLE products ADD COLUMN brand_id INTEGER",
+    "ALTER TABLE products ADD COLUMN options TEXT NOT NULL DEFAULT '[]'",
+    "ALTER TABLE order_items ADD COLUMN variant_id INTEGER",
+    "ALTER TABLE order_items ADD COLUMN variant_label TEXT NOT NULL DEFAULT ''",
   ]) {
     try { db.exec(stmt); } catch { /* column already exists */ }
   }

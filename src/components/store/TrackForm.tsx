@@ -12,7 +12,7 @@ const STATUS: Record<string, { label: string; icon: React.ElementType; color: st
   cancelled: { label: "ملغي", icon: XCircle, color: "text-red-400 bg-red-500/10" },
 };
 
-type Result = { code: string; status: string; total: number; city: string; created_at: string; items: { name: string; qty: number }[] };
+type Result = { code: string; status: string; total: number; city: string; created_at: string; items: { name: string; variant_label?: string; qty: number }[] };
 
 export default function TrackForm() {
   const [code, setCode] = useState("");
@@ -68,7 +68,7 @@ export default function TrackForm() {
           })()}
           <ul className="mt-4 space-y-2 text-sm text-[var(--text)]">
             {result.items.map((it, i) => (
-              <li key={i} className="flex items-center gap-2"><Package size={14} className="text-[var(--text-faint)]" /> {it.name} <span className="text-[var(--text-faint)]">× {it.qty}</span></li>
+              <li key={i} className="flex items-center gap-2"><Package size={14} className="text-[var(--text-faint)]" /> {it.name}{it.variant_label ? ` — ${it.variant_label}` : ""} <span className="text-[var(--text-faint)]">× {it.qty}</span></li>
             ))}
           </ul>
           <div className="mt-4 flex justify-between border-t border-[var(--border)] pt-4 text-sm">

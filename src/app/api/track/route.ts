@@ -17,6 +17,6 @@ export function GET(req: NextRequest) {
   if (!order || normalizePhone(order.phone) !== normalizePhone(phone)) {
     return NextResponse.json({ error: "لم يتم العثور على طلب بهذه البيانات" }, { status: 404 });
   }
-  const items = db.prepare("SELECT name, qty FROM order_items WHERE order_id = ?").all(order.id) as Pick<OrderItem, "name" | "qty">[];
+  const items = db.prepare("SELECT name, variant_label, qty FROM order_items WHERE order_id = ?").all(order.id) as Pick<OrderItem, "name" | "variant_label" | "qty">[];
   return NextResponse.json({ order: { code: order.code, status: order.status, total: order.total, city: order.city, created_at: order.created_at, items } });
 }

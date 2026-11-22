@@ -38,7 +38,7 @@ const CATEGORIES = [
 
 // [name, slug, category_slug, description, price, old_price|null, stock, image, badge, featured]
 const PRODUCTS: [string, string, string, string, number, number | null, number, string, string, number][] = [
-  ["غطاء iPhone 16 Pro Max سيليكون أصلي MagSafe", "iphone-16-pro-max-silicone-case", "cases", "غطاء سيليكون أصلي من Apple مع دعم MagSafe كامل، بطانة مايكروفايبر ناعمة تحمي جهازك من الخدوش، وحواف مرتفعة لحماية الشاشة والكاميرا.", 245, 290, 25, "/images/p-silicone-case.jpg", "الأكثر مبيعاً", 1],
+  ["غطاء سيليكون أصلي MagSafe", "iphone-16-pro-max-silicone-case", "cases", "غطاء سيليكون أصلي من Apple مع دعم MagSafe كامل، بطانة مايكروفايبر ناعمة تحمي جهازك من الخدوش، وحواف مرتفعة لحماية الشاشة والكاميرا. اختر جهازك ولونك.", 245, 290, 25, "/images/p-silicone-case.jpg", "الأكثر مبيعاً", 1],
   ["غطاء iPhone 16 شفاف MagSafe أصلي", "iphone-16-clear-case", "cases", "غطاء شفاف رفيع من Apple يظهر تصميم جهازك الأصلي، مقاوم للاصفرار، مغناطيس MagSafe مدمج قوي.", 225, null, 30, "/images/p-clear-case.jpg", "", 0],
   ["غطاء جلد طبيعي فاخر iPhone 15 Pro", "leather-case-15-pro", "cases", "غطاء جلد طبيعي فاخر بملمس راقي، حماية كاملة للزوايا، متوفر بعدة ألوان كلاسيكية.", 320, 380, 12, "/images/p-leather-case.jpg", "خصم", 1],
   ["غطاء حماية عسكري مضاد للصدمات iPhone 16", "armor-case-16", "cases", "حماية بمعيار عسكري MIL-STD، طبقتان ماصتان للصدمات، مسند خلفي مدمج، حماية سقوط حتى 3 أمتار.", 145, null, 40, "/images/p-armor-case.jpg", "", 0],
@@ -58,7 +58,7 @@ const PRODUCTS: [string, string, string, string, number, number | null, number, 
   ["محفظة جلد MagSafe أصلية مع Find My", "magsafe-wallet", "magsafe", "محفظة جلدية أنيقة تلتصق مغناطيسياً بظهر آيفونك، تتسع لثلاث بطاقات، تدعم تتبع Find My عند انفصالها.", 385, null, 9, "/images/p-magsafe-wallet.jpg", "", 0],
   ["حامل MagSafe للسيارة مغناطيسي قوي", "magsafe-car-mount", "magsafe", "حامل سيارة مغناطيسي ثابت على التكييف، دوران 360 درجة، مغناطيس N52 قوي يثبت جهازك حتى على الطرق الوعرة.", 85, 110, 30, "/images/p-car-mount.jpg", "خصم", 0],
   ["قاعدة شحن 3 في 1 MagSafe قابلة للطي", "3in1-charging-station", "magsafe", "قاعدة شحن واحدة لآيفون وساعة Apple وسماعات AirPods معاً، تصميم قابل للطي مثالي للسفر، شحن سريع 15W.", 340, 420, 16, "/images/p-3in1-station.jpg", "الأكثر مبيعاً", 1],
-  ["زجاج حماية 9H شفاف iPhone 16 Pro Max", "glass-16-pro-max", "protection", "زجاج حماية بصلابة 9H مقاوم للخدش والكسر، شفافية 99.9% لا تؤثر على اللمس أو جودة الشاشة، تركيب سهل بدون فقاعات.", 55, 75, 80, "/images/p-glass.jpg", "", 0],
+  ["زجاج حماية 9H شفاف", "glass-16-pro-max", "protection", "زجاج حماية بصلابة 9H مقاوم للخدش والكسر، شفافية 99.9% لا تؤثر على اللمس أو جودة الشاشة، تركيب سهل بدون فقاعات. اختر جهازك.", 55, 75, 80, "/images/p-glass.jpg", "", 0],
   ["زجاج حماية خصوصية iPhone 16", "privacy-glass-16", "protection", "زجاج حماية بخاصية الخصوصية يمنع المتطفلين من رؤية شاشتك من الجوانب، صلابة 9H وطبقة ضد البصمات.", 75, null, 55, "/images/p-privacy-glass.jpg", "", 0],
   ["واقي عدسات الكاميرا iPhone 16 Pro", "camera-lens-protector", "protection", "حلقات حماية فردية لعدسات الكاميرا من زجاج الياقوت، تحمي من الخدوش بدون التأثير على جودة التصوير.", 65, 85, 45, "/images/p-lens.jpg", "خصم", 0],
   ["iPhone 16 Pro Max 256GB", "iphone-16-pro-max-256", "devices", "أقوى آيفون على الإطلاق: شريحة A18 Pro، كاميرا 48MP مع زوم بصري 5x، هيكل تيتانيوم، زر التحكم بالكاميرا الجديد. ضمان سنة.", 9850, null, 5, "/images/p-iphone-16pm.jpg", "جديد", 1],
@@ -69,6 +69,29 @@ const PRODUCTS: [string, string, string, string, number, number | null, number, 
   ["Apple Pencil Pro", "apple-pencil-pro", "devices", "قلم Apple الأحدث بمستشعر ضغط ودوران جديد، لمس haptic، إقران وشحن مغناطيسي. متوافق مع iPad Pro M4 وiPad Air M2.", 950, null, 8, "/images/p-pencil.jpg", "", 0],
   ["HomePod mini", "homepod-mini", "devices", "مكبر صوت ذكي بحجم صغير وصوت يملأ الغرفة، مساعد Siri مدمج، تحكم بالمنزل الذكي، تصميم أنيق بألوان رائعة.", 850, 920, 6, "/images/p-homepod.jpg", "", 0],
 ];
+
+// Demo variants: slug -> option definitions, per-combo stock overrides (default 8), price overrides.
+const PRODUCT_VARIANTS: Record<string, { options: { name: string; values: string[] }[]; stock?: Record<string, number>; price?: Record<string, number> }> = {
+  "iphone-16-pro-max-silicone-case": {
+    options: [
+      { name: "الجهاز", values: ["iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 16", "iPhone 15 Pro Max"] },
+      { name: "اللون", values: ["أسود", "أبيض", "وردي"] },
+    ],
+    stock: { "iPhone 15 Pro Max / وردي": 0, "iPhone 16 / أبيض": 3 },
+  },
+  "glass-16-pro-max": {
+    options: [{ name: "الجهاز", values: ["iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 16", "iPhone 15 Pro Max", "iPhone 15"] }],
+    stock: { "iPhone 15": 0 },
+    price: { "iPhone 16 Pro Max": 65, "iPhone 16 Pro": 60 },
+  },
+  "watch-sport-band": {
+    options: [
+      { name: "المقاس", values: ["42mm", "44mm", "45mm", "46mm"] },
+      { name: "اللون", values: ["أسود", "أبيض", "أزرق"] },
+    ],
+    stock: { "42mm / أزرق": 0 },
+  },
+};
 
 const CITIES: [string, number, number][] = [
   ["طرابلس", 10, 1], ["تاجوراء", 15, 2], ["جنزور", 15, 3], ["الزاوية", 15, 4], ["صرمان", 20, 5],
@@ -112,10 +135,34 @@ export function seedIfEmpty(db: Database.Database) {
     `INSERT INTO products (name, slug, category_id, description, price, old_price, stock, image, badge, featured, rating)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
+  const insertVariant = db.prepare(
+    `INSERT INTO product_variants (product_id, label, options, price, stock, image, sort_order) VALUES (?, ?, ?, ?, ?, '', ?)`
+  );
   const ratings = [4.9, 4.8, 4.7, 5.0, 4.6];
   let i = 0;
   for (const [name, slug, cat, desc, price, oldPrice, stock, image, badge, featured] of PRODUCTS) {
-    insertProduct.run(name, slug, catIds[cat], desc, price, oldPrice, stock, image, badge, featured, ratings[i % ratings.length]);
+    const r = insertProduct.run(name, slug, catIds[cat], desc, price, oldPrice, stock, image, badge, featured, ratings[i % ratings.length]);
+    const pid = Number(r.lastInsertRowid);
+    const vdef = PRODUCT_VARIANTS[slug];
+    if (vdef) {
+      db.prepare("UPDATE products SET options = ? WHERE id = ?").run(JSON.stringify(vdef.options), pid);
+      let acc: Record<string, string>[] = [{}];
+      for (const o of vdef.options) {
+        const next: Record<string, string>[] = [];
+        for (const base of acc) for (const v of o.values) next.push({ ...base, [o.name]: v });
+        acc = next;
+      }
+      let sort = 0;
+      let totalStock = 0;
+      for (const combo of acc) {
+        const label = vdef.options.map((o) => combo[o.name]).join(" / ");
+        const vstock = vdef.stock && label in vdef.stock ? vdef.stock[label] : 8;
+        const vprice = vdef.price && label in vdef.price ? vdef.price[label] : null;
+        insertVariant.run(pid, label, JSON.stringify(combo), vprice, vstock, sort++);
+        totalStock += vstock;
+      }
+      db.prepare("UPDATE products SET stock = ? WHERE id = ?").run(totalStock, pid);
+    }
     i++;
   }
   db.prepare("UPDATE products SET brand_id = (SELECT id FROM brands WHERE slug = 'apple')").run();

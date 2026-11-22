@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireAdmin, bad } from "@/lib/admin-api";
+import { replaceVariants, parseOptions } from "@/lib/variants";
 import { sendStockAlert } from "@/lib/notify";
 import { getSetting } from "@/lib/settings";
 
@@ -16,14 +17,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (dup) return bad("هذا الـ slug مستخدم مسبقاً");
   const prev = db.prepare("SELECT stock FROM products WHERE id = ?").get(params.id) as { stock: number };
   const newStock = Number(b.stock) || 0;
+  const optionsJson = JSON.stringify(parseOptions(JSON.stringify(Array.isArray(b.options) ? b.options : [])));
   db.prepare(
-    `UPDATE products SET name=?, slug=?, category_id=?, brand_id=?, description=?, price=?, old_price=?, stock=?, image=?, images=?, badge=?, featured=?, active=?, rating=? WHERE id=?`
+    `UPDATE products SET name=?, slug=?, category_id=?, brand_id=?, description=?, price=?, old_price=?, stock=?, image=?, images=?, badge=?, featured=?, active=?, rating=?, options=? WHERE id=?`
   ).run(
     b.name?.trim() || "", b.slug?.trim() || "", b.category_id || null, b.brand_id || null, b.description || "",
     Number(b.price) || 0, b.old_price ? Number(b.old_price) : null, newStock,
     b.image || "", JSON.stringify(Array.isArray(b.images) ? b.images : []),
-    b.badge || "", b.featured ? 1 : 0, b.active ? 1 : 0, Number(b.rating) || 4.8, params.id
+    b.badge || "", b.featured ? 1 : 0, b.active ? 1 : 0, Number(b.rating) || 4.8, optionsJson, params.id
   );
+  replaceVariants(db, Number(params.id), optionsJson, Array.isArray(b.variants) ? b.variants : []);
   // Back-in-stock: notify everyone waiting when stock returns.
   if (prev.stock <= 0 && newStock > 0) {
     const waiting = db.prepare("SELECT id, contact FROM stock_alerts WHERE product_id = ? AND notified = 0").all(params.id) as { id: number; contact: string }[];

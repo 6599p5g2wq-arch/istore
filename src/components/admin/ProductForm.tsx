@@ -1,11 +1,43 @@
 "use client";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Plus, Trash2 } from "lucide-react";
 import ImagePicker from "./ImagePicker";
-import type { Brand, Category, Product } from "@/lib/types";
+import type { Brand, Category, Product, ProductOption, ProductVariant } from "@/lib/types";
 
-export default function ProductForm({ product, categories, brands }: { product?: Product; categories: Category[]; brands: Brand[] }) {
+type OptRow = { name: string; valuesText: string };
+type VRow = { price: string; stock: string; image: string };
+
+function parseOpts(json: string | undefined): OptRow[] {
+  try {
+    const a = JSON.parse(json || "[]");
+    if (!Array.isArray(a)) return [];
+    return a
+      .filter((o) => o && o.name && Array.isArray(o.values) && o.values.length)
+      .map((o) => ({ name: String(o.name), valuesText: o.values.join("، ") }));
+  } catch {
+    return [];
+  }
+}
+
+function combosFromRows(rows: OptRow[]): { options: ProductOption[]; combos: { label: string; combo: Record<string, string> }[] } {
+  const options: ProductOption[] = rows
+    .map((r) => ({ name: r.name.trim(), values: r.valuesText.split(/[,،\n]/).map((v) => v.trim()).filter(Boolean) }))
+    .filter((o) => o.name && o.values.length > 0)
+    .slice(0, 3);
+  let acc: Record<string, string>[] = [{}];
+  for (const o of options) {
+    const next: Record<string, string>[] = [];
+    for (const base of acc) for (const v of o.values) next.push({ ...base, [o.name]: v });
+    acc = next;
+  }
+  return {
+    options,
+    combos: options.length ? acc.map((combo) => ({ label: options.map((o) => combo[o.name]).join(" / "), combo })) : [],
+  };
+}
+
+export default function ProductForm({ product, categories, brands, variants }: { product?: Product; categories: Category[]; brands: Brand[]; variants?: ProductVariant[] }) {
   const router = useRouter();
   const isEdit = !!product;
   const [form, setForm] = useState<{
@@ -27,8 +59,20 @@ export default function ProductForm({ product, categories, brands }: { product?:
     featured: !!product?.featured,
     active: product ? !!product.active : true,
   });
+  const [opts, setOpts] = useState<OptRow[]>(() => parseOpts(product?.options));
+  const [vrows, setVrows] = useState<Record<string, VRow>>(() => {
+    const m: Record<string, VRow> = {};
+    for (const v of variants || []) m[v.label] = { price: v.price != null ? String(v.price) : "", stock: String(v.stock), image: v.image || "" };
+    return m;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const { options, combos } = useMemo(() => combosFromRows(opts), [opts]);
+  const hasVariants = combos.length > 0;
+
+  const vrow = (label: string): VRow => vrows[label] || { price: "", stock: String(form.stock || 0), image: "" };
+  const setVrow = (label: string, patch: Partial<VRow>) => setVrows((prev) => ({ ...prev, [label]: { ...vrow(label), ...prev[label], ...patch } }));
 
   const slugify = (s: string) => s.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_]+/g, "-").replace(/-+/g, "-");
 
@@ -44,6 +88,11 @@ export default function ProductForm({ product, categories, brands }: { product?:
       stock: Number(form.stock) || 0,
       rating: Number(form.rating) || 4.8,
       images: [],
+      options,
+      variants: combos.map(({ label, combo }) => {
+        const r = vrow(label);
+        return { options: combo, price: r.price === "" ? null : Number(r.price), stock: Number(r.stock) || 0, image: r.image.trim() };
+      }),
     };
     const r = await fetch(isEdit ? `/api/admin/products/${product.id}` : "/api/admin/products", {
       method: isEdit ? "PUT" : "POST",
@@ -74,6 +123,55 @@ export default function ProductForm({ product, categories, brands }: { product?:
           <textarea rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`mt-1.5 resize-y ${inputCls}`} placeholder="وصف تفصيلي يظهر في صفحة المنتج…" />
         </label>
         <ImagePicker label="الصورة الرئيسية" value={form.image} onChange={(v) => setForm({ ...form, image: v })} />
+
+        <div className="rounded-2xl border border-neutral-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-bold">خيارات المنتج (متغيرات)</p>
+              <p className="mt-1 text-xs text-neutral-500">مثال: الخيار «الجهاز» بقيم «16 Pro Max، 16 Pro، 16» أو «اللون» بقيم «أسود، أبيض». يمكن الجمع بين خيارين أو ثلاثة، ولكل توليفة مخزونها وسعرها وصورتها الاختيارية.</p>
+            </div>
+            {opts.length < 3 && (
+              <button type="button" onClick={() => setOpts([...opts, { name: "", valuesText: "" }])} className="flex shrink-0 items-center gap-1 rounded-full bg-black px-4 py-2 text-xs font-bold text-white hover:bg-neutral-800">
+                <Plus size={14} /> أضف خياراً
+              </button>
+            )}
+          </div>
+          {opts.map((o, i) => (
+            <div key={i} className="mt-3 flex flex-wrap items-start gap-2 rounded-xl bg-neutral-50 p-3">
+              <input value={o.name} onChange={(e) => setOpts(opts.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} placeholder="اسم الخيار (مثال: الجهاز)" className="w-40 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:border-black" />
+              <input value={o.valuesText} onChange={(e) => setOpts(opts.map((x, j) => (j === i ? { ...x, valuesText: e.target.value } : x)))} placeholder="القيم مفصولة بفاصلة: 16 Pro Max، 16 Pro، 16" className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:border-black" />
+              <button type="button" onClick={() => setOpts(opts.filter((_, j) => j !== i))} aria-label="حذف الخيار" className="grid h-9 w-9 place-items-center rounded-full text-neutral-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={16} /></button>
+            </div>
+          ))}
+          {hasVariants && (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[520px] text-sm">
+                <thead>
+                  <tr className="border-b border-neutral-200 text-right text-xs text-neutral-500">
+                    <th className="py-2 font-bold">التوليفة</th>
+                    <th className="py-2 font-bold">المخزون</th>
+                    <th className="py-2 font-bold">سعر خاص (اختياري)</th>
+                    <th className="py-2 font-bold">صورة (اختياري)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {combos.map(({ label }) => {
+                    const r = vrow(label);
+                    return (
+                      <tr key={label} className="border-b border-neutral-100 last:border-0">
+                        <td className="py-2 pl-2 font-bold">{label}</td>
+                        <td className="py-2 pl-2"><input type="number" min={0} value={r.stock} onChange={(e) => setVrow(label, { stock: e.target.value })} className="w-20 rounded-lg border border-neutral-200 px-2 py-1.5 outline-none focus:border-black" /></td>
+                        <td className="py-2 pl-2"><input type="number" min={0} step="0.5" value={r.price} onChange={(e) => setVrow(label, { price: e.target.value })} placeholder={String(form.price || "")} className="w-24 rounded-lg border border-neutral-200 px-2 py-1.5 outline-none focus:border-black placeholder:text-neutral-300" /></td>
+                        <td className="py-2"><input dir="ltr" value={r.image} onChange={(e) => setVrow(label, { image: e.target.value })} placeholder="images/...jpg" className="w-full min-w-[140px] rounded-lg border border-neutral-200 px-2 py-1.5 text-left text-xs outline-none focus:border-black placeholder:text-neutral-300" /></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <p className="mt-2 text-xs text-neutral-500">اترك «سعر خاص» فارغاً لاستخدام سعر المنتج الأساسي. مخزون المنتج الكلي يُحسب تلقائياً من مجموع مخزون التوليفات.</p>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-5">
@@ -105,7 +203,8 @@ export default function ProductForm({ product, categories, brands }: { product?:
           <div className="grid grid-cols-2 gap-3">
             <label className="block text-sm font-bold">
               المخزون
-              <input type="number" min={0} value={form.stock} onChange={(e) => setForm({ ...form, stock: Number(e.target.value) })} className={`mt-1.5 ${inputCls}`} />
+              <input type="number" min={0} value={form.stock} disabled={hasVariants} onChange={(e) => setForm({ ...form, stock: Number(e.target.value) })} className={`mt-1.5 ${inputCls} disabled:bg-neutral-100 disabled:text-neutral-400`} />
+              {hasVariants && <span className="mt-1 block text-[11px] font-normal text-neutral-400">يُحسب من المتغيرات</span>}
             </label>
             <label className="block text-sm font-bold">
               التقييم (0-5)

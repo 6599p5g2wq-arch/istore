@@ -1,6 +1,7 @@
 "use client";
 import React, { useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ShoppingBag, Star } from "lucide-react";
 import { useCart } from "./CartContext";
@@ -10,7 +11,9 @@ import type { Product } from "@/lib/types";
 
 export default function ProductCard({ product, currency = "د.ل", index }: { product: Product; currency?: string; index?: number }) {
   const { add } = useCart();
+  const router = useRouter();
   const out = product.stock <= 0;
+  const hasOptions = !!product.options && product.options !== "[]";
   const tiltRef = useRef<HTMLDivElement>(null);
   const shineRef = useRef<HTMLDivElement>(null);
 
@@ -77,7 +80,7 @@ export default function ProductCard({ product, currency = "د.ل", index }: { pr
             <motion.button
               whileTap={{ scale: 0.85 }}
               disabled={out}
-              onClick={() => add({ id: product.id, name: product.name, price: product.price, image: product.image, slug: product.slug, stock: product.stock })}
+              onClick={() => { if (hasOptions) { router.push(`/product/${product.slug}`); return; } add({ id: product.id, name: product.name, price: product.price, image: product.image, slug: product.slug, stock: product.stock }); }}
               aria-label="أضف إلى السلة"
               className={`grid h-11 w-11 place-items-center rounded-full shadow-md transition ${out ? "cursor-not-allowed bg-[var(--chip)] text-neutral-600" : "bg-[var(--text)] text-[var(--bg)] hover:bg-[var(--accent)] hover:text-white"}`}
             >
