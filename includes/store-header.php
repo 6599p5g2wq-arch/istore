@@ -41,9 +41,9 @@ tailwind.config = { future: { hoverOnlyWhenSupported: true }, corePlugins: { pre
 <header id="site-header" class="sticky top-0 z-40 bg-transparent">
   <div class="mx-auto max-w-7xl px-4 sm:px-6">
     <div class="flex h-16 items-center justify-between gap-4">
-      <a href="<?= e(url('index.php')) ?>" class="flex items-center gap-2 text-xl font-extrabold tracking-tight text-white">
-        <span class="grid h-9 w-9 place-items-center rounded-xl bg-[var(--text)] text-[var(--bg)]"><?= icon('store', 20) ?></span>
-        <?= e($s['store_name'] ?? 'آي ستور') ?>
+      <a href="<?= e(url('index.php')) ?>" class="flex items-center gap-2 text-lg font-extrabold tracking-tight text-white sm:text-xl">
+        <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--text)] text-[var(--bg)]"><?= icon('store', 20) ?></span>
+        <span class="max-[360px]:hidden"><?= e($s['store_name'] ?? 'آي ستور') ?></span>
       </a>
       <nav class="hidden items-center gap-6 text-sm font-medium text-[var(--text-dim)] lg:flex">
         <a href="<?= e(url('products.php')) ?>" class="transition-colors hover:text-[var(--text)]">كل المنتجات</a>
@@ -53,13 +53,13 @@ tailwind.config = { future: { hoverOnlyWhenSupported: true }, corePlugins: { pre
         <?php endforeach; ?>
       </nav>
       <div class="flex items-center gap-1">
-        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="grid h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><span data-theme-icon>☀️</span></button>
+        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="hidden h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)] sm:grid"><span data-theme-icon>☀️</span></button>
         <button onclick="toggleSearch(true)" aria-label="بحث" class="grid h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><?= icon('search') ?></button>
         <a href="<?= e(url('wishlist.php')) ?>" aria-label="المفضلة" class="relative grid h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]">
           <?= icon('heart') ?>
           <span data-wish-count class="absolute -left-0.5 -top-0.5 hidden grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">0</span>
         </a>
-        <a href="<?= e(url('account.php')) ?>" aria-label="حسابي" class="hidden h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)] sm:grid"><?= icon('user') ?></a>
+        <a href="<?= e(url('account.php')) ?>" aria-label="حسابي" class="grid h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><?= icon('user') ?></a>
         <button onclick="Cart.openDrawer()" aria-label="السلة" class="relative grid h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]">
           <?= icon('shopping-bag') ?>
           <span data-cart-count class="absolute -left-0.5 -top-0.5 hidden grid h-5 min-w-5 place-items-center rounded-full bg-[var(--accent)] px-1 text-[11px] font-bold text-white">0</span>
@@ -88,6 +88,10 @@ tailwind.config = { future: { hoverOnlyWhenSupported: true }, corePlugins: { pre
       <?php endforeach; ?>
       <div class="my-2 border-t border-[var(--border)]"></div>
       <a href="<?= e(url('track.php')) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text-dim)] hover:bg-[var(--chip)]">تتبع طلبك</a>
+      <div class="mt-2 flex items-center justify-between rounded-lg px-3 py-2.5 text-[var(--text-dim)]">
+        <span>المظهر</span>
+        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><span data-theme-icon>☀️</span></button>
+      </div>
     </nav>
   </div>
 </div>
