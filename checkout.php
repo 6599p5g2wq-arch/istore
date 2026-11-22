@@ -34,7 +34,7 @@ function renderSummary() {
   var items = document.getElementById('sum-items');
   items.innerHTML = Cart.items.map(function (i) {
     return '<div class="flex items-center gap-3 text-sm"><img src="' + i.image + '" class="h-12 w-12 rounded-xl object-cover" alt="">'
-      + '<span class="flex-1 line-clamp-1">' + i.name + ' <span class="text-[var(--text-faint)]">× ' + i.qty + '</span></span>'
+      + '<span class="flex-1 line-clamp-1">' + i.name + (i.variant_label ? ' · ' + i.variant_label : '') + ' <span class="text-[var(--text-faint)]">× ' + i.qty + '</span></span>'
       + '<b>' + window.fmtPrice(i.price * i.qty) + '</b></div>';
   }).join('');
 }
@@ -64,7 +64,7 @@ function submitOrder(ev) {
     address: document.getElementById('f-address').value.trim(),
     notes: document.getElementById('f-notes').value.trim(),
     coupon: couponCode,
-    items: Cart.items.map(function (i) { return { id: i.id, qty: i.qty }; })
+    items: Cart.items.map(function (i) { return { id: i.id, qty: i.qty, variant_id: i.variant_id || 0 }; })
   };
   fetch(window.BASE + '/api/order.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
     .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })

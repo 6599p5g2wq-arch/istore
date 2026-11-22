@@ -10,6 +10,11 @@ if (!$p) { http_response_code(404); $page_title = 'منتج غير موجود'; 
     require APP_ROOT . '/includes/store-footer.php'; exit; }
 
 $gallery = product_images($p);
+$options = parse_options($p['options'] ?? '');
+$variants = $options ? array_map(fn($v) => [
+    'id' => (int)$v['id'], 'label' => $v['label'], 'options' => json_decode($v['options'] ?: '{}', true) ?: [],
+    'price' => $v['price'] !== null ? (float)$v['price'] : null, 'stock' => (int)$v['stock'], 'image' => $v['image'] ? img_url($v['image']) : '',
+], get_variants((int)$p['id'])) : [];
 $related = qall(
     'SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id = p.category_id
      WHERE p.active = 1 AND p.category_id = ? AND p.id != ? ORDER BY RAND() LIMIT 4', [$p['category_id'], $p['id']]);
@@ -64,12 +69,12 @@ require APP_ROOT . '/includes/store-header.php';
       </div>
       <h1 class="mt-4 text-3xl font-black leading-snug text-white sm:text-4xl"><?= e($p['name']) ?></h1>
       <div class="mt-5 flex items-baseline gap-3">
-        <span class="text-4xl font-black text-[var(--accent)]"><?= e(format_price($p['price'])) ?></span>
+        <span id="price-main" class="text-4xl font-black text-[var(--accent)]"><?= e(format_price($p['price'])) ?></span>
         <?php if ($old): ?><span class="text-xl text-[var(--text-faint)] line-through"><?= e(format_price($old)) ?></span><?php endif; ?>
       </div>
       <p class="mt-6 whitespace-pre-line leading-8 text-[var(--text-dim)]"><?= e($p['description']) ?></p>
 
-      <div class="mt-6">
+      <div class="mt-6" id="stock-badge-box">
         <?php if ((int)$p['stock'] <= 0): ?>
         <span class="inline-block rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400">نفدت الكمية — قريباً</span>
         <?php elseif ((int)$p['stock'] <= 5): ?>
@@ -79,14 +84,30 @@ require APP_ROOT . '/includes/store-header.php';
         <?php endif; ?>
       </div>
 
+      <?php if ($options): ?>
+      <div class="mt-6 space-y-4" id="variant-picker">
+        <?php foreach ($options as $oi => $opt): ?>
+        <div>
+          <p class="mb-2 text-sm font-bold text-[var(--text-dim)]"><?= e($opt['name']) ?></p>
+          <div class="flex flex-wrap gap-2" data-opt-group="<?= $oi ?>">
+            <?php foreach ($opt['values'] as $v): ?>
+            <button type="button" data-opt-value="<?= e($v) ?>" class="rounded-full border border-[var(--border-strong)] bg-[var(--card)] px-4 py-2 text-sm font-bold transition hover:border-[var(--accent)]"><?= e($v) ?></button>
+            <?php endforeach; ?>
+          </div>
+        </div>
+        <?php endforeach; ?>
+        <p id="variant-hint" class="text-xs font-bold text-amber-400">اختر <?= e(implode(' و', array_column($options, 'name'))) ?> أولاً</p>
+      </div>
+      <?php endif; ?>
+
       <?php if ((int)$p['stock'] > 0): ?>
       <div class="mt-6 flex items-center gap-3">
         <div class="flex items-center gap-3 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2.5">
-          <button onclick="var q=document.getElementById('qty');q.value=Math.min(<?= (int)$p['stock'] ?>,+q.value+1)" class="grid h-8 w-8 place-items-center rounded-full hover:bg-[var(--chip)]"><?= icon('plus', 16) ?></button>
+          <button id="qty-inc" onclick="var q=document.getElementById('qty');q.value=Math.min(window._maxQty||<?= (int)$p['stock'] ?>,+q.value+1)" class="grid h-8 w-8 place-items-center rounded-full hover:bg-[var(--chip)]"><?= icon('plus', 16) ?></button>
           <input id="qty" type="text" value="1" readonly class="w-10 bg-transparent text-center text-lg font-extrabold outline-none">
-          <button onclick="var q=document.getElementById('qty');q.value=Math.max(1,+q.value-1)" class="grid h-8 w-8 place-items-center rounded-full hover:bg-[var(--chip)]"><?= icon('minus', 16) ?></button>
+          <button id="qty-dec" onclick="var q=document.getElementById('qty');q.value=Math.max(1,+q.value-1)" class="grid h-8 w-8 place-items-center rounded-full hover:bg-[var(--chip)]"><?= icon('minus', 16) ?></button>
         </div>
-        <button onclick='Cart.add(<?= $jsData ?>, +document.getElementById("qty").value)' class="glow-btn flex-1 rounded-full py-3.5 text-center font-bold transition hover:scale-[1.02] active:scale-95">أضف إلى السلة</button>
+        <button id="add-btn" onclick='Cart.add(<?= $jsData ?>, +document.getElementById("qty").value)' class="glow-btn flex-1 rounded-full py-3.5 text-center font-bold transition hover:scale-[1.02] active:scale-95">أضف إلى السلة</button>
       </div>
       <?php endif; ?>
 
@@ -205,4 +226,111 @@ require APP_ROOT . '/includes/store-header.php';
   </section>
   <?php endif; ?>
 </div>
+
+<?php if ($options): ?>
+<script>
+(function () {
+  var OPTIONS = <?= json_encode($options, JSON_UNESCAPED_UNICODE) ?>;
+  var VARIANTS = <?= json_encode($variants, JSON_UNESCAPED_UNICODE) ?>;
+  var BASE_DATA = { id: <?= (int)$p['id'] ?>, name: <?= json_encode($p['name'], JSON_UNESCAPED_UNICODE) ?>, price: <?= (float)$p['price'] ?>, image: <?= json_encode(img_url($p['image'])) ?>, slug: <?= json_encode($p['slug']) ?>, stock: <?= (int)$p['stock'] ?> };
+  var selected = {};
+  var currentVariant = null;
+  var addBtn = document.getElementById('add-btn');
+  var hint = document.getElementById('variant-hint');
+  var priceMain = document.getElementById('price-main');
+  var badgeBox = document.getElementById('stock-badge-box');
+  var qtyInput = document.getElementById('qty');
+
+  function findVariant() {
+    if (Object.keys(selected).length < OPTIONS.length) return undefined;
+    return VARIANTS.find(function (v) {
+      return OPTIONS.every(function (o) { return v.options[o.name] === selected[o.name]; });
+    }) || null;
+  }
+
+  function comboAvailable(optionName, value) {
+    var probe = Object.assign({}, selected);
+    probe[optionName] = value;
+    return VARIANTS.some(function (v) {
+      var match = OPTIONS.every(function (o) { return probe[o.name] === undefined || v.options[o.name] === probe[o.name]; });
+      return match && v.stock > 0;
+    });
+  }
+
+  function paintChips() {
+    document.querySelectorAll('[data-opt-group]').forEach(function (group) {
+      var oi = +group.getAttribute('data-opt-group');
+      var opt = OPTIONS[oi];
+      group.querySelectorAll('[data-opt-value]').forEach(function (chip) {
+        var val = chip.getAttribute('data-opt-value');
+        var active = selected[opt.name] === val;
+        var avail = comboAvailable(opt.name, val);
+        chip.classList.toggle('!border-[var(--accent)]', active);
+        chip.classList.toggle('bg-[var(--accent)]', active);
+        chip.classList.toggle('!text-white', active);
+        chip.classList.toggle('opacity-40', !avail && !active);
+        chip.classList.toggle('line-through', !avail && !active);
+      });
+    });
+  }
+
+  function update() {
+    paintChips();
+    var v = findVariant();
+    if (v === undefined) {
+      currentVariant = null;
+      if (hint) { hint.classList.remove('hidden'); }
+      if (addBtn) { addBtn.disabled = true; addBtn.classList.add('opacity-50', 'pointer-events-none'); }
+      priceMain.textContent = window.fmtPrice(BASE_DATA.price);
+      return;
+    }
+    currentVariant = v;
+    if (hint) hint.classList.add('hidden');
+    priceMain.textContent = window.fmtPrice(v.price !== null ? v.price : BASE_DATA.price);
+    if (badgeBox) {
+      if (v.stock <= 0) badgeBox.innerHTML = '<span class="inline-block rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400">هذه التوليفة نفدت</span>';
+      else if (v.stock <= 5) badgeBox.innerHTML = '<span class="inline-block rounded-full bg-orange-500/10 px-4 py-2 text-sm font-bold text-orange-400">باقي ' + v.stock + ' فقط — اطلب الآن</span>';
+      else badgeBox.innerHTML = '<span class="inline-block rounded-full bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-400">متوفر في المخزون</span>';
+    }
+    if (addBtn) {
+      var ok = v.stock > 0;
+      addBtn.disabled = !ok;
+      addBtn.classList.toggle('opacity-50', !ok);
+      addBtn.classList.toggle('pointer-events-none', !ok);
+    }
+    if (qtyInput) qtyInput.value = '1';
+    if (v.image) { var mi = document.getElementById('main-img'); if (mi) mi.src = v.image; }
+  }
+
+  document.querySelectorAll('[data-opt-group]').forEach(function (group) {
+    var oi = +group.getAttribute('data-opt-group');
+    var opt = OPTIONS[oi];
+    group.querySelectorAll('[data-opt-value]').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        var val = chip.getAttribute('data-opt-value');
+        if (selected[opt.name] === val) delete selected[opt.name];
+        else selected[opt.name] = val;
+        update();
+      });
+    });
+  });
+
+  if (addBtn) {
+    addBtn.disabled = true;
+    addBtn.classList.add('opacity-50', 'pointer-events-none');
+    addBtn.removeAttribute('onclick');
+    addBtn.addEventListener('click', function () {
+      var v = currentVariant;
+      if (!v || v.stock <= 0) return;
+      var qty = qtyInput ? +qtyInput.value : 1;
+      Cart.add({ id: BASE_DATA.id, name: BASE_DATA.name, price: v.price !== null ? v.price : BASE_DATA.price, image: v.image || BASE_DATA.image, slug: BASE_DATA.slug, stock: v.stock, variant_id: v.id, variant_label: v.label }, qty);
+    });
+  }
+  // حد أقصى للكمية حسب مخزون التوليفة
+  window._maxQty = BASE_DATA.stock;
+  var _origUpdate = update;
+  update = function () { _origUpdate(); window._maxQty = currentVariant ? currentVariant.stock : BASE_DATA.stock; };
+})();
+</script>
+<?php endif; ?>
 <?php require APP_ROOT . '/includes/store-footer.php'; ?>

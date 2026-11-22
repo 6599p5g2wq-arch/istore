@@ -16,7 +16,7 @@ if ($code !== '' && $phone !== '') {
         $order = null;
         $error = 'لم يتم العثور على طلب بهذه البيانات';
     } else {
-        $items = qall('SELECT name, qty FROM order_items WHERE order_id = ?', [$order['id']]);
+        $items = qall('SELECT name, qty, variant_label FROM order_items WHERE order_id = ?', [$order['id']]);
     }
 }
 $statuses = ['new' => 'قيد المراجعة', 'confirmed' => 'تم التأكيد', 'shipped' => 'في الطريق إليك', 'delivered' => 'تم التوصيل'];
@@ -66,7 +66,7 @@ require APP_ROOT . '/includes/store-header.php';
       <?php endif; ?>
       <div class="mt-8 space-y-2 border-t border-[var(--border)] pt-4 text-sm">
         <?php foreach ($items as $it): ?>
-          <div class="flex justify-between"><span><?= e($it['name']) ?> <span class="text-[var(--text-faint)]">× <?= (int)$it['qty'] ?></span></span></div>
+          <div class="flex justify-between"><span><?= e($it['name']) ?><?php if (!empty($it['variant_label'])): ?> · <span class="text-[var(--text-faint)]"><?= e($it['variant_label']) ?></span><?php endif; ?> <span class="text-[var(--text-faint)]">× <?= (int)$it['qty'] ?></span></span></div>
         <?php endforeach; ?>
         <div class="flex justify-between border-t border-[var(--border)] pt-3 text-lg font-extrabold"><span>الإجمالي</span><span class="text-[var(--accent)]"><?= e(format_price((float)$order['total'])) ?></span></div>
       </div>

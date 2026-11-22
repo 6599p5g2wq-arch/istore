@@ -13,7 +13,7 @@ if (isset($_GET['slug']) || isset($_GET['id'])) {
         : qone($base . ' AND p.slug = ?', [trim($_GET['slug'])]);
     if (!$p) api_fail('المنتج غير موجود', 404);
     $reviews = qall('SELECT customer_name, rating, comment, created_at FROM reviews WHERE product_id = ? AND approved = 1 ORDER BY id DESC LIMIT 50', [(int)$p['id']]);
-    api_ok(['product' => api_product($p), 'reviews' => $reviews]);
+    api_ok(['product' => api_product($p, true), 'reviews' => $reviews]);
 }
 
 $where = ''; $args = [];

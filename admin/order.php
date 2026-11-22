@@ -11,11 +11,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['status'] ?? '', $v
     q('UPDATE orders SET status = ? WHERE id = ?', [$new, $id]);
     // إعادة المخزون عند الإلغاء، وخصمه عند التراجع عن الإلغاء
     if ($new === 'cancelled' && $old !== 'cancelled') {
-        foreach (qall('SELECT product_id, qty FROM order_items WHERE order_id = ? AND product_id IS NOT NULL', [$id]) as $it)
+        foreach (qall('SELECT product_id, qty, variant_id FROM order_items WHERE order_id = ? AND product_id IS NOT NULL', [$id]) as $it) {
+            if ($it['variant_id']) q('UPDATE product_variants SET stock = stock + ? WHERE id = ?', [(int)$it['qty'], (int)$it['variant_id']]);
             q('UPDATE products SET stock = stock + ? WHERE id = ?', [(int)$it['qty'], (int)$it['product_id']]);
+        }
     } elseif ($old === 'cancelled' && $new !== 'cancelled') {
-        foreach (qall('SELECT product_id, qty FROM order_items WHERE order_id = ? AND product_id IS NOT NULL', [$id]) as $it)
+        foreach (qall('SELECT product_id, qty, variant_id FROM order_items WHERE order_id = ? AND product_id IS NOT NULL', [$id]) as $it) {
+            if ($it['variant_id']) q('UPDATE product_variants SET stock = GREATEST(0, stock - ?) WHERE id = ?', [(int)$it['qty'], (int)$it['variant_id']]);
             q('UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?', [(int)$it['qty'], (int)$it['product_id']]);
+        }
     }
     // عند التسليم: تنبيه طلبات إشعارات التوفر غير متعلق هنا؛ التسليم يحدّث فقط الحالة
     flash('تم تحديث حالة الطلب إلى «' . order_status_label($new) . '»');
@@ -37,7 +41,7 @@ admin_header('طلب ' . $order['code'], 'orders.php');
         <thead><tr><th>المنتج</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr></thead>
         <tbody>
         <?php foreach ($items as $it): ?>
-          <tr><td><?= e($it['name']) ?></td><td><?= e(format_price((float)$it['price'])) ?></td><td><?= (int)$it['qty'] ?></td><td class="font-bold"><?= e(format_price((float)$it['price'] * (int)$it['qty'])) ?></td></tr>
+          <tr><td><?= e($it['name']) ?><?php if (!empty($it['variant_label'])): ?> <span class="text-xs font-bold text-[var(--text-faint)]"><?= e($it['variant_label']) ?></span><?php endif; ?></td><td><?= e(format_price((float)$it['price'])) ?></td><td><?= (int)$it['qty'] ?></td><td class="font-bold"><?= e(format_price((float)$it['price'] * (int)$it['qty'])) ?></td></tr>
         <?php endforeach; ?>
         </tbody>
       </table>

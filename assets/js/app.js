@@ -26,25 +26,26 @@
   var Cart = {
     items: readStore('istore-cart'),
     save: function () { writeStore('istore-cart', this.items); this.renderBadge(); },
+    key: function (i) { return i.id + ':' + (i.variant_id || 0); },
     add: function (p, qty) {
       qty = qty || 1;
+      var k = this.key(p);
       var found = null;
-      this.items.forEach(function (i) { if (i.id === p.id) found = i; });
+      this.items.forEach(function (i) { if (Cart.key(i) === k) found = i; });
       if (found) found.qty = Math.min(found.qty + qty, p.stock || 99);
-      else this.items.push({ id: p.id, name: p.name, price: p.price, image: p.image, slug: p.slug, stock: p.stock, qty: qty });
+      else this.items.push({ id: p.id, name: p.name, price: p.price, image: p.image, slug: p.slug, stock: p.stock, variant_id: p.variant_id || 0, variant_label: p.variant_label || '', qty: qty });
       this.save();
       this.openDrawer();
     },
-    setQty: function (id, qty) {
-      this.items = this.items.filter(function (i) {
-        if (i.id === id) { i.qty = Math.max(1, Math.min(qty, i.stock || 99)); return true; }
-        return true;
+    setQty: function (key, qty) {
+      this.items.forEach(function (i) {
+        if (Cart.key(i) === key) i.qty = Math.max(1, Math.min(qty, i.stock || 99));
       });
       this.save(); this.renderDrawer();
       if (typeof window.renderCartPage === 'function') window.renderCartPage();
     },
-    remove: function (id) {
-      this.items = this.items.filter(function (i) { return i.id !== id; });
+    remove: function (key) {
+      this.items = this.items.filter(function (i) { return Cart.key(i) !== key; });
       this.save(); this.renderDrawer();
       if (typeof window.renderCartPage === 'function') window.renderCartPage();
     },
@@ -82,13 +83,13 @@
           return '<div class="flex gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3">'
             + '<a href="' + window.BASE + '/product.php?slug=' + encodeURIComponent(i.slug) + '" class="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-[var(--surface-2)]"><img src="' + i.image + '" alt="" class="h-full w-full object-cover"></a>'
             + '<div class="flex flex-1 flex-col">'
-            + '<div class="flex items-start justify-between gap-2"><p class="line-clamp-2 text-sm font-bold">' + i.name + '</p>'
-            + '<button onclick="Cart.remove(' + i.id + ')" aria-label="حذف" class="text-[var(--text-faint)] hover:text-red-400">✕</button></div>'
+            + '<div class="flex items-start justify-between gap-2"><p class="line-clamp-2 text-sm font-bold">' + i.name + (i.variant_label ? ' <span class="text-xs font-bold text-[var(--text-faint)]">' + i.variant_label + '</span>' : '') + '</p>'
+            + '<button onclick="Cart.remove(\'' + Cart.key(i) + '\')" aria-label="حذف" class="text-[var(--text-faint)] hover:text-red-400">✕</button></div>'
             + '<div class="mt-auto flex items-center justify-between pt-2">'
             + '<div class="flex items-center gap-2 rounded-full border border-[var(--border)] px-2 py-1">'
-            + '<button onclick="Cart.setQty(' + i.id + ',' + (i.qty + 1) + ')" class="grid h-6 w-6 place-items-center rounded-full hover:bg-[var(--chip)]">+</button>'
+            + '<button onclick="Cart.setQty(\'' + Cart.key(i) + '\',' + (i.qty + 1) + ')" class="grid h-6 w-6 place-items-center rounded-full hover:bg-[var(--chip)]">+</button>'
             + '<span class="min-w-6 text-center text-sm font-bold">' + i.qty + '</span>'
-            + '<button onclick="Cart.setQty(' + i.id + ',' + (i.qty - 1) + ')" class="grid h-6 w-6 place-items-center rounded-full hover:bg-[var(--chip)]">−</button>'
+            + '<button onclick="Cart.setQty(\'' + Cart.key(i) + '\',' + (i.qty - 1) + ')" class="grid h-6 w-6 place-items-center rounded-full hover:bg-[var(--chip)]">−</button>'
             + '</div>'
             + '<span class="text-sm font-extrabold">' + fmt(i.price * i.qty) + '</span>'
             + '</div></div></div>';

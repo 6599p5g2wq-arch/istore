@@ -56,8 +56,9 @@ function api_logout_token(): void {
 }
 
 // تمثيل منتج موحد للتطبيق
-function api_product(array $p): array {
-    return [
+function api_product(array $p, bool $withVariants = false): array {
+    $options = parse_options($p['options'] ?? '');
+    $r = [
         'id' => (int)$p['id'],
         'name' => $p['name'],
         'slug' => $p['slug'],
@@ -74,5 +75,18 @@ function api_product(array $p): array {
         'category_name' => $p['category_name'] ?? null,
         'brand' => $p['brand_slug'] ?? null,
         'brand_name' => $p['brand_name'] ?? null,
+        'options' => $options,
+        'has_variants' => !empty($options),
     ];
+    if ($withVariants && $options) {
+        $r['variants'] = array_map(fn($v) => [
+            'id' => (int)$v['id'],
+            'label' => $v['label'],
+            'options' => json_decode($v['options'] ?: '{}', true) ?: [],
+            'price' => $v['price'] !== null ? (float)$v['price'] : null,
+            'stock' => (int)$v['stock'],
+            'image' => $v['image'] ? img_url($v['image']) : null,
+        ], get_variants((int)$p['id']));
+    }
+    return $r;
 }

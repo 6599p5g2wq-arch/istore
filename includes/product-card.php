@@ -5,6 +5,7 @@ function product_card(array $p, int $index = 0): string {
     $old = $p['old_price'] !== null && $p['old_price'] !== '' && (float)$p['old_price'] > (float)$p['price'] ? (float)$p['old_price'] : null;
     $badgeCls = $p['badge'] === 'خصم' ? 'bg-red-500' : ($p['badge'] === 'جديد' ? 'bg-emerald-500' : 'bg-[var(--accent)]');
     $delay = min($index * 0.05, 0.35);
+    $hasOptions = !empty(parse_options($p['options'] ?? ''));
     $jsData = e(json_encode([
         'id' => (int)$p['id'], 'name' => $p['name'], 'price' => (float)$p['price'],
         'image' => img_url($p['image']), 'slug' => $p['slug'], 'stock' => (int)$p['stock'],
@@ -30,10 +31,17 @@ function product_card(array $p, int $index = 0): string {
           <div class="text-lg font-extrabold text-white"><?= e(format_price($p['price'])) ?></div>
           <?php if ($old): ?><div class="text-xs text-[var(--text-faint)] line-through"><?= e(format_price($old)) ?></div><?php endif; ?>
         </div>
+        <?php if ($hasOptions && !$out): ?>
+        <a href="<?= e(url('product.php?slug=' . $p['slug'])) ?>" aria-label="اختر الخيارات"
+          class="grid h-11 w-11 place-items-center rounded-full shadow-md transition bg-[var(--text)] text-[var(--bg)] hover:bg-[var(--accent)] hover:text-white active:scale-90">
+          <?= icon('shopping-bag', 18) ?>
+        </a>
+        <?php else: ?>
         <button <?= $out ? 'disabled' : '' ?> onclick='Cart.add(<?= $jsData ?>)' aria-label="أضف إلى السلة"
           class="grid h-11 w-11 place-items-center rounded-full shadow-md transition <?= $out ? 'cursor-not-allowed bg-[var(--chip)] text-neutral-600' : 'bg-[var(--text)] text-[var(--bg)] hover:bg-[var(--accent)] hover:text-white active:scale-90' ?>">
           <?= icon('shopping-bag', 18) ?>
         </button>
+        <?php endif; ?>
       </div>
       <?php if ($out): ?><p class="mt-2 text-xs font-bold text-red-400">نفدت الكمية</p>
       <?php elseif ((int)$p['stock'] <= 5): ?><p class="mt-2 text-xs font-bold text-orange-400">باقي <?= (int)$p['stock'] ?> فقط</p><?php endif; ?>

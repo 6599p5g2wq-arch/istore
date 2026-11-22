@@ -4,6 +4,7 @@ define('APP_ROOT', dirname(__DIR__));
 require APP_ROOT . '/config.php';
 require APP_ROOT . '/includes/db.php';
 require APP_ROOT . '/includes/helpers.php';
+require APP_ROOT . '/includes/variants.php';
 
 // رابط جذر الموقع تلقائياً (يعمل داخل مجلد فرعي في XAMPP أو على جذر الدومين)
 if (!defined('BASE_URL')) {
