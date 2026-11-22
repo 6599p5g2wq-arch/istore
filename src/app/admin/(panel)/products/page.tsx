@@ -5,6 +5,7 @@ import { getSettings } from "@/lib/settings";
 import { formatPrice } from "@/lib/format";
 import { Plus, Pencil, Star } from "lucide-react";
 import DeleteButton from "@/components/admin/DeleteButton";
+import ProductsSearch from "@/components/admin/ProductsSearch";
 import type { Product } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +23,7 @@ export default function AdminProducts({ searchParams }: { searchParams: { q?: st
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black sm:text-3xl">المنتجات</h1>
-          <p className="mt-1 text-sm text-neutral-500">{products.length} منتج</p>
+          <p className="mt-1 text-sm text-neutral-500"><span id="products-count">{products.length}</span> منتج</p>
         </div>
         <Link href="/admin/products/new" className="flex items-center gap-2 rounded-full bg-black px-6 py-3 font-bold text-white transition hover:bg-neutral-800">
           <Plus size={18} /> منتج جديد
@@ -30,7 +31,7 @@ export default function AdminProducts({ searchParams }: { searchParams: { q?: st
       </div>
 
       <form className="mt-6">
-        <input name="q" defaultValue={q} placeholder="ابحث عن منتج…" className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white px-4 py-3 outline-none focus:border-black" />
+        <ProductsSearch initialQ={q} />
       </form>
 
       <div className="mt-6 overflow-x-auto rounded-3xl bg-white p-4 shadow-sm">
@@ -42,8 +43,9 @@ export default function AdminProducts({ searchParams }: { searchParams: { q?: st
             </tr>
           </thead>
           <tbody>
+            <tr id="products-empty" style={{ display: "none" }}><td colSpan={7} className="p-6 text-center text-sm font-bold text-neutral-400">لا توجد منتجات مطابقة</td></tr>
             {products.map((p) => (
-              <tr key={p.id} className="border-b border-neutral-50 last:border-0 hover:bg-neutral-50/60">
+              <tr key={p.id} data-name={p.name.toLowerCase()} className="js-product-row border-b border-neutral-50 last:border-0 hover:bg-neutral-50/60">
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
