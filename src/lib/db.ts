@@ -1,0 +1,121 @@
+import Database from "better-sqlite3";
+import path from "path";
+import fs from "fs";
+import { seedIfEmpty } from "./seed";
+
+const DB_PATH = process.env.DB_PATH || path.join(process.cwd(), "istore.db");
+
+let _db: Database.Database | null = null;
+
+export function getDb(): Database.Database {
+  if (_db) return _db;
+  const db = new Database(DB_PATH);
+  db.pragma("journal_mode = WAL");
+  db.pragma("foreign_keys = ON");
+  initSchema(db);
+  seedIfEmpty(db);
+  _db = db;
+  return db;
+}
+
+function initSchema(db: Database.Database) {
+  db.exec(`
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL DEFAULT ''
+  );
+  CREATE TABLE IF NOT EXISTS categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    description TEXT NOT NULL DEFAULT '',
+    image TEXT NOT NULL DEFAULT '',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1
+  );
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+    description TEXT NOT NULL DEFAULT '',
+    price REAL NOT NULL DEFAULT 0,
+    old_price REAL,
+    stock INTEGER NOT NULL DEFAULT 0,
+    image TEXT NOT NULL DEFAULT '',
+    images TEXT NOT NULL DEFAULT '[]',
+    badge TEXT NOT NULL DEFAULT '',
+    featured INTEGER NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1,
+    rating REAL NOT NULL DEFAULT 4.8,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT NOT NULL UNIQUE,
+    customer_name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    city TEXT NOT NULL,
+    address TEXT NOT NULL DEFAULT '',
+    notes TEXT NOT NULL DEFAULT '',
+    subtotal REAL NOT NULL DEFAULT 0,
+    delivery_fee REAL NOT NULL DEFAULT 0,
+    total REAL NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'new',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE TABLE IF NOT EXISTS order_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    product_id INTEGER,
+    name TEXT NOT NULL,
+    price REAL NOT NULL,
+    qty INTEGER NOT NULL DEFAULT 1
+  );
+  CREATE TABLE IF NOT EXISTS cities (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    fee REAL NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1,
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE TABLE IF NOT EXISTS hero_slides (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL DEFAULT '',
+    subtitle TEXT NOT NULL DEFAULT '',
+    cta_text TEXT NOT NULL DEFAULT 'تسوق الآن',
+    cta_link TEXT NOT NULL DEFAULT '/products',
+    image TEXT NOT NULL DEFAULT '',
+    theme TEXT NOT NULL DEFAULT 'dark',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1
+  );
+  CREATE TABLE IF NOT EXISTS banners (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL DEFAULT '',
+    subtitle TEXT NOT NULL DEFAULT '',
+    image TEXT NOT NULL DEFAULT '',
+    link TEXT NOT NULL DEFAULT '/products',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1
+  );
+  CREATE TABLE IF NOT EXISTS admin_users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    pass_hash TEXT NOT NULL,
+    salt TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY,
+    admin_id INTEGER NOT NULL REFERENCES admin_users(id) ON DELETE CASCADE,
+    expires_at TEXT NOT NULL
+  );
+  `);
+}
+
+export function dataDir() {
+  const d = path.join(process.cwd(), "public", "uploads");
+  fs.mkdirSync(d, { recursive: true });
+  return d;
+}
