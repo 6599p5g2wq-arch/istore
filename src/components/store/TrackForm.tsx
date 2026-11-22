@@ -33,16 +33,16 @@ export default function TrackForm() {
     setLoading(false);
   };
 
-  const inputCls = "w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20";
+  const inputCls = "w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20";
 
   return (
     <div className="mt-10">
-      <form onSubmit={submit} className="space-y-4 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
-        <label className="block text-sm font-bold text-neutral-200">
+      <form onSubmit={submit} className="space-y-4 rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
+        <label className="block text-sm font-bold text-[var(--text)]">
           رقم الطلب
           <input dir="ltr" required value={code} onChange={(e) => setCode(e.target.value)} className={`mt-1.5 text-left ${inputCls}`} placeholder="IST-XXXXXX" />
         </label>
-        <label className="block text-sm font-bold text-neutral-200">
+        <label className="block text-sm font-bold text-[var(--text)]">
           رقم الهاتف المستخدم في الطلب
           <input dir="ltr" required value={phone} onChange={(e) => setPhone(e.target.value)} className={`mt-1.5 text-left ${inputCls}`} placeholder="09XXXXXXXX" />
         </label>
@@ -52,7 +52,7 @@ export default function TrackForm() {
       </form>
       {error && <p className="mt-4 rounded-2xl bg-red-500/10 px-4 py-3 text-center text-sm font-bold text-red-400">{error}</p>}
       {result && (
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mt-6 rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
           {(() => {
             const st = STATUS[result.status] || STATUS.new;
             return (
@@ -66,13 +66,13 @@ export default function TrackForm() {
               </div>
             );
           })()}
-          <ul className="mt-4 space-y-2 text-sm text-neutral-200">
+          <ul className="mt-4 space-y-2 text-sm text-[var(--text)]">
             {result.items.map((it, i) => (
-              <li key={i} className="flex items-center gap-2"><Package size={14} className="text-neutral-500" /> {it.name} <span className="text-neutral-500">× {it.qty}</span></li>
+              <li key={i} className="flex items-center gap-2"><Package size={14} className="text-[var(--text-faint)]" /> {it.name} <span className="text-[var(--text-faint)]">× {it.qty}</span></li>
             ))}
           </ul>
-          <div className="mt-4 flex justify-between border-t border-white/10 pt-4 text-sm">
-            <span className="text-neutral-400">{result.city} — {formatDate(result.created_at)}</span>
+          <div className="mt-4 flex justify-between border-t border-[var(--border)] pt-4 text-sm">
+            <span className="text-[var(--text-dim)]">{result.city} — {formatDate(result.created_at)}</span>
             <span className="font-extrabold text-white">{formatPrice(result.total)}</span>
           </div>
         </motion.div>

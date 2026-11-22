@@ -11,7 +11,7 @@ export default function Footer() {
   const cats = db.prepare("SELECT name, slug FROM categories WHERE active = 1 ORDER BY sort_order").all() as Pick<Category, "name" | "slug">[];
   const year = new Date().getFullYear();
   return (
-    <footer className="mt-24 border-t border-white/10 bg-[#0a0a12]">
+    <footer className="on-dark mt-24 border-t border-white/10 bg-[#0a0a12]">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 md:grid-cols-4">
           <div>

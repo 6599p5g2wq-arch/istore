@@ -22,7 +22,7 @@ export default function OrderSuccessPage({ params }: { params: { code: string } 
       <Reveal className="text-center">
         <span className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-500/15 text-emerald-400"><CheckCircle2 size={44} /></span>
         <h1 className="mt-6 text-3xl font-black sm:text-4xl">تم استلام طلبك بنجاح!</h1>
-        <p className="mt-3 text-neutral-400">شكراً {order.customer_name}، سنتواصل معك قريباً على <b dir="ltr">{order.phone}</b> لتأكيد الطلب قبل الشحن.</p>
+        <p className="mt-3 text-[var(--text-dim)]">شكراً {order.customer_name}، سنتواصل معك قريباً على <b dir="ltr">{order.phone}</b> لتأكيد الطلب قبل الشحن.</p>
         <div className="mt-6 inline-flex items-center gap-3 rounded-full bg-white px-8 py-3 text-black">
           <Package size={19} />
           <span className="font-bold">رقم الطلب:</span>
@@ -31,29 +31,29 @@ export default function OrderSuccessPage({ params }: { params: { code: string } 
       </Reveal>
 
       <Reveal delay={0.15}>
-        <div className="mt-10 rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+        <div className="mt-10 rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
           <h2 className="text-lg font-extrabold text-white">تفاصيل الطلب</h2>
-          <ul className="mt-4 space-y-2.5 text-sm text-neutral-200">
+          <ul className="mt-4 space-y-2.5 text-sm text-[var(--text)]">
             {items.map((it) => (
               <li key={it.id} className="flex justify-between">
-                <span>{it.name} <span className="text-neutral-400">× {it.qty}</span></span>
+                <span>{it.name} <span className="text-[var(--text-dim)]">× {it.qty}</span></span>
                 <span className="font-bold">{formatPrice(it.price * it.qty, s.currency)}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-4 space-y-2 border-t border-white/10 pt-4 text-sm">
-            <div className="flex justify-between text-neutral-400"><span>المجموع الفرعي</span><span className="font-bold text-white">{formatPrice(order.subtotal, s.currency)}</span></div>
+          <div className="mt-4 space-y-2 border-t border-[var(--border)] pt-4 text-sm">
+            <div className="flex justify-between text-[var(--text-dim)]"><span>المجموع الفرعي</span><span className="font-bold text-white">{formatPrice(order.subtotal, s.currency)}</span></div>
             {order.discount > 0 && <div className="flex justify-between text-emerald-400"><span>الخصم{order.coupon_code ? ` (${order.coupon_code})` : ""}</span><span className="font-bold">- {formatPrice(order.discount, s.currency)}</span></div>}
-            <div className="flex justify-between text-neutral-400"><span>التوصيل — {order.city}</span><span className="font-bold text-white">{order.delivery_fee === 0 ? "مجاني" : formatPrice(order.delivery_fee, s.currency)}</span></div>
+            <div className="flex justify-between text-[var(--text-dim)]"><span>التوصيل — {order.city}</span><span className="font-bold text-white">{order.delivery_fee === 0 ? "مجاني" : formatPrice(order.delivery_fee, s.currency)}</span></div>
             <div className="flex justify-between pt-1 text-lg"><span className="font-bold text-white">الإجمالي</span><span className="font-black text-[var(--accent)]">{formatPrice(order.total, s.currency)}</span></div>
           </div>
-          <p className="mt-4 text-xs text-neutral-500">{formatDate(order.created_at)} — الدفع عند الاستلام</p>
+          <p className="mt-4 text-xs text-[var(--text-faint)]">{formatDate(order.created_at)} — الدفع عند الاستلام</p>
         </div>
       </Reveal>
 
       <Reveal delay={0.25} className="mt-8 flex flex-wrap justify-center gap-4">
         <Link href="/track" className="rounded-full bg-[var(--accent)] px-8 py-3.5 font-bold text-white shadow-lg transition hover:opacity-90">تتبع طلبك</Link>
-        <Link href="/products" className="rounded-full border border-white/20 px-8 py-3.5 font-bold text-neutral-100 transition hover:bg-white/10">متابعة التسوق</Link>
+        <Link href="/products" className="rounded-full border border-[var(--border-strong)] px-8 py-3.5 font-bold text-[var(--text)] transition hover:bg-[var(--chip)]">متابعة التسوق</Link>
         {s.whatsapp && (
           <a href={`https://wa.me/${s.whatsapp}?text=${encodeURIComponent(`مرحباً، أريد الاستفسار عن طلبي ${order.code}`)}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-full bg-emerald-500 px-8 py-3.5 font-bold text-white shadow-lg transition hover:opacity-90">
             <Phone size={17} /> تواصل واتساب

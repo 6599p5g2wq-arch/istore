@@ -19,11 +19,11 @@ export default function BrandsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
       <h1 className="text-3xl font-black sm:text-4xl">الماركات</h1>
-      <p className="mt-2 text-neutral-500">تسوّق حسب ماركتك المفضلة — كلها منتجات أصلية ومضمونة</p>
+      <p className="mt-2 text-[var(--text-faint)]">تسوّق حسب ماركتك المفضلة — كلها منتجات أصلية ومضمونة</p>
 
       {brands.length === 0 ? (
-        <div className="mt-8 grid place-items-center rounded-3xl bg-white/5 py-24 text-center">
-          <p className="text-lg font-bold text-neutral-300">لا توجد ماركات بعد</p>
+        <div className="mt-8 grid place-items-center rounded-3xl bg-[var(--card)] py-24 text-center">
+          <p className="text-lg font-bold text-[var(--text-dim)]">لا توجد ماركات بعد</p>
         </div>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
@@ -31,17 +31,17 @@ export default function BrandsPage() {
             <Reveal key={b.slug} delay={i * 0.06}>
             <Link
               href={`/products?brand=${b.slug}`}
-              className="group flex flex-col items-center gap-4 rounded-3xl bg-white/5 p-8 text-center transition hover:bg-white/10"
+              className="group flex flex-col items-center gap-4 rounded-3xl bg-[var(--card)] p-8 text-center transition hover:bg-[var(--chip)]"
             >
               {b.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={b.image} alt={b.name} className="h-20 w-20 rounded-3xl bg-white/10 object-cover transition group-hover:scale-105" />
+                <img src={b.image} alt={b.name} className="h-20 w-20 rounded-3xl bg-[var(--chip)] object-cover transition group-hover:scale-105" />
               ) : (
-                <span className="grid h-20 w-20 place-items-center rounded-3xl bg-white/10 text-neutral-300 transition group-hover:scale-105"><Tag size={30} /></span>
+                <span className="grid h-20 w-20 place-items-center rounded-3xl bg-[var(--chip)] text-[var(--text-dim)] transition group-hover:scale-105"><Tag size={30} /></span>
               )}
               <span>
                 <span className="block text-lg font-extrabold text-white">{b.name}</span>
-                <span className="mt-1 block text-sm text-neutral-500">{b.products_count} منتج</span>
+                <span className="mt-1 block text-sm text-[var(--text-faint)]">{b.products_count} منتج</span>
               </span>
             </Link>
             </Reveal>

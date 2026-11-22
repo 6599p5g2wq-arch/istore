@@ -44,14 +44,14 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
-      <nav className="mb-8 flex items-center gap-1.5 text-sm text-neutral-500">
-        <Link href="/" className="hover:text-white">الرئيسية</Link>
+      <nav className="mb-8 flex items-center gap-1.5 text-sm text-[var(--text-faint)]">
+        <Link href="/" className="hover:text-[var(--text)]">الرئيسية</Link>
         <ChevronLeft size={14} />
-        <Link href="/products" className="hover:text-white">المنتجات</Link>
+        <Link href="/products" className="hover:text-[var(--text)]">المنتجات</Link>
         {product.category_name && (
           <>
             <ChevronLeft size={14} />
-            <Link href={`/products?category=${product.category_slug}`} className="hover:text-white">{product.category_name}</Link>
+            <Link href={`/products?category=${product.category_slug}`} className="hover:text-[var(--text)]">{product.category_name}</Link>
           </>
         )}
       </nav>
@@ -65,7 +65,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
           {gallery.length > 1 && (
             <div className="mt-3 grid grid-cols-4 gap-3">
               {gallery.slice(1, 5).map((g, i) => (
-                <div key={i} className="overflow-hidden rounded-2xl bg-[#12121c] ring-1 ring-white/10">
+                <div key={i} className="overflow-hidden rounded-2xl bg-[var(--surface-2)] ring-1 ring-white/10">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={g} alt="" className="aspect-square w-full object-cover" />
                 </div>
@@ -77,18 +77,18 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
         <Reveal delay={0.1}>
           <div>
             <div className="flex items-center gap-3 text-sm">
-              {product.category_name && <Link href={`/products?category=${product.category_slug}`} className="rounded-full bg-white/10 px-3 py-1 font-bold text-neutral-300 hover:bg-white/15">{product.category_name}</Link>}
-              {product.brand_name && <Link href={`/products?brand=${product.brand_slug}`} className="rounded-full bg-white/10 px-3 py-1 font-bold text-neutral-300 hover:bg-white/15">{product.brand_name}</Link>}
-              <span className="flex items-center gap-1 text-amber-400"><Star size={15} fill="currentColor" /><b>{avgRating.toFixed(1)}</b>{reviews.length > 0 && <span className="text-neutral-500">({reviews.length})</span>}</span>
+              {product.category_name && <Link href={`/products?category=${product.category_slug}`} className="rounded-full bg-[var(--chip)] px-3 py-1 font-bold text-[var(--text-dim)] hover:bg-[var(--chip-hover)]">{product.category_name}</Link>}
+              {product.brand_name && <Link href={`/products?brand=${product.brand_slug}`} className="rounded-full bg-[var(--chip)] px-3 py-1 font-bold text-[var(--text-dim)] hover:bg-[var(--chip-hover)]">{product.brand_name}</Link>}
+              <span className="flex items-center gap-1 text-amber-400"><Star size={15} fill="currentColor" /><b>{avgRating.toFixed(1)}</b>{reviews.length > 0 && <span className="text-[var(--text-faint)]">({reviews.length})</span>}</span>
             </div>
             <h1 className="mt-4 text-3xl font-black leading-snug text-white sm:text-4xl">{product.name}</h1>
             <div className="mt-5 flex items-baseline gap-3">
               <span className="text-4xl font-black text-[var(--accent)]">{formatPrice(product.price, s.currency)}</span>
               {product.old_price && product.old_price > product.price && (
-                <span className="text-xl text-neutral-500 line-through">{formatPrice(product.old_price, s.currency)}</span>
+                <span className="text-xl text-[var(--text-faint)] line-through">{formatPrice(product.old_price, s.currency)}</span>
               )}
             </div>
-            <p className="mt-6 whitespace-pre-line leading-8 text-neutral-400">{product.description}</p>
+            <p className="mt-6 whitespace-pre-line leading-8 text-[var(--text-dim)]">{product.description}</p>
 
             <div className="mt-6">
               {product.stock <= 0 ? (
@@ -104,16 +104,16 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
             <WhatsAppOrderButton product={product} whatsapp={s.whatsapp} currency={s.currency} />
             {product.stock <= 0 && <StockAlertForm productId={product.id} />}
 
-            <div className="mt-8 grid grid-cols-3 gap-3 border-t border-white/10 pt-8 text-center">
+            <div className="mt-8 grid grid-cols-3 gap-3 border-t border-[var(--border)] pt-8 text-center">
               {[
                 { icon: Truck, t: "توصيل سريع", d: "24-72 ساعة" },
                 { icon: ShieldCheck, t: "منتج أصلي", d: "مع ضمان" },
                 { icon: RefreshCcw, t: "استبدال سهل", d: "خلال 7 أيام" },
               ].map((f) => (
-                <div key={f.t} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div key={f.t} className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
                   <f.icon size={22} className="mx-auto text-[var(--accent)]" />
-                  <p className="mt-2 text-sm font-bold text-neutral-100">{f.t}</p>
-                  <p className="text-xs text-neutral-500">{f.d}</p>
+                  <p className="mt-2 text-sm font-bold text-[var(--text)]">{f.t}</p>
+                  <p className="text-xs text-[var(--text-faint)]">{f.d}</p>
                 </div>
               ))}
             </div>
@@ -123,18 +123,18 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
 
       {/* Verified reviews */}
       <section className="mt-20">
-        <Reveal><h2 className="mb-8 text-2xl font-black text-white sm:text-3xl">تقييمات الزبائن {reviews.length > 0 && <span className="text-base font-bold text-neutral-500">({reviews.length})</span>}</h2></Reveal>
+        <Reveal><h2 className="mb-8 text-2xl font-black text-white sm:text-3xl">تقييمات الزبائن {reviews.length > 0 && <span className="text-base font-bold text-[var(--text-faint)]">({reviews.length})</span>}</h2></Reveal>
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-2">
-            {reviews.length === 0 && <p className="rounded-2xl bg-white/5 p-8 text-center text-sm text-neutral-400">لا تقييمات بعد — كن أول من يقيّم بعد استلام طلبك.</p>}
+            {reviews.length === 0 && <p className="rounded-2xl bg-[var(--card)] p-8 text-center text-sm text-[var(--text-dim)]">لا تقييمات بعد — كن أول من يقيّم بعد استلام طلبك.</p>}
             {reviews.map((r) => (
-              <div key={r.id} className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+              <div key={r.id} className="rounded-2xl border border-[var(--border)] bg-white/[0.04] p-5">
                 <div className="flex items-center gap-2">
                   <div className="flex">{[1, 2, 3, 4, 5].map((n) => <Star key={n} size={15} className={n <= r.rating ? "text-amber-400" : "text-neutral-700"} fill="currentColor" />)}</div>
                   <span className="text-sm font-bold text-white">{r.customer_name}</span>
                   <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400"><BadgeCheck size={12} /> مشترٍ موثق</span>
                 </div>
-                {r.comment && <p className="mt-3 text-sm leading-7 text-neutral-300">{r.comment}</p>}
+                {r.comment && <p className="mt-3 text-sm leading-7 text-[var(--text-dim)]">{r.comment}</p>}
               </div>
             ))}
           </div>

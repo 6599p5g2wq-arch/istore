@@ -77,61 +77,61 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
 
   if (items.length === 0) {
     return (
-      <div className="mt-10 grid place-items-center rounded-3xl bg-white/5 py-20 text-center">
-        <p className="text-lg font-bold text-neutral-400">لا توجد منتجات في السلة</p>
+      <div className="mt-10 grid place-items-center rounded-3xl bg-[var(--card)] py-20 text-center">
+        <p className="text-lg font-bold text-[var(--text-dim)]">لا توجد منتجات في السلة</p>
         <Link href="/products" className="mt-5 rounded-full bg-white px-8 py-3 font-bold text-black">تسوق الآن</Link>
       </div>
     );
   }
 
-  const inputCls = "w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20";
+  const inputCls = "w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20";
 
   return (
     <form onSubmit={submit} className="mt-10 grid gap-10 lg:grid-cols-5">
       <div className="space-y-5 lg:col-span-3">
-        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+        <div className="rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
           <h2 className="mb-5 flex items-center gap-2 text-lg font-extrabold text-white"><User size={19} className="text-[var(--accent)]" /> بيانات المستلم</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm font-bold text-neutral-200">
+            <label className="block text-sm font-bold text-[var(--text)]">
               الاسم الكامل *
               <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={`mt-1.5 ${inputCls}`} placeholder="مثال: محمد أحمد" />
             </label>
-            <label className="block text-sm font-bold text-neutral-200">
+            <label className="block text-sm font-bold text-[var(--text)]">
               رقم الهاتف *
               <input required dir="ltr" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={`mt-1.5 text-left ${inputCls}`} placeholder="09XXXXXXXX" />
             </label>
           </div>
         </div>
-        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+        <div className="rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
           <h2 className="mb-5 flex items-center gap-2 text-lg font-extrabold text-white"><MapPin size={19} className="text-[var(--accent)]" /> عنوان التوصيل</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm font-bold text-neutral-200">
+            <label className="block text-sm font-bold text-[var(--text)]">
               المدينة *
               <select required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className={`mt-1.5 ${inputCls}`}>
                 {cities.map((c) => <option key={c.id} value={c.name}>{c.name} — توصيل {formatPrice(c.fee, currency)}</option>)}
               </select>
             </label>
-            <label className="block text-sm font-bold text-neutral-200">
+            <label className="block text-sm font-bold text-[var(--text)]">
               العنوان بالتفصيل
               <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className={`mt-1.5 ${inputCls}`} placeholder="الحي، الشارع، أقرب معلم" />
             </label>
           </div>
-          <label className="mt-4 block text-sm font-bold text-neutral-200">
+          <label className="mt-4 block text-sm font-bold text-[var(--text)]">
             <span className="flex items-center gap-1.5"><StickyNote size={15} /> ملاحظات إضافية (اختياري)</span>
             <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} className={`mt-1.5 resize-none ${inputCls}`} placeholder="أي تفاصيل تساعدنا في التوصيل" />
           </label>
         </div>
-        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+        <div className="rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-extrabold text-white"><TicketPercent size={19} className="text-[var(--accent)]" /> كود الخصم</h2>
           {applied ? (
             <p className="flex items-center justify-between rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-400">
               <span className="flex items-center gap-2"><CheckCircle2 size={17} /> {applied.code} — خصم {formatPrice(applied.discount, currency)}</span>
-              <button type="button" onClick={() => { setApplied(null); setCoupon(""); }} className="text-xs text-neutral-400 hover:text-white">إزالة</button>
+              <button type="button" onClick={() => { setApplied(null); setCoupon(""); }} className="text-xs text-[var(--text-dim)] hover:text-[var(--text)]">إزالة</button>
             </p>
           ) : (
             <div>
               <div className="flex gap-2">
-                <input dir="ltr" value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder="ISTORE10" className="flex-1 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-left text-white outline-none placeholder:text-neutral-600 focus:border-[var(--accent)]" />
+                <input dir="ltr" value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder="ISTORE10" className="flex-1 rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3 text-left text-white outline-none placeholder:text-neutral-600 focus:border-[var(--accent)]" />
                 <button type="button" onClick={applyCoupon} disabled={couponLoading} className="rounded-2xl bg-white px-6 py-3 text-sm font-bold text-black hover:bg-neutral-200 disabled:opacity-60">
                   {couponLoading ? <Loader2 size={16} className="animate-spin" /> : "تطبيق"}
                 </button>
@@ -140,40 +140,40 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
             </div>
           )}
         </div>
-        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+        <div className="rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-extrabold text-white"><Banknote size={19} className="text-[var(--accent)]" /> طريقة الدفع</h2>
           <div className="flex items-center gap-3 rounded-2xl border-2 border-[var(--accent)] bg-[var(--accent)]/10 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-full bg-[var(--accent)] text-white"><Banknote size={20} /></span>
             <div>
               <p className="font-bold text-white">الدفع عند الاستلام</p>
-              <p className="text-sm text-neutral-400">ادفع نقداً عند وصول طلبك إليك</p>
+              <p className="text-sm text-[var(--text-dim)]">ادفع نقداً عند وصول طلبك إليك</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="lg:col-span-2">
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 lg:sticky lg:top-24">
+        <div className="rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 lg:sticky lg:top-24">
           <h2 className="text-lg font-extrabold text-white">طلبك ({items.length})</h2>
           <ul className="mt-4 max-h-72 space-y-3 overflow-y-auto pl-1">
             {items.map((it) => (
               <li key={it.id} className="flex items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={it.image} alt="" className="h-14 w-14 rounded-xl bg-[#12121c] object-cover" />
+                <img src={it.image} alt="" className="h-14 w-14 rounded-xl bg-[var(--surface-2)] object-cover" />
                 <div className="min-w-0 flex-1">
-                  <p className="line-clamp-1 text-sm font-bold text-neutral-100">{it.name}</p>
-                  <p className="text-xs text-neutral-500">الكمية: {it.qty}</p>
+                  <p className="line-clamp-1 text-sm font-bold text-[var(--text)]">{it.name}</p>
+                  <p className="text-xs text-[var(--text-faint)]">الكمية: {it.qty}</p>
                 </div>
                 <span className="text-sm font-bold text-white">{formatPrice(it.price * it.qty, currency)}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-5 space-y-2.5 border-t border-white/10 pt-4 text-sm">
-            <div className="flex justify-between text-neutral-400"><span>المجموع الفرعي</span><span className="font-bold text-white">{formatPrice(total, currency)}</span></div>
+          <div className="mt-5 space-y-2.5 border-t border-[var(--border)] pt-4 text-sm">
+            <div className="flex justify-between text-[var(--text-dim)]"><span>المجموع الفرعي</span><span className="font-bold text-white">{formatPrice(total, currency)}</span></div>
             {discount > 0 && (
               <div className="flex justify-between text-emerald-400"><span>الخصم ({applied?.code})</span><span className="font-bold">- {formatPrice(discount, currency)}</span></div>
             )}
-            <div className="flex justify-between text-neutral-400">
+            <div className="flex justify-between text-[var(--text-dim)]">
               <span className="flex items-center gap-1"><Truck size={14} /> التوصيل — {form.city || "اختر المدينة"}</span>
               <span className={`font-bold ${fee === 0 ? "text-emerald-400" : "text-white"}`}>{fee === 0 ? "مجاني" : formatPrice(fee, currency)}</span>
             </div>
@@ -181,7 +181,7 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
               <p className="rounded-xl bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-400">أضف منتجات بقيمة {formatPrice(freeThreshold - total, currency)} واحصل على شحن مجاني</p>
             )}
           </div>
-          <div className="mt-4 flex justify-between border-t border-white/10 pt-4">
+          <div className="mt-4 flex justify-between border-t border-[var(--border)] pt-4">
             <span className="text-lg font-bold text-white">الإجمالي</span>
             <span className="text-2xl font-black text-[var(--accent)]">{formatPrice(total - discount + fee, currency)}</span>
           </div>

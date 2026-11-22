@@ -34,16 +34,16 @@ export default function ReviewForm({ productId, onDone }: { productId: number; o
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="rounded-full border border-white/20 px-6 py-2.5 text-sm font-bold text-neutral-100 transition hover:bg-white/10">
+      <button onClick={() => setOpen(true)} className="rounded-full border border-[var(--border-strong)] px-6 py-2.5 text-sm font-bold text-[var(--text)] transition hover:bg-[var(--chip)]">
         اكتب تقييمك
       </button>
     );
   }
 
-  const inputCls = "w-full rounded-xl border border-white/15 bg-[#0e0e16] px-3 py-2.5 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-[var(--accent)]";
+  const inputCls = "w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2.5 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-[var(--accent)]";
 
   return (
-    <motion.form initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onSubmit={submit} className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-5">
+    <motion.form initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onSubmit={submit} className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
       <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((n) => (
           <button type="button" key={n} onClick={() => setForm({ ...form, rating: n })} aria-label={`${n} نجوم`}>
@@ -53,7 +53,7 @@ export default function ReviewForm({ productId, onDone }: { productId: number; o
       </div>
       <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="اسمك" className={inputCls} />
       <textarea value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} rows={3} placeholder="رأيك في المنتج (اختياري)" className={`${inputCls} resize-none`} />
-      <p className="text-xs text-neutral-500">التوثيق: التقييم متاح فقط لمن استلم المنتج — أدخل رقم طلبك وهاتفك.</p>
+      <p className="text-xs text-[var(--text-faint)]">التوثيق: التقييم متاح فقط لمن استلم المنتج — أدخل رقم طلبك وهاتفك.</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <input required dir="ltr" value={form.order_code} onChange={(e) => setForm({ ...form, order_code: e.target.value })} placeholder="IST-XXXXXX" className={`${inputCls} text-left`} />
         <input required dir="ltr" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="09XXXXXXXX" className={`${inputCls} text-left`} />

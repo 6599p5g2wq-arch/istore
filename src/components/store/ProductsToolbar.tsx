@@ -17,19 +17,19 @@ export default function ProductsToolbar({ categories, brands }: { categories: { 
   return (
     <div className="mt-8">
       <div className="flex flex-wrap items-center gap-2">
-        <button onClick={() => set("category", "")} className={`rounded-full px-4 py-2 text-sm font-bold transition ${!sp.get("category") ? "bg-white text-black" : "bg-white/10 text-neutral-200 hover:bg-white/15"}`}>الكل</button>
+        <button onClick={() => set("category", "")} className={`rounded-full px-4 py-2 text-sm font-bold transition ${!sp.get("category") ? "bg-white text-black" : "bg-[var(--chip)] text-[var(--text)] hover:bg-[var(--chip-hover)]"}`}>الكل</button>
         {categories.map((c) => (
-          <button key={c.slug} onClick={() => set("category", c.slug)} className={`rounded-full px-4 py-2 text-sm font-bold transition ${sp.get("category") === c.slug ? "bg-white text-black" : "bg-white/10 text-neutral-200 hover:bg-white/15"}`}>{c.name}</button>
+          <button key={c.slug} onClick={() => set("category", c.slug)} className={`rounded-full px-4 py-2 text-sm font-bold transition ${sp.get("category") === c.slug ? "bg-white text-black" : "bg-[var(--chip)] text-[var(--text)] hover:bg-[var(--chip-hover)]"}`}>{c.name}</button>
         ))}
         <div className="mr-auto flex items-center gap-2">
-          <button onClick={() => setShowFilters(!showFilters)} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${showFilters ? "bg-[var(--accent)] text-white" : "bg-white/10 text-neutral-200 hover:bg-white/15"}`}>
+          <button onClick={() => setShowFilters(!showFilters)} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${showFilters ? "bg-[var(--accent)] text-white" : "bg-[var(--chip)] text-[var(--text)] hover:bg-[var(--chip-hover)]"}`}>
             <SlidersHorizontal size={15} /> فلاتر
           </button>
           {brands && brands.length > 0 && (
             <select
               value={sp.get("brand") || ""}
               onChange={(e) => set("brand", e.target.value)}
-              className="rounded-full border border-white/15 bg-[#0e0e16] px-4 py-2 text-sm font-bold text-neutral-100 outline-none"
+              className="rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--text)] outline-none"
             >
               <option value="">كل الماركات</option>
               {brands.map((b) => <option key={b.slug} value={b.slug}>{b.name}</option>)}
@@ -38,7 +38,7 @@ export default function ProductsToolbar({ categories, brands }: { categories: { 
           <select
             value={sp.get("sort") || "newest"}
             onChange={(e) => set("sort", e.target.value)}
-            className="rounded-full border border-white/15 bg-[#0e0e16] px-4 py-2 text-sm font-bold text-neutral-100 outline-none"
+            className="rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--text)] outline-none"
           >
             <option value="newest">الأحدث</option>
             <option value="price-asc">السعر: من الأقل</option>
@@ -48,20 +48,20 @@ export default function ProductsToolbar({ categories, brands }: { categories: { 
         </div>
       </div>
       {showFilters && (
-        <div className="mt-4 flex flex-wrap items-end gap-4 rounded-2xl border border-white/10 bg-white/5 p-5">
-          <label className="text-sm font-bold text-neutral-200">
+        <div className="mt-4 flex flex-wrap items-end gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
+          <label className="text-sm font-bold text-[var(--text)]">
             أقل سعر
-            <input type="number" min={0} defaultValue={sp.get("min") || ""} onBlur={(e) => set("min", e.target.value)} className="mt-1 block w-32 rounded-xl border border-white/15 bg-[#0e0e16] px-3 py-2 text-sm text-white outline-none focus:border-[var(--accent)]" placeholder="0" />
+            <input type="number" min={0} defaultValue={sp.get("min") || ""} onBlur={(e) => set("min", e.target.value)} className="mt-1 block w-32 rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-white outline-none focus:border-[var(--accent)]" placeholder="0" />
           </label>
-          <label className="text-sm font-bold text-neutral-200">
+          <label className="text-sm font-bold text-[var(--text)]">
             أعلى سعر
-            <input type="number" min={0} defaultValue={sp.get("max") || ""} onBlur={(e) => set("max", e.target.value)} className="mt-1 block w-32 rounded-xl border border-white/15 bg-[#0e0e16] px-3 py-2 text-sm text-white outline-none focus:border-[var(--accent)]" placeholder="بدون حد" />
+            <input type="number" min={0} defaultValue={sp.get("max") || ""} onBlur={(e) => set("max", e.target.value)} className="mt-1 block w-32 rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-white outline-none focus:border-[var(--accent)]" placeholder="بدون حد" />
           </label>
-          <label className="flex cursor-pointer items-center gap-2 text-sm font-bold text-neutral-200">
+          <label className="flex cursor-pointer items-center gap-2 text-sm font-bold text-[var(--text)]">
             <input type="checkbox" checked={sp.get("offers") === "1"} onChange={(e) => set("offers", e.target.checked ? "1" : "")} className="h-4 w-4 accent-[var(--accent)]" />
             العروض فقط
           </label>
-          <button onClick={() => router.push("/products")} className="flex items-center gap-1 rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-red-400 hover:bg-white/15">
+          <button onClick={() => router.push("/products")} className="flex items-center gap-1 rounded-full bg-[var(--chip)] px-4 py-2 text-sm font-bold text-red-400 hover:bg-[var(--chip-hover)]">
             <X size={14} /> مسح الفلاتر
           </button>
         </div>

@@ -29,7 +29,7 @@ export default function ProductViewer({ src, alt, badge, discount }: { src: stri
       onPointerMove={(e) => { if (draggingRef.current) apply(e.clientX, e.clientY); }}
       onPointerUp={() => { draggingRef.current = false; setDragging(false); rotateX.set(0); rotateY.set(0); }}
       onPointerCancel={() => { draggingRef.current = false; setDragging(false); rotateX.set(0); rotateY.set(0); }}
-      className={`relative select-none overflow-hidden rounded-[2rem] bg-[#12121c] ring-1 ring-white/10 ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
+      className={`relative select-none overflow-hidden rounded-[2rem] bg-[var(--surface-2)] ring-1 ring-white/10 ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
       style={{ perspective: 1100 }}
     >
       <motion.div

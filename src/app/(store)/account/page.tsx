@@ -25,7 +25,7 @@ export default function AccountPage() {
     return (
       <div className="mx-auto max-w-xl px-4 pt-12 sm:px-6">
         <h1 className="text-center text-3xl font-black text-white sm:text-4xl">حسابي</h1>
-        <p className="mt-3 text-center text-neutral-400">سجل دخولك لمتابعة طلباتك وبياناتك</p>
+        <p className="mt-3 text-center text-[var(--text-dim)]">سجل دخولك لمتابعة طلباتك وبياناتك</p>
         <AccountForms />
       </div>
     );
@@ -39,7 +39,7 @@ export default function AccountPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-white">مرحباً، {customer.name} 👋</h1>
-          <p className="mt-2 flex flex-wrap items-center gap-4 text-sm text-neutral-400">
+          <p className="mt-2 flex flex-wrap items-center gap-4 text-sm text-[var(--text-dim)]">
             <span className="flex items-center gap-1.5"><Mail size={14} /> <span dir="ltr">{customer.email}</span></span>
             {customer.phone && <span className="flex items-center gap-1.5"><Phone size={14} /> <span dir="ltr">{customer.phone}</span></span>}
           </p>
@@ -49,8 +49,8 @@ export default function AccountPage() {
 
       <h2 className="mt-12 flex items-center gap-2 text-xl font-extrabold text-white"><Package size={20} className="text-[var(--accent)]" /> طلباتي</h2>
       {orders.length === 0 ? (
-        <div className="mt-6 rounded-3xl bg-white/5 py-16 text-center">
-          <p className="font-bold text-neutral-400">لا توجد طلبات بعد</p>
+        <div className="mt-6 rounded-3xl bg-[var(--card)] py-16 text-center">
+          <p className="font-bold text-[var(--text-dim)]">لا توجد طلبات بعد</p>
           <Link href="/products" className="mt-5 inline-flex items-center gap-1 rounded-full bg-white px-8 py-3 font-bold text-black hover:bg-neutral-200">
             تسوق الآن <ChevronLeft size={16} />
           </Link>
@@ -59,10 +59,10 @@ export default function AccountPage() {
         <ul className="mt-6 space-y-3">
           {orders.map((o) => (
             <li key={o.id}>
-              <Link href={`/order-success/${o.code}`} className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 transition hover:border-white/25">
+              <Link href={`/order-success/${o.code}`} className="flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--border)] bg-white/[0.04] px-5 py-4 transition hover:border-white/25">
                 <span className="font-extrabold text-white" dir="ltr">{o.code}</span>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_CLS[o.status] || "bg-white/10 text-neutral-300"}`}>{STATUS_LABEL[o.status] || o.status}</span>
-                <span className="mr-auto text-sm text-neutral-400">{formatDate(o.created_at)}</span>
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_CLS[o.status] || "bg-[var(--chip)] text-[var(--text-dim)]"}`}>{STATUS_LABEL[o.status] || o.status}</span>
+                <span className="mr-auto text-sm text-[var(--text-dim)]">{formatDate(o.created_at)}</span>
                 <span className="font-extrabold text-white">{formatPrice(o.total)}</span>
               </Link>
             </li>

@@ -31,14 +31,14 @@ export default function StockAlertForm({ productId }: { productId: number }) {
   }
 
   return (
-    <form onSubmit={submit} className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-      <p className="flex items-center gap-2 text-sm font-bold text-neutral-200"><BellRing size={16} className="text-[var(--accent)]" /> نفدت الكمية؟ سجل وسنعلمك عند توفره</p>
+    <form onSubmit={submit} className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
+      <p className="flex items-center gap-2 text-sm font-bold text-[var(--text)]"><BellRing size={16} className="text-[var(--accent)]" /> نفدت الكمية؟ سجل وسنعلمك عند توفره</p>
       <div className="mt-3 flex gap-2">
         <input
           value={contact}
           onChange={(e) => setContact(e.target.value)}
           placeholder="بريدك الإلكتروني أو رقم هاتفك"
-          className="flex-1 rounded-xl border border-white/15 bg-[#0e0e16] px-3 py-2.5 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-[var(--accent)]"
+          className="flex-1 rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2.5 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-[var(--accent)]"
         />
         <button disabled={state === "loading"} className="rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60">
           {state === "loading" ? <Loader2 size={16} className="animate-spin" /> : "أعلمني"}

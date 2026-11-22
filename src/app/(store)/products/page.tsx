@@ -50,22 +50,22 @@ export default function ProductsPage({ searchParams }: { searchParams: Record<st
   return (
     <div className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
       <h1 className="text-3xl font-black sm:text-4xl">{activeCat ? activeCat.name : offers ? "العروض والتخفيضات" : "كل المنتجات"}</h1>
-      {activeCat?.description && <p className="mt-2 text-neutral-500">{activeCat.description}</p>}
-      {q && <p className="mt-2 text-neutral-500">نتائج البحث عن «{q}»: {products.length} منتج</p>}
+      {activeCat?.description && <p className="mt-2 text-[var(--text-faint)]">{activeCat.description}</p>}
+      {q && <p className="mt-2 text-[var(--text-faint)]">نتائج البحث عن «{q}»: {products.length} منتج</p>}
 
       <ProductsToolbar categories={cats} brands={brands} />
 
       {products.length === 0 ? (
-        <div className="grid place-items-center rounded-3xl bg-white/5 py-24 text-center">
-          <p className="text-lg font-bold text-neutral-300">لا توجد منتجات مطابقة</p>
-          <p className="mt-1 text-sm text-neutral-500">جرّب تعديل الفلاتر أو البحث بكلمة أخرى</p>
+        <div className="grid place-items-center rounded-3xl bg-[var(--card)] py-24 text-center">
+          <p className="text-lg font-bold text-[var(--text-dim)]">لا توجد منتجات مطابقة</p>
+          <p className="mt-1 text-sm text-[var(--text-faint)]">جرّب تعديل الفلاتر أو البحث بكلمة أخرى</p>
         </div>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
           {products.map((p, i) => <ProductCard key={p.id} product={p} currency={s.currency} index={i % 8} />)}
         </div>
       )}
-      <p className="mt-6 text-sm text-neutral-400">{products.length} منتج</p>
+      <p className="mt-6 text-sm text-[var(--text-dim)]">{products.length} منتج</p>
     </div>
   );
 }

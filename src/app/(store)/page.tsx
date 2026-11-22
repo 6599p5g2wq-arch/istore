@@ -35,7 +35,7 @@ export default function HomePage() {
               <span className="mb-2 flex items-center gap-2 text-sm font-bold text-[var(--accent)]"><Grid3X3 size={16} /> تسوق حسب التصنيف</span>
               <h2 className="text-3xl font-black sm:text-4xl">تصنيفات المتجر</h2>
             </div>
-            <Link href="/products" className="group hidden items-center gap-1 text-sm font-bold text-neutral-400 hover:text-white sm:flex">
+            <Link href="/products" className="group hidden items-center gap-1 text-sm font-bold text-[var(--text-dim)] hover:text-[var(--text)] sm:flex">
               عرض الكل <ChevronLeft size={16} className="transition-transform group-hover:-translate-x-1" />
             </Link>
           </div>
@@ -43,12 +43,12 @@ export default function HomePage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7 lg:gap-3">
           {cats.map((c, i) => (
             <Reveal key={c.id} delay={i * 0.06}>
-              <Link href={`/products?category=${c.slug}`} className="group block overflow-hidden rounded-3xl border border-white/10 bg-white/[0.05] text-center transition hover:border-white/25 hover:shadow-[0_16px_40px_-12px_rgba(0,113,227,.35)]">
+              <Link href={`/products?category=${c.slug}`} className="group block overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)] text-center transition hover:border-white/25 hover:shadow-[0_16px_40px_-12px_rgba(0,113,227,.35)]">
                 <div className="aspect-square overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={c.image} alt={c.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 </div>
-                <p className="p-3 text-sm font-bold text-neutral-100">{c.name}</p>
+                <p className="p-3 text-sm font-bold text-[var(--text)]">{c.name}</p>
               </Link>
             </Reveal>
           ))}
@@ -63,7 +63,7 @@ export default function HomePage() {
               <span className="mb-2 flex items-center gap-2 text-sm font-bold text-[var(--accent)]"><Star size={16} /> مختاراتنا لك</span>
               <h2 className="text-3xl font-black sm:text-4xl">منتجات مميزة</h2>
             </div>
-            <Link href="/products" className="group hidden items-center gap-1 text-sm font-bold text-neutral-400 hover:text-white sm:flex">
+            <Link href="/products" className="group hidden items-center gap-1 text-sm font-bold text-[var(--text-dim)] hover:text-[var(--text)] sm:flex">
               عرض الكل <ChevronLeft size={16} className="transition-transform group-hover:-translate-x-1" />
             </Link>
           </div>
@@ -79,7 +79,7 @@ export default function HomePage() {
           <div className={`grid gap-4 ${banners.length === 1 ? "" : banners.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
             {banners.map((b, i) => (
               <Reveal key={b.id} delay={i * 0.1}>
-                <Link href={b.link} className="group relative flex items-center gap-4 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-l from-neutral-900 to-neutral-800 p-7 text-white shadow-lg">
+                <Link href={b.link} className="group relative flex items-center gap-4 overflow-hidden rounded-3xl border border-[var(--border)] bg-gradient-to-l from-neutral-900 to-neutral-800 p-7 text-white shadow-lg">
                   <div className="absolute -left-10 -top-10 h-36 w-36 rounded-full bg-[var(--accent)] opacity-25 blur-2xl transition group-hover:opacity-40" />
                   <BadgePercent size={36} className="shrink-0 text-white/80" />
                   <div>
@@ -102,7 +102,7 @@ export default function HomePage() {
                 <span className="mb-2 flex items-center gap-2 text-sm font-bold text-red-400"><Flame size={16} /> وفر أكثر</span>
                 <h2 className="text-3xl font-black sm:text-4xl">عروض وتخفيضات</h2>
               </div>
-              <Link href="/products?offers=1" className="group hidden items-center gap-1 text-sm font-bold text-neutral-400 hover:text-white sm:flex">
+              <Link href="/products?offers=1" className="group hidden items-center gap-1 text-sm font-bold text-[var(--text-dim)] hover:text-[var(--text)] sm:flex">
                 كل العروض <ChevronLeft size={16} className="transition-transform group-hover:-translate-x-1" />
               </Link>
             </div>
@@ -131,7 +131,7 @@ export default function HomePage() {
         <section className="mx-auto max-w-7xl px-4 pt-20 sm:px-6">
           <Reveal>
             <div className="relative overflow-hidden rounded-[2rem] bg-[var(--accent)] p-10 text-center text-white sm:p-16">
-              <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
+              <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[var(--chip)] blur-2xl" />
               <div className="absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-black/10 blur-2xl" />
               <h2 className="relative text-3xl font-black sm:text-4xl">شحن مجاني للطلبات فوق {threshold} {s.currency}</h2>
               <p className="relative mx-auto mt-4 max-w-xl text-white/85">اطلب الآن واستفد من التوصيل المجاني السريع لأي مدينة في ليبيا — الدفع عند الاستلام.</p>

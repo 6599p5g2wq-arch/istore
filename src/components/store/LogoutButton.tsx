@@ -8,7 +8,7 @@ export default function LogoutButton() {
   return (
     <button
       onClick={async () => { await fetch("/api/account/logout", { method: "POST" }); router.refresh(); }}
-      className="flex items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm font-bold text-neutral-200 transition hover:bg-white/10"
+      className="flex items-center gap-2 rounded-full border border-[var(--border-strong)] px-5 py-2.5 text-sm font-bold text-[var(--text)] transition hover:bg-[var(--chip)]"
     >
       <LogOut size={15} /> خروج
     </button>

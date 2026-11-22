@@ -15,16 +15,16 @@ export default function AddToCartPanel({ product }: { product: Product }) {
 
   return (
     <div className="mt-8 flex flex-wrap items-center gap-4">
-      <div className="flex items-center gap-3 rounded-full border-2 border-white/15 px-2 py-1.5">
-        <button onClick={() => setQty(Math.min(qty + 1, product.stock || 99))} className="grid h-8 w-8 place-items-center rounded-full text-neutral-200 hover:bg-white/10" aria-label="زيادة"><Plus size={16} /></button>
+      <div className="flex items-center gap-3 rounded-full border-2 border-[var(--border-strong)] px-2 py-1.5">
+        <button onClick={() => setQty(Math.min(qty + 1, product.stock || 99))} className="grid h-8 w-8 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)]" aria-label="زيادة"><Plus size={16} /></button>
         <span className="w-8 text-center text-lg font-extrabold text-white">{qty}</span>
-        <button onClick={() => setQty(Math.max(1, qty - 1))} className="grid h-8 w-8 place-items-center rounded-full text-neutral-200 hover:bg-white/10" aria-label="نقصان"><Minus size={16} /></button>
+        <button onClick={() => setQty(Math.max(1, qty - 1))} className="grid h-8 w-8 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)]" aria-label="نقصان"><Minus size={16} /></button>
       </div>
       <motion.button
         whileTap={{ scale: 0.96 }}
         disabled={out}
         onClick={() => add(item, qty)}
-        className={`flex flex-1 items-center justify-center gap-2 rounded-full py-4 font-bold shadow-lg transition sm:flex-none sm:px-10 ${out ? "cursor-not-allowed bg-white/10 text-neutral-600" : "bg-white text-black hover:bg-neutral-200"}`}
+        className={`flex flex-1 items-center justify-center gap-2 rounded-full py-4 font-bold shadow-lg transition sm:flex-none sm:px-10 ${out ? "cursor-not-allowed bg-[var(--chip)] text-neutral-600" : "bg-[var(--text)] text-[var(--bg)] hover:opacity-85"}`}
       >
         <ShoppingBag size={19} /> أضف إلى السلة
       </motion.button>
@@ -32,7 +32,7 @@ export default function AddToCartPanel({ product }: { product: Product }) {
         whileTap={{ scale: 0.96 }}
         disabled={out}
         onClick={() => { add(item, qty); router.push("/checkout"); }}
-        className={`flex items-center justify-center gap-2 rounded-full py-4 font-bold shadow-lg transition px-8 ${out ? "cursor-not-allowed bg-neutral-200 text-neutral-400" : "bg-[var(--accent)] text-white hover:opacity-90"}`}
+        className={`flex items-center justify-center gap-2 rounded-full py-4 font-bold shadow-lg transition px-8 ${out ? "cursor-not-allowed bg-neutral-200 text-[var(--text-dim)]" : "bg-[var(--accent)] text-white hover:opacity-90"}`}
       >
         <Zap size={19} /> اشترِ الآن
       </motion.button>
