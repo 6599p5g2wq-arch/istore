@@ -10,11 +10,9 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const [dir, setDir] = useState(1);
   const n = slides.length;
 
-  // Cinematic scroll: the visual drifts and zooms as you scroll, the headline counters.
+  // Cinematic scroll: the headline drifts and fades gently as you scroll.
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
-  const imgY = useTransform(scrollYProgress, [0, 1], [0, 90]);
-  const imgScale = useTransform(scrollYProgress, [0, 1], [1, 1.16]);
   const textY = useTransform(scrollYProgress, [0, 1], [0, -70]);
   const fade = useTransform(scrollYProgress, [0, 0.85], [1, 0.2]);
 
@@ -35,19 +33,20 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   return (
     <section ref={sectionRef} className="relative mx-auto max-w-7xl px-4 pt-6 sm:px-6">
       <div className="on-dark relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#140b30]/85 text-white shadow-[0_30px_90px_-20px_rgba(123,47,247,.45)] backdrop-blur-xl">
+        {/* Static ambience: lives outside the animated slide so it never re-mounts or ghosts during transitions */}
+        <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[var(--accent)] opacity-25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 -right-20 h-96 w-96 rounded-full bg-purple-600 opacity-25 blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
         <AnimatePresence mode="wait" custom={dir}>
           <motion.div
             key={s.id}
             custom={dir}
-            initial={{ opacity: 0, x: dir * 60 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: dir * -60 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="relative grid min-h-[540px] items-center gap-8 p-8 sm:p-14 lg:min-h-[640px] lg:grid-cols-2"
+            initial={{ opacity: 0, x: dir * 36, scale: 0.99 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: dir * -36, scale: 0.99 }}
+            transition={{ duration: 0.85, ease: [0.32, 0.72, 0, 1] }}
+            className="relative z-10 grid min-h-[540px] items-center gap-8 p-8 sm:p-14 lg:min-h-[640px] lg:grid-cols-2"
           >
-            <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[var(--accent)] opacity-25 blur-3xl" />
-            <div className="absolute -bottom-40 -right-20 h-96 w-96 rounded-full bg-purple-600 opacity-25 blur-3xl" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
             <motion.div style={{ y: textY, opacity: fade }} className="relative z-10 order-2 lg:order-1">
               <motion.span
                 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
@@ -74,15 +73,15 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
                 </Link>
               </motion.div>
             </motion.div>
-            <motion.div style={{ y: imgY, scale: imgScale }} className="relative z-10 order-1 lg:order-2">
+            <div className="relative z-10 order-1 lg:order-2">
               <motion.div
-                initial={{ opacity: 0, scale: 0.9, rotate: 3 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                className="animate-float-slow relative mx-auto aspect-square w-full max-w-md overflow-hidden rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]"
+                initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3, duration: 0.9, ease: [0.32, 0.72, 0, 1] }}
+                className="relative mx-auto aspect-square w-full max-w-md overflow-hidden rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={s.image} alt={s.title} className="h-full w-full object-cover" />
               </motion.div>
-            </motion.div>
+            </div>
           </motion.div>
         </AnimatePresence>
 
