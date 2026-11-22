@@ -32,7 +32,9 @@ html.light {
   color-scheme: light;
 }
 .glow-btn { background: linear-gradient(90deg,#00c6ff,#7b2ff7); color: #fff; box-shadow: 0 10px 34px -8px rgba(123,47,247,.55); }
-.glow-btn:hover { filter: brightness(1.1); }
+@media (hover: hover) {
+  .glow-btn:hover { filter: brightness(1.1); }
+}
 html.light .glow-btn { color: #fff; }
 [class*="bg-[var(--card)]"], [class*="bg-[var(--surface)]"] { backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 html { scroll-behavior: smooth; }
@@ -78,7 +80,9 @@ html.light .shadow-black\/30 { --tw-shadow-color: rgba(0,0,0,.08); }
 .glass { background: rgba(16,9,42,.62); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 ::-webkit-scrollbar-track { background: #150b33; }
 ::-webkit-scrollbar-thumb { background: #3b2f63; }
-::-webkit-scrollbar-thumb:hover { background: #51417f; }
+@media (hover: hover) {
+  ::-webkit-scrollbar-thumb:hover { background: #51417f; }
+}
 html.light ::-webkit-scrollbar-track { background: #e8ecf8; }
 html.light ::-webkit-scrollbar-thumb { background: #b9c3e2; }
 .text-balance { text-wrap: balance; }

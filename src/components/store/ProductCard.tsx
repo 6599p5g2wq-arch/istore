@@ -38,8 +38,8 @@ export default function ProductCard({ product, currency = "د.ل", index }: { pr
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.55, delay: Math.min((index ?? 0) * 0.05, 0.35), ease: [0.22, 1, 0.36, 1] }}
     >
@@ -60,7 +60,7 @@ export default function ProductCard({ product, currency = "د.ل", index }: { pr
           {product.old_price && product.old_price > product.price && (
             <span className="absolute left-3 top-3 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-black">-{Math.round((1 - product.price / product.old_price) * 100)}%</span>
           )}
-          <WishlistButton product={product} className="absolute bottom-3 left-3 z-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <WishlistButton product={product} className="absolute bottom-3 left-3 z-10 opacity-100 transition-opacity duration-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100" />
         </Link>
         <div className="flex flex-1 flex-col p-4">
           <div className="mb-1 flex items-center gap-1 text-xs text-amber-400">
