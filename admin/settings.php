@@ -68,7 +68,7 @@ admin_header('الإعدادات', 'settings.php');
       </div>
       <button type="button" id="add" class="admin-btn-ghost mt-3">+ إضافة رسالة</button>
 
-      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+      <div class="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
         <label class="block text-sm font-bold">لون الخلفية <input type="color" name="bg" value="<?= e($c['bg']) ?>" class="mt-1 block h-10 w-20 cursor-pointer rounded-lg border border-neutral-300"></label>
         <label class="block text-sm font-bold">لون النص <input type="color" name="color" value="<?= e($c['color']) ?>" class="mt-1 block h-10 w-20 cursor-pointer rounded-lg border border-neutral-300"></label>
         <label class="block text-sm font-bold">التبديل كل (ثانية) <input type="number" name="interval" min="2" max="30" value="<?= (int)$c['interval'] ?>" class="admin-input mt-1"></label>
@@ -78,8 +78,16 @@ admin_header('الإعدادات', 'settings.php');
           </select>
           <span class="mt-1 block text-[11px] font-normal text-neutral-400">في الشريط المتحرك تظهر كل الرسائل متتابعة ولا يُستخدم «التبديل كل».</span>
         </label>
-        <label class="block text-sm font-bold">يبدأ في (اختياري) <input type="datetime-local" name="start" value="<?= e($c['start']) ?>" class="admin-input mt-1"></label>
-        <label class="block text-sm font-bold">ينتهي في (اختياري) <input type="datetime-local" name="end" value="<?= e($c['end']) ?>" class="admin-input mt-1"></label>
+        <?php foreach ([['start', 'يبدأ في (اختياري)'], ['end', 'ينتهي في (اختياري)']] as [$k, $lbl]): ?>
+        <div class="adt min-w-0 text-sm font-bold">
+          <div class="flex items-center justify-between"><span><?= e($lbl) ?></span><button type="button" class="adt-clear hidden text-xs font-bold text-red-600 hover:underline">مسح</button></div>
+          <div class="relative mt-1">
+            <input type="datetime-local" name="<?= $k ?>" dir="ltr" value="<?= e($c[$k]) ?>" aria-label="<?= e($lbl) ?>" class="adt-input admin-input block h-12 w-full min-w-0 text-left">
+            <span class="adt-ph pointer-events-none absolute inset-y-0 left-3 right-11 hidden items-center text-sm font-normal"></span>
+          </div>
+          <p class="adt-hint mt-1 text-[11px] font-normal text-neutral-400">الصيغة: يوم/شهر/سنة ووقت</p>
+        </div>
+        <?php endforeach; ?>
       </div>
       <p class="mt-2 text-xs text-neutral-500">التوقيت بتوقيت ليبيا. يختفي الشريط تلقائياً خارج هذه الفترة.</p>
       <label class="mt-4 flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="countdown" value="1" <?= $c['countdown'] ? 'checked' : '' ?> class="h-4 w-4"> عرض عدّاد تنازلي للزائر حتى تاريخ الانتهاء</label>
@@ -88,6 +96,30 @@ admin_header('الإعدادات', 'settings.php');
     <button class="admin-btn">حفظ الإعدادات</button>
   </form>
 </div>
+<style>
+.adt-input{-webkit-appearance:none;appearance:none;min-height:3rem}
+@supports (-webkit-touch-callout:none){.adt-input{color:transparent}.adt-input:focus{color:inherit}.adt-ph{display:flex!important}.adt-input::-webkit-datetime-edit{opacity:0}.adt-input:focus::-webkit-datetime-edit{opacity:1}}
+</style>
+<script>
+(function(){
+  document.querySelectorAll('.adt').forEach(function(box){
+    var inp = box.querySelector('.adt-input'), ph = box.querySelector('.adt-ph'), clr = box.querySelector('.adt-clear'), hint = box.querySelector('.adt-hint');
+    function fmt(v){
+      var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(v); if (!m) return '';
+      var h = +m[4]; return m[3]+'/'+m[2]+'/'+m[1]+'  '+('0'+(h%12||12)).slice(-2)+':'+m[5]+' '+(h<12?'ص':'م');
+    }
+    function sync(){
+      var v = inp.value;
+      ph.textContent = v ? fmt(v) : 'اضغط لاختيار التاريخ والوقت';
+      ph.className = ph.className.replace(/ (font-bold text-neutral-900|text-neutral-400)/g,'') + (v ? ' font-bold text-neutral-900' : ' text-neutral-400');
+      clr.classList.toggle('hidden', !v); hint.style.visibility = v ? 'hidden' : 'visible';
+    }
+    inp.addEventListener('input', sync); inp.addEventListener('change', sync);
+    clr.onclick = function(){ inp.value = ''; sync(); };
+    sync();
+  });
+})();
+</script>
 <script>
 (function(){
   var box = document.getElementById('msgs');
