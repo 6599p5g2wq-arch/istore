@@ -1,9 +1,10 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Save, Plus, Trash2, ArrowRight } from "lucide-react";
 import ImagePicker from "./ImagePicker";
+import MultiImagePicker from "./MultiImagePicker";
 import type { Brand, Category, Product, ProductOption, ProductVariant } from "@/lib/types";
 
 type OptRow = { name: string; valuesText: string };
@@ -60,6 +61,26 @@ export default function ProductForm({ product, categories, brands, variants }: {
     featured: !!product?.featured,
     active: product ? !!product.active : true,
   });
+  const [gallery, setGallery] = useState<string[]>(() => {
+    try { const a = JSON.parse(product?.images || "[]"); return Array.isArray(a) ? a.filter((x) => typeof x === "string") : []; } catch { return []; }
+  });
+  const [dirty, setDirty] = useState(false);
+  const slugTouched = useRef(isEdit);
+  const firstRender = useRef(true);
+
+  // تحذير عند مغادرة الصفحة بتعديلات غير محفوظة
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+  // أي تغيير في النموذج يجعله «غير محفوظ»
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return; }
+    setDirty(true);
+  }, [form, gallery]);
+
   const [opts, setOpts] = useState<OptRow[]>(() => parseOpts(product?.options));
   const [vrows, setVrows] = useState<Record<string, VRow>>(() => {
     const m: Record<string, VRow> = {};
@@ -77,9 +98,21 @@ export default function ProductForm({ product, categories, brands, variants }: {
 
   const slugify = (s: string) => s.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_]+/g, "-").replace(/-+/g, "-");
 
+  // توليد الـ slug تلقائياً من الاسم ما دام المستخدم لم يعدّله يدوياً
+  const onNameChange = (name: string) => {
+    const auto = slugify(name);
+    setForm({ ...form, name, slug: slugTouched.current ? form.slug : auto });
+    setDirty(true);
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
+    if (form.old_price !== "" && form.price !== "" && Number(form.old_price) <= Number(form.price)) {
+      setLoading(false);
+      setError("السعر قبل الخصم يجب أن يكون أكبر من السعر الحالي");
+      return;
+    }
     const payload = {
       ...form,
       category_id: form.category_id === "" ? null : Number(form.category_id),
@@ -88,7 +121,7 @@ export default function ProductForm({ product, categories, brands, variants }: {
       old_price: form.old_price === "" ? null : Number(form.old_price),
       stock: Number(form.stock) || 0,
       rating: Number(form.rating) || 4.8,
-      images: [],
+      images: gallery,
       options,
       variants: combos.map(({ label, combo }) => {
         const r = vrow(label);
@@ -102,7 +135,7 @@ export default function ProductForm({ product, categories, brands, variants }: {
     });
     const d = await r.json().catch(() => ({}));
     setLoading(false);
-    if (r.ok) { router.push("/admin/products"); router.refresh(); }
+    if (r.ok) { firstRender.current = true; setDirty(false); router.push("/admin/products"); router.refresh(); }
     else setError(d.error || "حدث خطأ");
   };
 
@@ -113,17 +146,18 @@ export default function ProductForm({ product, categories, brands, variants }: {
       <div className="space-y-5 rounded-3xl bg-white p-6 shadow-sm lg:col-span-2">
         <label className="block text-sm font-bold">
           اسم المنتج *
-          <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={`mt-1.5 ${inputCls}`} placeholder="مثال: غطاء iPhone 16 سيليكون أصلي" />
+          <input required value={form.name} onChange={(e) => onNameChange(e.target.value)} className={`mt-1.5 ${inputCls}`} placeholder="مثال: غطاء iPhone 16 سيليكون أصلي" />
         </label>
         <label className="block text-sm font-bold">
           الرابط (slug) *
-          <input dir="ltr" required value={form.slug} onChange={(e) => setForm({ ...form, slug: slugify(e.target.value) })} className={`mt-1.5 text-left ${inputCls}`} placeholder="iphone-16-silicone-case" />
+          <input dir="ltr" required value={form.slug} onChange={(e) => { slugTouched.current = true; setForm({ ...form, slug: slugify(e.target.value) }); setDirty(true); }} className={`mt-1.5 text-left ${inputCls}`} placeholder="iphone-16-silicone-case" />
         </label>
         <label className="block text-sm font-bold">
           الوصف
           <textarea rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`mt-1.5 resize-y ${inputCls}`} placeholder="وصف تفصيلي يظهر في صفحة المنتج…" />
         </label>
-        <ImagePicker label="الصورة الرئيسية" value={form.image} onChange={(v) => setForm({ ...form, image: v })} />
+        <ImagePicker label="الصورة الرئيسية" value={form.image} onChange={(v) => { setForm({ ...form, image: v }); setDirty(true); }} />
+        <MultiImagePicker label="معرض الصور" value={gallery} onChange={(v) => { setGallery(v); setDirty(true); }} />
 
         <div className="rounded-2xl border border-neutral-200 p-4">
           <div className="flex items-center justify-between">
@@ -163,7 +197,7 @@ export default function ProductForm({ product, categories, brands, variants }: {
                         <td className="py-2 pl-2 font-bold">{label}</td>
                         <td className="py-2 pl-2"><input type="number" min={0} value={r.stock} onChange={(e) => setVrow(label, { stock: e.target.value })} className="w-20 rounded-lg border border-neutral-200 px-2 py-1.5 outline-none focus:border-black" /></td>
                         <td className="py-2 pl-2"><input type="number" min={0} step="0.5" value={r.price} onChange={(e) => setVrow(label, { price: e.target.value })} placeholder={String(form.price || "")} className="w-24 rounded-lg border border-neutral-200 px-2 py-1.5 outline-none focus:border-black placeholder:text-neutral-300" /></td>
-                        <td className="py-2"><input dir="ltr" value={r.image} onChange={(e) => setVrow(label, { image: e.target.value })} placeholder="images/...jpg" className="w-full min-w-[140px] rounded-lg border border-neutral-200 px-2 py-1.5 text-left text-xs outline-none focus:border-black placeholder:text-neutral-300" /></td>
+                        <td className="py-2"><ImagePicker label="" value={r.image} onChange={(v) => setVrow(label, { image: v })} /></td>
                       </tr>
                     );
                   })}

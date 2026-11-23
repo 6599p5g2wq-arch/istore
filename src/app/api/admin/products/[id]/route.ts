@@ -48,3 +48,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   db.prepare("DELETE FROM products WHERE id = ?").run(params.id);
   return NextResponse.json({ ok: true });
 }
+
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = requireAdmin(); if (auth) return auth;
+  const b = await req.json().catch(() => ({}));
+  const field = String(b.field || "");
+  if (field !== "active" && field !== "featured") return bad("حقل غير مسموح");
+  const db = getDb();
+  const r = db.prepare(`UPDATE products SET ${field} = ? WHERE id = ?`).run(b.value ? 1 : 0, params.id);
+  if (r.changes === 0) return bad("المنتج غير موجود", 404);
+  return NextResponse.json({ ok: true });
+}
