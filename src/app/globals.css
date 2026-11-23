@@ -42,10 +42,15 @@ html { scroll-behavior: smooth; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
-body { background: linear-gradient(135deg,#1a0533,#0b1e4b 45%,#003554) fixed; color: var(--text); @apply antialiased; }
-body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(600px 600px at 88% -10%, rgba(123,47,247,.5), transparent 62%), radial-gradient(560px 560px at -8% 105%, rgba(0,198,255,.38), transparent 62%); }
-html.light body { background: linear-gradient(135deg,#f3e9ff,#e6edfb 45%,#e0f4ff) fixed; }
-html.light body::before { background: radial-gradient(600px 600px at 88% -10%, rgba(123,47,247,.16), transparent 62%), radial-gradient(560px 560px at -8% 105%, rgba(0,198,255,.2), transparent 62%); }
+html { background-color: #12082e; }
+html.light { background-color: #eef1fb; }
+body { position: relative; background: linear-gradient(135deg,#1a0533,#0b1e4b 45%,#003554) fixed; background-color: #12082e; color: var(--text); @apply antialiased; }
+html.light body { background: linear-gradient(135deg,#f3e9ff,#e6edfb 45%,#e0f4ff) fixed; background-color: #eef1fb; }
+/* توهج الخلفية: العلوي يتحرك مع الصفحة والسفلي ثابت بعيداً عن الحافة العلوية، كي لا يلوّن سفاري شريط الحالة */
+body::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 720px; z-index: -1; pointer-events: none; background: radial-gradient(600px 600px at 88% -10%, rgba(123,47,247,.5), transparent 62%); }
+body::after { content: ""; position: fixed; top: 40%; bottom: 0; left: 0; right: 0; z-index: -1; pointer-events: none; background: radial-gradient(560px 560px at -8% 105%, rgba(0,198,255,.38), transparent 62%); }
+html.light body::before { background: radial-gradient(600px 600px at 88% -10%, rgba(123,47,247,.16), transparent 62%); }
+html.light body::after { background: radial-gradient(560px 560px at -8% 105%, rgba(0,198,255,.2), transparent 62%); }
 html.light .text-white { color: var(--text); }
 html.light :is(.on-dark, .bg-red-500, .bg-emerald-500, .bg-emerald-600, .bg-green-500, .bg-green-600, .bg-black, .bg-neutral-950, .bg-neutral-900, .from-neutral-900, [class*="bg-[var(--accent)]"]) .text-white,
 html.light .text-white:is(.on-dark, .bg-red-500, .bg-emerald-500, .bg-emerald-600, .bg-green-500, .bg-green-600, .bg-black, .bg-neutral-950, .bg-neutral-900, [class*="bg-[var(--accent)]"]) { color: #fff; }
