@@ -60,6 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $search = trim($_GET['q'] ?? '');
 $cat = (int)($_GET['cat'] ?? 0);
+$brand = (int)($_GET['brand'] ?? 0);
 $sort = $_GET['sort'] ?? 'new';
 $stock = $_GET['stock'] ?? 'all';
 $vis = $_GET['vis'] ?? 'all';
@@ -73,6 +74,7 @@ if ($search !== '') {
     array_push($args, $like, $like, $like, $like);
 }
 if ($cat) { $where[] = 'p.category_id = ?'; $args[] = $cat; }
+if ($brand) { $where[] = 'p.brand_id = ?'; $args[] = $brand; }
 if ($vis === 'active') $where[] = 'p.active = 1';
 if ($vis === 'hidden') $where[] = 'p.active = 0';
 if ($stock === 'low') { $where[] = 'p.stock > 0 AND p.stock <= ' . LOW_STOCK; }
@@ -140,7 +142,7 @@ admin_header('المنتجات', 'products.php');
   <a href="<?= e(admin_url('product-form.php')) ?>" class="admin-btn"><?= icon('plus', 16) ?> منتج جديد</a>
 </div>
 <?php admin_msg(); ?>
-<form class="mt-5 flex flex-wrap items-center gap-2" method="get">
+<form id="products-filters" class="mt-5 flex flex-wrap items-center gap-2" method="get">
   <input id="products-search" name="q" value="<?= e($search) ?>" placeholder="ابحث بالاسم، الـ slug، التصنيف أو الماركة…" autocomplete="off" class="admin-input max-w-xs">
   <select name="cat" class="admin-input w-auto">
     <option value="">كل التصنيفات</option>
@@ -154,8 +156,19 @@ admin_header('المنتجات', 'products.php');
   </select>
   <?php if ($stock !== 'all'): ?><input type="hidden" name="stock" value="<?= e($stock) ?>"><?php endif; ?>
   <?php if ($vis !== 'all'): ?><input type="hidden" name="vis" value="<?= e($vis) ?>"><?php endif; ?>
-  <button class="admin-btn"><?= icon('search', 16) ?> تطبيق</button>
 </form>
+<script>
+(function(){
+  var form = document.getElementById('products-filters');
+  var q = document.getElementById('products-search');
+  if (!form || !q) return;
+  var timer = null;
+  function submitNow(){ var p = form.querySelector('input[name="page"]'); if (p) p.remove(); form.submit(); }
+  q.addEventListener('input', function(){ clearTimeout(timer); timer = setTimeout(submitNow, 350); });
+  form.querySelectorAll('select').forEach(function(s){ s.addEventListener('change', submitNow); });
+  if (new URLSearchParams(location.search).has('q')) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+})();
+</script>
 <div class="mt-4 flex flex-wrap gap-2">
   <?php foreach ($chips as $c): ?>
     <a href="<?= e(products_link($params, [$c['k'] => $c['v']])) ?>" class="rounded-full px-4 py-2 text-xs font-bold transition <?= $chipOn($c) ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-600 shadow-sm hover:bg-neutral-100' ?>"><?= e($c['label']) ?></a>

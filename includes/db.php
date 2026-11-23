@@ -16,7 +16,16 @@ function db(): PDO {
     migrate_variants($pdo);
     migrate_customers($pdo);
     migrate_orders_admin($pdo);
+    migrate_brands_description($pdo);
     return $pdo;
+}
+
+// ترقية الماركات: حقل الوصف. آمنة للتكرار
+function migrate_brands_description(PDO $pdo): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    try { $pdo->exec("ALTER TABLE brands ADD COLUMN description TEXT NOT NULL DEFAULT '' AFTER slug"); } catch (PDOException $e) { /* العمود موجود مسبقاً */ }
 }
 
 // ترقية الطلبات: ملاحظات الأدمن الداخلية + سجل الحالات. آمنة للتكرار
