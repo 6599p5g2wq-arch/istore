@@ -50,7 +50,7 @@ export default function Intro({ cfg }: { cfg: IntroConfig }) {
 
   return (
     <section ref={root} className="intro">
-      {cfg.logo && <div ref={logo} aria-hidden className="intro-logo" style={{ backgroundImage: `url(${cfg.logo})`, opacity: cfg.opacity / 100 }} />}
+      {cfg.logo && <div ref={logo} aria-hidden className="intro-logo" style={{ backgroundImage: `url("${cfg.logo}")`, opacity: cfg.opacity / 100 }} />}
       <div ref={content} className="intro-content">
         {cfg.pill && <span className="intro-pill"><Sparkles size={14} /> {cfg.pill}</span>}
         <h1 className="intro-title">{cfg.title}</h1>
