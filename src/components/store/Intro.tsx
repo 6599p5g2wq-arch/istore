@@ -32,7 +32,7 @@ export default function Intro({ cfg }: { cfg: IntroConfig }) {
       }
       if (logo.current) {
         logo.current.style.opacity = String((cfg.opacity / 100) * (1 - f));
-        logo.current.style.transform = reduce ? "" : `translate3d(0,${f * 70}px,0) scale(${1 + f * 0.15})`;
+        logo.current.style.transform = reduce ? "" : `translate3d(0,${f * 70}px,0) scale(${1 + f * 0.25})`;
       }
       if (cue.current) cue.current.style.opacity = String(1 - smooth(p * 3));
     };
