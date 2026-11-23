@@ -20,26 +20,37 @@ export default function Intro({ cfg }: { cfg: IntroConfig }) {
     const el = root.current;
     if (!el) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let raf = 0;
-    const run = () => {
-      raf = 0;
-      const h = el.offsetHeight || 1;
-      const p = Math.min(1, Math.max(0, window.scrollY / (h * 0.8)));
+    // قيمة مستهدفة من التمرير، وقيمة معروضة تلحق بها تدريجياً (تنعيم مبني على الزمن، مستقل عن معدل الإطارات)
+    let raf = 0, cur = 0, last = 0;
+    const smooth = (x: number) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
+    const target = () => Math.min(1, Math.max(0, window.scrollY / ((el.offsetHeight || 1) * 0.9)));
+    const paint = (p: number) => {
+      const f = smooth(p);
       if (content.current) {
-        content.current.style.opacity = String(Math.max(0, 1 - p * 1.25));
-        content.current.style.transform = reduce ? "" : `translate3d(0,${-p * 50}px,0) scale(${1 - p * 0.06})`;
+        content.current.style.opacity = String(1 - smooth(p * 1.05));
+        content.current.style.transform = reduce ? "" : `translate3d(0,${-f * 36}px,0) scale(${1 - f * 0.035})`;
       }
       if (logo.current) {
-        logo.current.style.opacity = String((cfg.opacity / 100) * (1 - p));
-        logo.current.style.transform = reduce ? "" : `translate3d(0,${p * 90}px,0) scale(${1 + p * 0.25})`;
+        logo.current.style.opacity = String((cfg.opacity / 100) * (1 - f));
+        logo.current.style.transform = reduce ? "" : `translate3d(0,${f * 70}px,0) scale(${1 + f * 0.15})`;
       }
-      if (cue.current) cue.current.style.opacity = String(Math.max(0, 1 - p * 4));
+      if (cue.current) cue.current.style.opacity = String(1 - smooth(p * 3));
     };
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(run); };
-    run();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); if (raf) cancelAnimationFrame(raf); };
+    const tick = (now: number) => {
+      const dt = last ? Math.min(64, now - last) : 16;
+      last = now;
+      const t = target();
+      cur += (t - cur) * (1 - Math.exp(-dt / 150));
+      if (Math.abs(t - cur) < 0.0008) cur = t;
+      paint(cur);
+      if (cur !== t) raf = requestAnimationFrame(tick); else { raf = 0; last = 0; }
+    };
+    const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+    cur = target();
+    paint(cur);
+    window.addEventListener("scroll", kick, { passive: true });
+    window.addEventListener("resize", kick);
+    return () => { window.removeEventListener("scroll", kick); window.removeEventListener("resize", kick); if (raf) cancelAnimationFrame(raf); };
   }, [cfg.opacity]);
 
   const next = () => {
