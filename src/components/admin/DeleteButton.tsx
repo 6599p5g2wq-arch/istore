@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, Loader2 } from "lucide-react";
 
-export default function DeleteButton({ resource, id, label }: { resource: string; id: number; label: string }) {
+export default function DeleteButton({ resource, id, label, redirectTo }: { resource: string; id: number; label: string; redirectTo?: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -12,7 +12,7 @@ export default function DeleteButton({ resource, id, label }: { resource: string
     setLoading(true);
     const r = await fetch(`/api/admin/${resource}/${id}`, { method: "DELETE" });
     setLoading(false);
-    if (r.ok) router.refresh();
+    if (r.ok) { if (redirectTo) router.push(redirectTo); else router.refresh(); }
     else {
       const d = await r.json().catch(() => ({}));
       alert(d.error || "تعذر الحذف");

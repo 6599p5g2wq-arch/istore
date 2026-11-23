@@ -18,6 +18,7 @@ export type ProductVariant = {
 export type Order = {
   id: number; code: string; customer_name: string; phone: string; city: string; address: string;
   notes: string; subtotal: number; discount: number; coupon_code: string; delivery_fee: number; total: number; status: string; created_at: string;
+  admin_notes?: string;
 };
 export type Coupon = { id: number; code: string; kind: "percent" | "fixed"; value: number; min_total: number; active: number; expires_at: string; created_at: string; max_uses: number; used_count: number; customer_id: number | null; starts_at: string };
 export type StockAlert = { id: number; product_id: number; contact: string; notified: number; created_at: string; product_name?: string };

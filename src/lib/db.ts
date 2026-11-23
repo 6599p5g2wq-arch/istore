@@ -86,6 +86,12 @@ function initSchema(db: Database.Database) {
     price REAL NOT NULL,
     qty INTEGER NOT NULL DEFAULT 1
   );
+  CREATE TABLE IF NOT EXISTS order_status_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    status TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
   CREATE TABLE IF NOT EXISTS cities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
@@ -225,9 +231,14 @@ function initSchema(db: Database.Database) {
     "ALTER TABLE orders ADD COLUMN points_discount REAL NOT NULL DEFAULT 0",
     "ALTER TABLE orders ADD COLUMN points_awarded INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE orders ADD COLUMN points_refunded INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE orders ADD COLUMN admin_notes TEXT NOT NULL DEFAULT ''",
   ]) {
     try { db.exec(stmt); } catch { /* column already exists */ }
   }
+  // Backfill the status log for orders that predate it (their status as of their creation date).
+  try {
+    db.exec("INSERT INTO order_status_log (order_id, status, created_at) SELECT id, status, created_at FROM orders WHERE NOT EXISTS (SELECT 1 FROM order_status_log LIMIT 1)");
+  } catch { /* log already populated */ }
 }
 
 export function dataDir() {
