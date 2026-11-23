@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db";
 import { notifyNewOrder } from "@/lib/notify";
 import { sendTelegram } from "@/lib/telegram";
 import { getSetting } from "@/lib/settings";
+import { getSessionAdmin } from "@/lib/auth";
 import { validateCoupon } from "@/lib/coupons";
 import { getSessionCustomer } from "@/lib/customer-auth";
 import { getProgram, addPoints } from "@/lib/loyalty";
@@ -15,6 +16,9 @@ export const dynamic = "force-dynamic";
 type Item = { id: number; qty: number; variant_id?: number | null };
 
 export async function POST(req: NextRequest) {
+  if (getSetting("maintenance_enabled") === "1" && !getSessionAdmin()) {
+    return NextResponse.json({ error: getSetting("maintenance_message") || "المتجر مغلق مؤقتاً للصيانة" }, { status: 503 });
+  }
   let body: { name?: string; phone?: string; city?: string; address?: string; notes?: string; coupon?: string; use_points?: boolean; items?: Item[] };
   try {
     body = await req.json();

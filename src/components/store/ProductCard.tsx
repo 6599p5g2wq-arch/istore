@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { ShoppingBag, Star } from "lucide-react";
 import { useCart } from "./CartContext";
 import WishlistButton from "./WishlistButton";
-import { formatPrice } from "@/lib/format";
+import { formatPrice, formatSecondary } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
 export default function ProductCard({ product, currency = "د.ل", index }: { product: Product; currency?: string; index?: number }) {
@@ -75,6 +75,7 @@ export default function ProductCard({ product, currency = "د.ل", index }: { pr
           <div className="mt-3 flex items-end justify-between gap-2">
             <div>
               <div className="text-lg font-extrabold text-white">{formatPrice(product.price, currency)}</div>
+              {formatSecondary(product.price) && <div className="text-[11px] font-bold text-[var(--text-dim)]">{formatSecondary(product.price)}</div>}
               {product.old_price && product.old_price > product.price && <div className="text-xs text-[var(--text-faint)] line-through">{formatPrice(product.old_price, currency)}</div>}
             </div>
             <motion.button

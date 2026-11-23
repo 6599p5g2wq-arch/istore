@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Gift, Truck, Banknote, MapPin, User, Phone, StickyNote, Loader2, TicketPercent, CheckCircle2 } from "lucide-react";
 import { useCart } from "./CartContext";
-import { formatPrice } from "@/lib/format";
+import { formatPrice, formatSecondary } from "@/lib/format";
 import type { City } from "@/lib/types";
 
 export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold, customer, loyalty }: { cities: City[]; currency: string; whatsapp: string; freeThreshold: number; customer?: { name: string; phone: string; city: string; address: string } | null; loyalty?: { points: number; redeemPoints: number; redeemValue: number } | null }) {
@@ -207,6 +207,7 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
             <span className="text-lg font-bold text-white">الإجمالي</span>
             <span className="text-2xl font-black text-[var(--accent)]">{formatPrice(total - discount - pointsDiscount + fee, currency)}</span>
           </div>
+          {formatSecondary(total - discount - pointsDiscount + fee) && <p className="mt-1 text-left text-sm font-bold text-[var(--text-dim)]">{formatSecondary(total - discount - pointsDiscount + fee)}</p>}
           {error && <p className="mt-4 rounded-xl bg-red-500/10 px-4 py-3 text-sm font-bold text-red-400">{error}</p>}
           <motion.button
             whileTap={{ scale: 0.97 }}

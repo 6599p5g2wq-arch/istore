@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ShoppingBag, Plus, Minus, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCart } from "./CartContext";
-import { formatPrice } from "@/lib/format";
+import { formatPrice, formatSecondary } from "@/lib/format";
 import type { Product, ProductOption, ProductVariant } from "@/lib/types";
 
 /**
@@ -62,6 +62,7 @@ export default function PurchasePanel({ product, options, variants, currency }: 
     <div>
       <div className="mt-5 flex items-baseline gap-3">
         <span className="text-4xl font-black text-[var(--accent)]">{formatPrice(price, currency)}</span>
+        {formatSecondary(price) && <span className="text-base font-bold text-[var(--text-dim)]">{formatSecondary(price)}</span>}
         {product.old_price && product.old_price > price && (
           <span className="text-xl text-[var(--text-faint)] line-through">{formatPrice(product.old_price, currency)}</span>
         )}

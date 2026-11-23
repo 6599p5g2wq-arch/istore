@@ -1,10 +1,13 @@
 import { getDb } from "./db";
+import { priceOptsFrom, setPriceOpts } from "./format";
 
 export function getSettings(): Record<string, string> {
   const db = getDb();
   const rows = db.prepare("SELECT key, value FROM settings").all() as { key: string; value: string }[];
   const out: Record<string, string> = {};
   for (const r of rows) out[r.key] = r.value;
+  // خيارات عرض الأسعار تُضبط عند قراءة الإعدادات، فلا يهم ترتيب رسم التخطيط والصفحة
+  setPriceOpts(priceOptsFrom(out));
   return out;
 }
 

@@ -16,7 +16,7 @@ export const ANN_CSS = `.ann-fade{animation:annIn .5s ease}@keyframes annIn{from
 .ann-vwrap{height:1.6em;line-height:1.6em}.ann-v{animation:annV .5s cubic-bezier(.22,.8,.3,1)}@keyframes annV{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:none}}
 .ann-track{display:flex;width:max-content;animation:annM linear infinite}.ann-ticker:hover .ann-track{animation-play-state:paused}
 .ann-group{display:flex;flex-shrink:0;min-width:100vw;justify-content:space-around}
-@keyframes annM{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+@keyframes annM{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.ann-track{animation:none}}`;
 
 export default function AnnouncementBar({ config, sig, preview = false }: { config: AnnounceConfig; sig: string; preview?: boolean }) {

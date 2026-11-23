@@ -5,24 +5,53 @@ import { sanitizeAnnounce, legacyText } from "@/lib/announcement";
 
 export const dynamic = "force-dynamic";
 
-// حقول صفحة «الإعدادات» المسموحة فقط
-const ADMIN_SETTING_KEYS = ["currency"];
+// الحقول النصية المسموحة في صفحة «الإعدادات» فقط (لا تُقبل مفاتيح أخرى)
+const TEXT_KEYS = ["currency", "currency2_symbol", "store_name", "store_tagline", "footer_text", "phone", "whatsapp", "email", "telegram_chat_id", "maintenance_message"];
 
 export async function PUT(req: NextRequest) {
   const auth = requireAdmin(); if (auth) return auth;
   const b = await req.json().catch(() => null);
   if (!b || typeof b !== "object") return bad("بيانات غير صالحة");
   if (typeof b.currency === "string" && !b.currency.trim()) return bad("العملة مطلوبة");
-  for (const k of ADMIN_SETTING_KEYS) {
+  if (typeof b.store_name === "string" && !b.store_name.trim()) return bad("اسم المتجر مطلوب");
+
+  const out: Record<string, string> = {};
+  for (const k of TEXT_KEYS) {
     const v = b[k];
-    if (typeof v !== "string" || v.length > 1000) continue;
-    setSetting(k, v.trim());
+    if (typeof v !== "string") continue;
+    if (v.length > 1000) return bad("نص طويل جداً");
+    out[k] = v.trim();
   }
+  if (typeof b.telegram_bot_token === "string" && b.telegram_bot_token.trim()) out.telegram_bot_token = b.telegram_bot_token.trim().slice(0, 200); // لا يُمسح بحقل فارغ
+  if (b.currency_pos !== undefined) {
+    if (b.currency_pos !== "after" && b.currency_pos !== "before") return bad("موضع العملة غير صالح");
+    out.currency_pos = b.currency_pos;
+  }
+  if (b.currency_decimals !== undefined) {
+    if (!["auto", "0", "2"].includes(String(b.currency_decimals))) return bad("عدد الكسور غير صالح");
+    out.currency_decimals = String(b.currency_decimals);
+  }
+  if (b.currency2_rate !== undefined) {
+    const r = String(b.currency2_rate).trim();
+    if (r !== "" && !(Number(r) > 0 && Number.isFinite(Number(r)))) return bad("سعر الصرف يجب أن يكون رقماً أكبر من صفر");
+    out.currency2_rate = r;
+  }
+  if (b.free_shipping_threshold !== undefined) {
+    const t = String(b.free_shipping_threshold).trim();
+    if (t === "" || !(Number(t) >= 0 && Number.isFinite(Number(t)))) return bad("حد الشحن المجاني يجب أن يكون رقماً (0 لتعطيله)");
+    out.free_shipping_threshold = String(Number(t));
+  }
+  if (b.maintenance_enabled !== undefined) out.maintenance_enabled = b.maintenance_enabled === true || b.maintenance_enabled === "1" ? "1" : "0";
+
+  let ann = null;
   if (b.announce_config !== undefined) {
-    const c = sanitizeAnnounce(b.announce_config);
-    if (c.start && c.end && c.start >= c.end) return bad("تاريخ بداية الشريط يجب أن يسبق تاريخ نهايته");
-    setSetting("announce_config", JSON.stringify(c));
-    setSetting("announcement", legacyText(c)); // توافق مع التطبيقات القديمة
+    ann = sanitizeAnnounce(b.announce_config);
+    if (ann.start && ann.end && ann.start >= ann.end) return bad("تاريخ بداية الشريط يجب أن يسبق تاريخ نهايته");
+  }
+  for (const [k, v] of Object.entries(out)) setSetting(k, v);
+  if (ann) {
+    setSetting("announce_config", JSON.stringify(ann));
+    setSetting("announcement", legacyText(ann)); // توافق مع التطبيقات القديمة
   }
   return NextResponse.json({ ok: true });
 }

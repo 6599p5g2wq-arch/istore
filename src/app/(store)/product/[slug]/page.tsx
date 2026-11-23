@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
-import { formatPrice } from "@/lib/format";
+import { formatPrice, formatSecondary } from "@/lib/format";
 import ProductCard from "@/components/store/ProductCard";
 import Reveal from "@/components/store/Reveal";
 import AddToCartPanel from "@/components/store/AddToCartPanel";
@@ -94,6 +94,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
               <>
                 <div className="mt-5 flex items-baseline gap-3">
                   <span className="text-4xl font-black text-[var(--accent)]">{formatPrice(product.price, s.currency)}</span>
+                  {formatSecondary(product.price) && <span className="text-base font-bold text-[var(--text-dim)]">{formatSecondary(product.price)}</span>}
                   {product.old_price && product.old_price > product.price && (
                     <span className="text-xl text-[var(--text-faint)] line-through">{formatPrice(product.old_price, s.currency)}</span>
                   )}

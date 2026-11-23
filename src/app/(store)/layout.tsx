@@ -10,6 +10,10 @@ import AnnouncementBar from "@/components/store/AnnouncementBar";
 import { readAnnounce, isActive } from "@/lib/announcement";
 import crypto from "crypto";
 import { getSettings } from "@/lib/settings";
+import { getSessionAdmin } from "@/lib/auth";
+import { priceOptsFrom, setPriceOpts } from "@/lib/format";
+import PriceFormatInit from "@/components/store/PriceFormatInit";
+import Maintenance from "@/components/store/Maintenance";
 import { getDb } from "@/lib/db";
 import type { Category } from "@/lib/types";
 
@@ -18,11 +22,18 @@ export const dynamic = "force-dynamic";
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   const s = getSettings();
   const db = getDb();
+  // وضع الصيانة: الزوار يرون رسالة الإغلاق، والمشرف المسجّل يتصفح المتجر عادياً
+  if (s.maintenance_enabled === "1" && !getSessionAdmin()) {
+    return <Maintenance name={s.store_name || "آي ستور"} message={s.maintenance_message || "المتجر مغلق مؤقتاً للصيانة، نعود قريباً."} />;
+  }
+  const priceOpts = priceOptsFrom(s);
+  setPriceOpts(priceOpts);
   const ann = readAnnounce(s);
   const annSig = crypto.createHash("md5").update(JSON.stringify({ m: ann.messages, s: ann.start, e: ann.end })).digest("hex").slice(0, 10);
   const cats = db.prepare("SELECT name, slug FROM categories WHERE active = 1 ORDER BY sort_order").all() as Pick<Category, "name" | "slug">[];
   return (
     <MotionProvider>
+    <PriceFormatInit opts={priceOpts} />
     <CartProvider>
       <WishlistProvider>
         <Analytics metaPixel={s.meta_pixel_id || ""} tiktokPixel={s.tiktok_pixel_id || ""} gaId={s.ga_id || ""} />
