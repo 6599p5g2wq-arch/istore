@@ -30,3 +30,10 @@ export async function POST(req: NextRequest) {
     .run(name, email, phone, hashPassword(pw, salt), salt);
   return NextResponse.json({ ok: true, id: Number(r.lastInsertRowid), password: pw });
 }
+
+export async function GET() {
+  const auth = requireAdmin(); if (auth) return auth;
+  const db = getDb();
+  const customers = db.prepare("SELECT id, name, phone FROM customers ORDER BY name COLLATE NOCASE LIMIT 1000").all();
+  return NextResponse.json({ customers });
+}

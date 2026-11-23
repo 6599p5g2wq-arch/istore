@@ -11,6 +11,11 @@ export default function AdminCoupons() {
   const db = getDb();
   const coupons = db.prepare("SELECT c.*, cu.name AS customer_name FROM coupons c LEFT JOIN customers cu ON cu.id = c.customer_id ORDER BY c.id DESC").all() as (Coupon & { customer_name: string | null })[];
   const p = getProgram(db);
+  const stats = {
+    active: (db.prepare("SELECT COUNT(*) AS c FROM coupons WHERE active = 1").get() as { c: number }).c,
+    uses: (db.prepare("SELECT COALESCE(SUM(used_count), 0) AS s FROM coupons").get() as { s: number }).s,
+    discount: (db.prepare("SELECT COALESCE(SUM(discount), 0) AS s FROM orders WHERE coupon_code IS NOT NULL AND coupon_code != ''").get() as { s: number }).s,
+  };
   return (
     <div>
       <h1 className="text-2xl font-black sm:text-3xl">أكواد الخصم</h1>
@@ -25,7 +30,7 @@ export default function AdminCoupons() {
             { key: "welcome_max_uses", label: "أقصى عدد استخدامات" },
           ]} />
       </div>
-      <CouponsManager coupons={coupons} />
+      <CouponsManager coupons={coupons} stats={stats} />
     </div>
   );
 }
