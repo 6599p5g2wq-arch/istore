@@ -99,6 +99,26 @@ admin_header($c['name'], 'customers.php');
   <?php if ($c['city'] || $c['address']): ?><p class="mt-2 flex items-center gap-2 text-sm text-neutral-600"><?= icon('map-pin', 15) ?> <?= e($c['city']) ?><?= $c['address'] ? ' — ' . e($c['address']) : '' ?></p><?php endif; ?>
   <a href="https://wa.me/<?= e($waPhone) ?>" target="_blank" rel="noopener" class="mt-4 inline-block rounded-full bg-emerald-500 px-5 py-2 text-sm font-bold text-white">مراسلة واتساب</a>
 </div>
+<?php
+$addrs = [];
+foreach ($orders as $o) {
+    $k = trim($o['city'] . '||' . $o['address']);
+    if (isset($addrs[$k])) $addrs[$k]['n']++; else $addrs[$k] = ['city' => $o['city'], 'address' => $o['address'], 'n' => 1, 'last' => $o['created_at']];
+}
+?>
+<div class="admin-card mt-5 p-6">
+  <h2 class="mb-4 flex items-center gap-2 font-extrabold"><?= icon('map-pin', 17) ?> العناوين</h2>
+  <p class="text-xs font-bold text-neutral-400">العنوان المحفوظ في الحساب</p>
+  <?php if ($c['city'] || $c['address']): ?><p class="mt-1.5 rounded-2xl bg-neutral-50 px-4 py-3 text-sm font-bold"><?= e($c['city']) ?><?= $c['address'] ? ' — ' . e($c['address']) : '' ?></p>
+  <?php else: ?><p class="mt-1.5 text-sm text-neutral-400">لم يحفظ الزبون عنواناً بعد</p><?php endif; ?>
+  <p class="mt-5 text-xs font-bold text-neutral-400">عناوين من طلباته السابقة</p>
+  <?php if (!$addrs): ?><p class="mt-1.5 text-sm text-neutral-400">لا توجد طلبات</p><?php else: ?>
+  <ul class="mt-1.5 space-y-2">
+    <?php foreach ($addrs as $a): ?>
+      <li class="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-neutral-50 px-4 py-3 text-sm"><span class="font-bold"><?= e($a['city']) ?><?= $a['address'] ? ' — ' . e($a['address']) : '' ?></span><span class="text-xs text-neutral-400"><?= (int)$a['n'] ?> <?= $a['n'] === 1 ? 'طلب' : 'طلبات' ?> · آخر استخدام <?= e(format_date($a['last'])) ?></span></li>
+    <?php endforeach; ?>
+  </ul><?php endif; ?>
+</div>
 <div class="admin-card mt-5 overflow-x-auto p-6">
   <h2 class="mb-2 font-extrabold">طلباته</h2>
   <?php if (!$orders): ?><p class="py-6 text-center text-sm text-neutral-400">لا توجد طلبات</p><?php else: ?>
