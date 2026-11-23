@@ -35,7 +35,7 @@ function DateField({ label, value, onChange }: { label: string; value: string; o
   );
 }
 
-type Vals = Record<"currency" | "currency_pos" | "currency_decimals" | "currency2_symbol" | "currency2_rate" | "free_shipping_threshold" | "maintenance_enabled" | "maintenance_message" | "store_name" | "store_tagline" | "footer_text" | "phone" | "whatsapp" | "email" | "telegram_chat_id", string>;
+type Vals = Record<"currency" | "currency_pos" | "currency_decimals" | "currency2_symbol" | "currency2_rate" | "free_shipping_threshold", string>;
 
 function Card({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
   return (
@@ -47,24 +47,9 @@ function Card({ title, desc, children }: { title: string; desc?: string; childre
   );
 }
 
-function Switch({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)} className={`relative h-7 w-12 shrink-0 rounded-full transition ${on ? "bg-emerald-500" : "bg-neutral-300"}`}>
-      <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${on ? "right-0.5" : "right-[1.375rem]"}`} />
-    </button>
-  );
-}
-
-export default function SiteSettings({ values, telegramTokenSaved, announce }: { values: Vals; telegramTokenSaved: boolean; announce: AnnounceConfig }) {
+export default function SiteSettings({ values, announce }: { values: Vals; announce: AnnounceConfig }) {
   const [v, setV] = useState<Vals>(values);
-  const [token, setToken] = useState("");
-  const [tg, setTg] = useState<"idle" | "sending" | "ok" | "fail">("idle");
   const set = (k: keyof Vals, val: string) => setV((o) => ({ ...o, [k]: val }));
-  const testTelegram = async () => {
-    setTg("sending");
-    const r = await fetch("/api/admin/telegram-test", { method: "POST" }).catch(() => null);
-    setTg(r && r.ok ? "ok" : "fail");
-  };
   const router = useRouter();
   const [ann, setAnn] = useState<AnnounceConfig>({ ...ANNOUNCE_DEFAULT, ...announce, messages: announce.messages.length ? announce.messages : [{ text: "", link: "" }] });
   const [loading, setLoading] = useState(false);
@@ -76,7 +61,6 @@ export default function SiteSettings({ values, telegramTokenSaved, announce }: {
     setLoading(true); setSaved(false); setErr("");
     const body: Record<string, unknown> = { announce_config: { ...ann, messages: ann.messages.filter((m) => m.text.trim()) } };
     Object.assign(body, v);
-    if (token.trim()) body.telegram_bot_token = token.trim();
     const r = await fetch("/api/admin/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     setLoading(false);
     if (r.ok) { setSaved(true); router.refresh(); setTimeout(() => setSaved(false), 2500); }
@@ -92,84 +76,6 @@ export default function SiteSettings({ values, telegramTokenSaved, announce }: {
     <form onSubmit={save} className="mt-6 space-y-5">
       {(
         <>
-          <Card title="هوية المتجر" desc="الاسم والوصف يظهران في الموقع والتذييل.">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-              <label className="block text-sm font-bold">اسم المتجر<input value={v.store_name} onChange={(e) => set("store_name", e.target.value)} required maxLength={80} className={inputCls} /></label>
-              <label className="block text-sm font-bold">نص الحقوق أسفل الصفحة<input value={v.footer_text} onChange={(e) => set("footer_text", e.target.value)} maxLength={200} className={inputCls} /></label>
-              <label className="block text-sm font-bold sm:col-span-2">الوصف المختصر<textarea value={v.store_tagline} onChange={(e) => set("store_tagline", e.target.value)} rows={2} maxLength={300} className={inputCls} /></label>
-            </div>
-          </Card>
-
-          <Card title="التواصل" desc="أرقام وبريد التواصل الظاهرة للزبائن.">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-              <label className="block text-sm font-bold">رقم الهاتف<input dir="ltr" value={v.phone} onChange={(e) => set("phone", e.target.value)} className={`text-left ${inputCls}`} /></label>
-              <label className="block text-sm font-bold">رقم واتساب (بالصيغة الدولية بدون +)<input dir="ltr" value={v.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} className={`text-left ${inputCls}`} /></label>
-              <label className="block text-sm font-bold sm:col-span-2">البريد الإلكتروني<input dir="ltr" value={v.email} onChange={(e) => set("email", e.target.value)} className={`text-left ${inputCls}`} /></label>
-            </div>
-          </Card>
-
-          <Card title="إشعارات الطلبات (تيليجرام)" desc="يصلك إشعار على تيليجرام عند كل طلب جديد.">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-              <label className="block text-sm font-bold">معرف المحادثة (Chat ID)<input dir="ltr" value={v.telegram_chat_id} onChange={(e) => set("telegram_chat_id", e.target.value)} className={`text-left ${inputCls}`} /></label>
-              <label className="block text-sm font-bold">توكن البوت (Bot Token)
-                <input dir="ltr" type="password" autoComplete="off" value={token} onChange={(e) => setToken(e.target.value)} placeholder={telegramTokenSaved ? "محفوظ — اكتب توكن جديداً فقط لتغييره" : "الصق التوكن هنا"} className={`text-left ${inputCls}`} />
-                <span className="mt-1 block text-[11px] font-normal text-neutral-400">لا يُعرض التوكن بعد حفظه أبداً. {telegramTokenSaved ? "حالياً: محفوظ." : "حالياً: غير محفوظ."}</span>
-              </label>
-            </div>
-            <div className="mt-3 flex items-center gap-3">
-              <button type="button" onClick={testTelegram} disabled={tg === "sending"} className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-bold hover:bg-neutral-50 disabled:opacity-60">{tg === "sending" ? "جارٍ الإرسال..." : "إرسال رسالة تجريبية"}</button>
-              {tg === "ok" && <span className="text-xs font-bold text-emerald-600">وصلت الرسالة</span>}
-              {tg === "fail" && <span className="text-xs font-bold text-red-600">فشل الإرسال (احفظ التوكن والمعرف أولاً ثم جرّب)</span>}
-            </div>
-          </Card>
-
-          <Card title="العملة وعرض الأسعار" desc="تنطبق على صفحات المتجر.">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-              <label className="block text-sm font-bold">رمز العملة
-                <input value={v.currency} onChange={(e) => set("currency", e.target.value)} maxLength={20} required className={inputCls} />
-              </label>
-              <label className="block text-sm font-bold">موضع الرمز
-                <select value={v.currency_pos} onChange={(e) => set("currency_pos", e.target.value)} className={inputCls}>
-                  <option value="after">بعد السعر (150 د.ل)</option>
-                  <option value="before">قبل السعر (د.ل 150)</option>
-                </select>
-              </label>
-              <label className="block text-sm font-bold">الكسور العشرية
-                <select value={v.currency_decimals} onChange={(e) => set("currency_decimals", e.target.value)} className={inputCls}>
-                  <option value="auto">تلقائي (بدون كسور للأعداد الصحيحة)</option>
-                  <option value="0">بدون كسور دائماً (150)</option>
-                  <option value="2">خانتان دائماً (150.00)</option>
-                </select>
-              </label>
-            </div>
-            <div className="mt-5 rounded-2xl bg-neutral-50 p-4">
-              <p className="text-sm font-bold">عملة ثانية للعرض (اختياري)</p>
-              <p className="mt-1 text-xs text-neutral-500">تظهر بجانب السعر كقيمة تقريبية، مثل ≈ 28.85 $. للعرض فقط: الدفع والطلبات تبقى بالعملة الأساسية. اترك الحقلين فارغين لإيقافها.</p>
-              <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-                <label className="block text-sm font-bold">رمز العملة الثانية<input value={v.currency2_symbol} onChange={(e) => set("currency2_symbol", e.target.value)} maxLength={10} placeholder="$" className={inputCls} /></label>
-                <label className="block text-sm font-bold">سعر الصرف (كم {v.currency || "د.ل"} يساوي 1 {v.currency2_symbol || "من الثانية"})
-                  <input dir="ltr" inputMode="decimal" value={v.currency2_rate} onChange={(e) => set("currency2_rate", e.target.value)} placeholder="5.2" className={`text-left ${inputCls}`} />
-                </label>
-              </div>
-            </div>
-          </Card>
-
-          <Card title="الشحن" desc="الطلبات التي يتجاوز مجموعها هذا الحد يصير توصيلها مجاناً (تُضاف الرسالة التحفيزية في السلة تلقائياً).">
-            <label className="block max-w-xs text-sm font-bold">حد الشحن المجاني ({v.currency || "د.ل"}) — 0 لتعطيله
-              <input dir="ltr" inputMode="decimal" value={v.free_shipping_threshold} onChange={(e) => set("free_shipping_threshold", e.target.value)} className={`text-left ${inputCls}`} />
-            </label>
-          </Card>
-
-          <Card title="وضع الصيانة" desc="عند التفعيل يرى الزوار رسالة الإغلاق بدل المتجر ولا يمكنهم إرسال طلبات. أنت (مسجّلاً في لوحة الإدارة) تتصفح المتجر عادياً.">
-            <div className="flex items-center gap-3">
-              <Switch on={v.maintenance_enabled === "1"} onChange={(on) => set("maintenance_enabled", on ? "1" : "0")} />
-              <span className={`text-sm font-bold ${v.maintenance_enabled === "1" ? "text-amber-600" : "text-neutral-400"}`}>{v.maintenance_enabled === "1" ? "المتجر مغلق للزوار" : "المتجر مفتوح"}</span>
-            </div>
-            <label className="mt-4 block text-sm font-bold">رسالة الإغلاق
-              <textarea value={v.maintenance_message} onChange={(e) => set("maintenance_message", e.target.value)} rows={2} maxLength={300} placeholder="المتجر مغلق مؤقتاً للصيانة، نعود قريباً." className={inputCls} />
-            </label>
-          </Card>
-
           <div className="rounded-3xl bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -227,6 +133,44 @@ export default function SiteSettings({ values, telegramTokenSaved, announce }: {
             <p className="mb-2 mt-6 text-xs font-bold text-neutral-400">معاينة</p>
             <AnnouncementBar key={ann.effect + ann.messages.length} preview sig="preview" config={{ ...ann, messages: ann.messages.filter((m) => m.text.trim()).length ? ann.messages.filter((m) => m.text.trim()) : [{ text: "نص الإعلان يظهر هنا", link: "" }] }} />
           </div>
+
+          <Card title="العملة وعرض الأسعار" desc="تنطبق على صفحات المتجر.">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+              <label className="block text-sm font-bold">رمز العملة
+                <input value={v.currency} onChange={(e) => set("currency", e.target.value)} maxLength={20} required className={inputCls} />
+              </label>
+              <label className="block text-sm font-bold">موضع الرمز
+                <select value={v.currency_pos} onChange={(e) => set("currency_pos", e.target.value)} className={inputCls}>
+                  <option value="after">بعد السعر (150 د.ل)</option>
+                  <option value="before">قبل السعر (د.ل 150)</option>
+                </select>
+              </label>
+              <label className="block text-sm font-bold">الكسور العشرية
+                <select value={v.currency_decimals} onChange={(e) => set("currency_decimals", e.target.value)} className={inputCls}>
+                  <option value="auto">تلقائي (بدون كسور للأعداد الصحيحة)</option>
+                  <option value="0">بدون كسور دائماً (150)</option>
+                  <option value="2">خانتان دائماً (150.00)</option>
+                </select>
+              </label>
+            </div>
+            <div className="mt-5 rounded-2xl bg-neutral-50 p-4">
+              <p className="text-sm font-bold">عملة ثانية للعرض (اختياري)</p>
+              <p className="mt-1 text-xs text-neutral-500">تظهر بجانب السعر كقيمة تقريبية، مثل ≈ 28.85 $. للعرض فقط: الدفع والطلبات تبقى بالعملة الأساسية. اترك الحقلين فارغين لإيقافها.</p>
+              <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                <label className="block text-sm font-bold">رمز العملة الثانية<input value={v.currency2_symbol} onChange={(e) => set("currency2_symbol", e.target.value)} maxLength={10} placeholder="$" className={inputCls} /></label>
+                <label className="block text-sm font-bold">سعر الصرف (كم {v.currency || "د.ل"} يساوي 1 {v.currency2_symbol || "من الثانية"})
+                  <input dir="ltr" inputMode="decimal" value={v.currency2_rate} onChange={(e) => set("currency2_rate", e.target.value)} placeholder="5.2" className={`text-left ${inputCls}`} />
+                </label>
+              </div>
+            </div>
+          </Card>
+
+          <Card title="الشحن" desc="الطلبات التي يتجاوز مجموعها هذا الحد يصير توصيلها مجاناً (تُضاف الرسالة التحفيزية في السلة تلقائياً).">
+            <label className="block max-w-xs text-sm font-bold">حد الشحن المجاني ({v.currency || "د.ل"}) — 0 لتعطيله
+              <input dir="ltr" inputMode="decimal" value={v.free_shipping_threshold} onChange={(e) => set("free_shipping_threshold", e.target.value)} className={`text-left ${inputCls}`} />
+            </label>
+          </Card>
+
         </>
       )}
 

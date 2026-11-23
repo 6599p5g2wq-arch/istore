@@ -6,14 +6,13 @@ import { sanitizeAnnounce, legacyText } from "@/lib/announcement";
 export const dynamic = "force-dynamic";
 
 // الحقول النصية المسموحة في صفحة «الإعدادات» فقط (لا تُقبل مفاتيح أخرى)
-const TEXT_KEYS = ["currency", "currency2_symbol", "store_name", "store_tagline", "footer_text", "phone", "whatsapp", "email", "telegram_chat_id", "maintenance_message"];
+const TEXT_KEYS = ["currency", "currency2_symbol"];
 
 export async function PUT(req: NextRequest) {
   const auth = requireAdmin(); if (auth) return auth;
   const b = await req.json().catch(() => null);
   if (!b || typeof b !== "object") return bad("بيانات غير صالحة");
   if (typeof b.currency === "string" && !b.currency.trim()) return bad("العملة مطلوبة");
-  if (typeof b.store_name === "string" && !b.store_name.trim()) return bad("اسم المتجر مطلوب");
 
   const out: Record<string, string> = {};
   for (const k of TEXT_KEYS) {
@@ -22,7 +21,6 @@ export async function PUT(req: NextRequest) {
     if (v.length > 1000) return bad("نص طويل جداً");
     out[k] = v.trim();
   }
-  if (typeof b.telegram_bot_token === "string" && b.telegram_bot_token.trim()) out.telegram_bot_token = b.telegram_bot_token.trim().slice(0, 200); // لا يُمسح بحقل فارغ
   if (b.currency_pos !== undefined) {
     if (b.currency_pos !== "after" && b.currency_pos !== "before") return bad("موضع العملة غير صالح");
     out.currency_pos = b.currency_pos;
@@ -41,7 +39,6 @@ export async function PUT(req: NextRequest) {
     if (t === "" || !(Number(t) >= 0 && Number.isFinite(Number(t)))) return bad("حد الشحن المجاني يجب أن يكون رقماً (0 لتعطيله)");
     out.free_shipping_threshold = String(Number(t));
   }
-  if (b.maintenance_enabled !== undefined) out.maintenance_enabled = b.maintenance_enabled === true || b.maintenance_enabled === "1" ? "1" : "0";
 
   let ann = null;
   if (b.announce_config !== undefined) {

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save, CheckCircle2 } from "lucide-react";
 
-const SECTIONS: { title: string; fields: { key: string; label: string; area?: boolean; ltr?: boolean }[] }[] = [
+const SECTIONS: { title: string; fields: { key: string; label: string; area?: boolean; ltr?: boolean; toggle?: boolean }[] }[] = [
   {
     title: "هوية المتجر",
     fields: [
@@ -31,10 +31,6 @@ const SECTIONS: { title: string; fields: { key: string; label: string; area?: bo
     ],
   },
   {
-    title: "الشحن",
-    fields: [{ key: "free_shipping_threshold", label: "حد الشحن المجاني (0 لتعطيله)", ltr: true }],
-  },
-  {
     title: "التتبع والتحليلات",
     fields: [
       { key: "site_url", label: "رابط المتجر العلني (للخريطة والإشعارات)", ltr: true },
@@ -48,6 +44,13 @@ const SECTIONS: { title: string; fields: { key: string; label: string; area?: bo
     fields: [
       { key: "telegram_chat_id", label: "معرف المحادثة (Chat ID)", ltr: true },
       { key: "telegram_bot_token", label: "توكن البوت (Bot Token)", ltr: true },
+    ],
+  },
+  {
+    title: "وضع الصيانة",
+    fields: [
+      { key: "maintenance_enabled", label: "إغلاق المتجر للزوار (يرون رسالة الإغلاق ولا يستطيعون الطلب، والمشرف المسجّل في /admin يتصفح عادياً)", toggle: true },
+      { key: "maintenance_message", label: "رسالة الإغلاق", area: true },
     ],
   },
   {
@@ -100,7 +103,12 @@ export default function SettingsForm({ settings, telegramTokenSaved = false }: {
         <div key={sec.title} className="rounded-3xl bg-white p-6 shadow-sm">
           <h2 className="mb-5 font-extrabold">{sec.title}</h2>
           <div className="space-y-4">
-            {sec.fields.map((f) => (
+            {sec.fields.map((f) => f.toggle ? (
+              <label key={f.key} className="flex items-start gap-3 text-sm font-bold">
+                <input type="checkbox" checked={form[f.key] === "1"} onChange={(e) => setForm({ ...form, [f.key]: e.target.checked ? "1" : "0" })} className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{f.label}{form[f.key] === "1" && <span className="mr-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-700">المتجر مغلق الآن</span>}</span>
+              </label>
+            ) : (
               <label key={f.key} className="block text-sm font-bold">
                 {f.label}
                 {f.area ? (
