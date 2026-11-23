@@ -143,7 +143,7 @@ export default function ProductForm({ product, categories, brands, variants }: {
 
   return (
     <form onSubmit={submit} className="mt-8 grid gap-6 lg:grid-cols-3">
-      <div className="space-y-5 rounded-3xl bg-white p-6 shadow-sm lg:col-span-2">
+      <div className="min-w-0 space-y-5 rounded-3xl bg-white p-6 shadow-sm lg:col-span-2">
         <label className="block text-sm font-bold">
           اسم المنتج *
           <input required value={form.name} onChange={(e) => onNameChange(e.target.value)} className={`mt-1.5 ${inputCls}`} placeholder="مثال: غطاء iPhone 16 سيليكون أصلي" />
@@ -209,7 +209,7 @@ export default function ProductForm({ product, categories, brands, variants }: {
         </div>
       </div>
 
-      <div className="space-y-5">
+      <div className="min-w-0 space-y-5">
         <div className="space-y-4 rounded-3xl bg-white p-6 shadow-sm">
           <label className="block text-sm font-bold">
             التصنيف
