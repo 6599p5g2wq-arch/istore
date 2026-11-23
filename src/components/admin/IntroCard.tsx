@@ -1,6 +1,7 @@
 "use client";
 import React, { useRef, useState } from "react";
 import { Loader2, Trash2, Upload } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { readIntro } from "@/lib/intro";
 
 type Form = Record<string, string>;
@@ -8,6 +9,7 @@ const inputCls = "mt-1.5 w-full rounded-xl border border-neutral-300 bg-white px
 
 export default function IntroCard({ form, setForm }: { form: Form; setForm: (f: Form) => void }) {
   const cfg = readIntro(form);
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -21,11 +23,14 @@ export default function IntroCard({ form, setForm }: { form: Form; setForm: (f: 
     setBusy(false);
     if (!r.ok) { setMsg(j.error || "فشل الرفع"); return; }
     setForm({ ...form, intro_logo: j.path });
+    router.refresh();
     setMsg("تم رفع الشعار وتجهيزه (يظهر في المتجر فوراً)");
   };
   const removeLogo = async () => {
     setBusy(true);
-    await fetch("/api/control/intro-logo", { method: "DELETE" });
+    const r = await fetch("/api/control/intro-logo", { method: "DELETE" });
+    if (!r.ok) { setBusy(false); setMsg("فشل حذف الشعار"); return; }
+    router.refresh();
     setBusy(false); setForm({ ...form, intro_logo: "" }); setMsg("تم حذف الشعار");
   };
 

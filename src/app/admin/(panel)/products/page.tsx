@@ -5,6 +5,7 @@ import { getSettings } from "@/lib/settings";
 import { formatPrice } from "@/lib/format";
 import { Plus, Pencil, Star } from "lucide-react";
 import DeleteButton from "@/components/admin/DeleteButton";
+import BulkDeleteBar from "@/components/admin/BulkDeleteBar";
 import ProductsSearch from "@/components/admin/ProductsSearch";
 import type { Product } from "@/lib/types";
 
@@ -38,14 +39,15 @@ export default function AdminProducts({ searchParams }: { searchParams: { q?: st
         <table className="w-full min-w-[820px] text-sm">
           <thead>
             <tr className="border-b text-right text-xs text-neutral-400">
-              <th className="p-3 font-bold">المنتج</th><th className="p-3 font-bold">التصنيف</th><th className="p-3 font-bold">السعر</th>
+              <th className="w-10 p-3"><input type="checkbox" className="js-bulk-all h-4 w-4 accent-black" aria-label="تحديد الكل" /></th><th className="p-3 font-bold">المنتج</th><th className="p-3 font-bold">التصنيف</th><th className="p-3 font-bold">السعر</th>
               <th className="p-3 font-bold">المخزون</th><th className="p-3 font-bold">مميز</th><th className="p-3 font-bold">ظاهر</th><th className="p-3 font-bold">إجراءات</th>
             </tr>
           </thead>
           <tbody>
-            <tr id="products-empty" style={{ display: "none" }}><td colSpan={7} className="p-6 text-center text-sm font-bold text-neutral-400">لا توجد منتجات مطابقة</td></tr>
+            <tr id="products-empty" style={{ display: "none" }}><td colSpan={8} className="p-6 text-center text-sm font-bold text-neutral-400">لا توجد منتجات مطابقة</td></tr>
             {products.map((p) => (
               <tr key={p.id} data-name={p.name.toLowerCase()} className="js-product-row border-b border-neutral-50 last:border-0 hover:bg-neutral-50/60">
+                <td className="p-3"><input type="checkbox" className="js-bulk h-4 w-4 accent-black" value={p.id} aria-label={`تحديد ${p.name}`} /></td>
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -75,6 +77,7 @@ export default function AdminProducts({ searchParams }: { searchParams: { q?: st
           </tbody>
         </table>
       </div>
+      <BulkDeleteBar />
     </div>
   );
 }

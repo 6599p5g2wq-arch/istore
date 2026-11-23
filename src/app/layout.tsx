@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import "./globals.css";
 import { getSettings } from "@/lib/settings";
-import { logoIcons } from "@/lib/favicon";
 
 export const dynamic = "force-dynamic";
 
@@ -12,9 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const s = getSettings();
   const base = (s.site_url || "").replace(/\/$/, "") || undefined;
   const name = s.store_name || "آي ستور";
-  const icons = logoIcons();
   return {
-    ...(icons ? { icons } : {}),
     metadataBase: base ? new URL(base) : undefined,
     title: { default: name, template: `%s | ${name}` },
     description: s.store_tagline,

@@ -1,4 +1,7 @@
 import React from "react";
+import { logoIcons } from "@/lib/favicon";
+
+export async function generateMetadata() { return { icons: logoIcons() }; }
 import { CartProvider } from "@/components/store/CartContext";
 import { WishlistProvider } from "@/components/store/WishlistContext";
 import Analytics from "@/components/store/Analytics";
