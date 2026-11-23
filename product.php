@@ -70,6 +70,7 @@ require APP_ROOT . '/includes/store-header.php';
       <h1 class="mt-4 text-3xl font-black leading-snug text-white sm:text-4xl"><?= e($p['name']) ?></h1>
       <div class="mt-5 flex items-baseline gap-3">
         <span id="price-main" class="text-4xl font-black text-[var(--accent)]"><?= e(format_price($p['price'])) ?></span>
+        <?php if (format_secondary($p['price'])): ?><span class="text-base font-bold text-[var(--text-dim)]"><?= e(format_secondary($p['price'])) ?></span><?php endif; ?>
         <?php if ($old): ?><span class="text-xl text-[var(--text-faint)] line-through"><?= e(format_price($old)) ?></span><?php endif; ?>
       </div>
       <p class="mt-6 whitespace-pre-line leading-8 text-[var(--text-dim)]"><?= e($p['description']) ?></p>

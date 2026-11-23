@@ -22,11 +22,41 @@ function set_setting(string $key, string $value): void {
     q('INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)', [$key, $value]);
 }
 
+// خيارات عرض الأسعار من صفحة «الإعدادات»
+function price_opts(): array {
+    static $o = null;
+    if ($o !== null) return $o;
+    $d = setting('currency_decimals', 'auto');
+    $rate = (float)setting('currency2_rate', '0');
+    return $o = [
+        'pos' => setting('currency_pos', 'after') === 'before' ? 'before' : 'after',
+        'dec' => in_array($d, ['0', '2'], true) ? $d : 'auto',
+        'sym2' => trim(setting('currency2_symbol', '')),
+        'rate2' => $rate > 0 ? $rate : 0,
+    ];
+}
+
 function format_price($value, ?string $currency = null): string {
     $currency = $currency ?? (setting('currency', 'د.ل') ?: 'د.ل');
+    $o = price_opts();
     $v = (float)$value;
-    $n = (floor($v) == $v) ? number_format($v, 0) : number_format($v, 2);
-    return $n . ' ' . $currency;
+    if ($o['dec'] === '0') $n = number_format($v, 0);
+    elseif ($o['dec'] === '2') $n = number_format($v, 2);
+    else $n = (floor($v) == $v) ? number_format($v, 0) : number_format($v, 2);
+    return $o['pos'] === 'before' ? $currency . ' ' . $n : $n . ' ' . $currency;
+}
+
+// السعر بالعملة الثانية (تقريبي) أو نص فارغ إن لم تُفعَّل
+function format_secondary($value): string {
+    $o = price_opts();
+    if ($o['sym2'] === '' || !$o['rate2']) return '';
+    $n = number_format((float)$value / $o['rate2'], 2);
+    return $o['pos'] === 'before' ? '≈ ' . $o['sym2'] . ' ' . $n : '≈ ' . $n . ' ' . $o['sym2'];
+}
+
+// وضع الصيانة: مفعّل والزائر ليس مشرفاً مسجلاً
+function maintenance_on(): bool {
+    return setting('maintenance_enabled', '0') === '1' && !admin_user();
 }
 
 function format_date(?string $iso): string {

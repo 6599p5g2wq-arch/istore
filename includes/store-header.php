@@ -5,6 +5,16 @@ $cats = categories();
 $title = $page_title ?? ($s['store_name'] ?? 'آي ستور');
 $desc = $page_desc ?? ($s['store_tagline'] ?? '');
 $customer = customer_user();
+if (maintenance_on()) {
+    http_response_code(503);
+    header('Retry-After: 3600');
+    $mm = setting('maintenance_message', '') ?: 'المتجر مغلق مؤقتاً للصيانة، نعود قريباً.';
+    ?><!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title><?= e($title) ?></title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:'Cairo',sans-serif;background:linear-gradient(135deg,#f3e8ff,#dbeafe);color:#1e1b4b;text-align:center;padding:24px}h1{font-size:2rem;font-weight:900;margin:24px 0 8px}p{font-size:1.1rem;line-height:2;color:#475569;max-width:28rem;margin:0 auto}.ic{width:80px;height:80px;border-radius:24px;background:rgba(255,255,255,.7);display:grid;place-items:center;margin:0 auto}</style></head>
+<body><div><div class="ic"><?= icon('settings', 36) ?></div><h1><?= e($s['store_name'] ?? 'آي ستور') ?></h1><p><?= e($mm) ?></p></div></body></html><?php
+    exit;
+}
 ?><!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -25,7 +35,7 @@ tailwind.config = { future: { hoverOnlyWhenSupported: true }, corePlugins: { pre
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= e(url('assets/css/app.css')) ?>">
 <style>body{font-family:'Cairo',ui-sans-serif,system-ui,sans-serif}</style>
-<script>window.BASE=<?= json_encode(BASE_URL) ?>;window.CURRENCY=<?= json_encode($s['currency'] ?? 'د.ل') ?>;</script>
+<script>window.BASE=<?= json_encode(BASE_URL) ?>;window.CURRENCY=<?= json_encode($s['currency'] ?? 'د.ل') ?>;window.PRICEFMT=<?= json_encode(['pos' => price_opts()['pos'], 'dec' => price_opts()['dec']]) ?>;</script>
 </head>
 <body class="page-in min-h-screen">
 

@@ -2,6 +2,7 @@
 // إنشاء طلب جديد (الدفع عند الاستلام)
 require dirname(__DIR__) . '/includes/bootstrap.php';
 require APP_ROOT . '/includes/auth.php';
+if (maintenance_on()) json_response(['ok' => false, 'error' => setting('maintenance_message', '') ?: 'المتجر مغلق مؤقتاً للصيانة'], 503);
 $b = read_json_body();
 $name = trim($b['name'] ?? '');
 $phone = trim($b['phone'] ?? '');

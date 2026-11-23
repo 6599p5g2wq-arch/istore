@@ -29,6 +29,7 @@ function product_card(array $p, int $index = 0): string {
       <div class="mt-3 flex items-end justify-between gap-2">
         <div>
           <div class="text-lg font-extrabold text-white"><?= e(format_price($p['price'])) ?></div>
+          <?php if (format_secondary($p['price'])): ?><div class="text-[11px] font-bold text-[var(--text-dim)]"><?= e(format_secondary($p['price'])) ?></div><?php endif; ?>
           <?php if ($old): ?><div class="text-xs text-[var(--text-faint)] line-through"><?= e(format_price($old)) ?></div><?php endif; ?>
         </div>
         <?php if ($hasOptions && !$out): ?>

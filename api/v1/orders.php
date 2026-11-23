@@ -29,6 +29,7 @@ if ($m === 'GET') {
 }
 
 if ($m === 'POST') {
+    if (maintenance_on()) json_response(['ok' => false, 'error' => setting('maintenance_message', '') ?: 'المتجر مغلق مؤقتاً للصيانة'], 503);
     $b = api_body();
     $name = trim($b['name'] ?? '');
     $phone = trim($b['phone'] ?? '');

@@ -129,9 +129,10 @@
 
   window.fmtPrice = function (v) {
     var cur = window.CURRENCY || 'د.ل';
-    var n = (Math.floor(v) === v) ? String(v) : v.toFixed(2);
+    var f = window.PRICEFMT || {};
+    var n = f.dec === '0' ? String(Math.round(v)) : f.dec === '2' ? v.toFixed(2) : ((Math.floor(v) === v) ? String(v) : v.toFixed(2));
     n = n.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return n + ' ' + cur;
+    return f.pos === 'before' ? cur + ' ' + n : n + ' ' + cur;
   };
 
   // ---------- ظهور العناصر عند التمرير ----------
