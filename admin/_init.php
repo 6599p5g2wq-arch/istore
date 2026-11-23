@@ -23,6 +23,10 @@ function admin_header(string $title, string $active = ''): void {
         ['admins.php', 'المشرفون', 'users'],
     ];
     $storeName = setting('store_name', 'آي ستور');
+    $badgeNew = (int)(qone("SELECT COUNT(*) c FROM orders WHERE status = 'new'")['c'] ?? 0);
+    $badgeLow = (int)(qone("SELECT COUNT(*) c FROM products WHERE active = 1 AND stock <= 5")['c'] ?? 0);
+    $badges = ['orders.php' => [$badgeNew, 'bg-red-500', 'طلبات جديدة'], 'products.php' => [$badgeLow, 'bg-amber-500', 'منتجات مخزونها منخفض']];
+    $badgeTotal = $badgeNew + $badgeLow;
     ?>
 <!doctype html>
 <html lang="ar" dir="rtl">
@@ -60,7 +64,10 @@ function admin_header(string $title, string $active = ''): void {
     <nav class="space-y-1">
       <?php foreach ($links as $l): $href = $l[0]; $isActive = $active === $href; ?>
         <a href="<?= e(admin_url($href)) ?>" class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-bold transition <?= $isActive ? 'bg-white text-neutral-900' : 'text-white/70 hover:bg-white/10 hover:text-white' ?>">
-          <?= icon($l[2], 18) ?> <?= e($l[1]) ?>
+          <?= icon($l[2], 18) ?> <span class="flex-1"><?= e($l[1]) ?></span>
+          <?php if (!empty($badges[$href]) && $badges[$href][0] > 0): $b = $badges[$href]; ?>
+            <span title="<?= e($b[2]) ?>" class="grid min-w-[1.4rem] place-items-center rounded-full px-1.5 py-0.5 text-[11px] font-extrabold leading-none text-white <?= $b[1] ?>"><?= $b[0] > 99 ? '99+' : $b[0] ?></span>
+          <?php endif; ?>
         </a>
       <?php endforeach; ?>
       <a href="<?= e(url('index.php')) ?>" target="_blank" class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-bold text-white/70 transition hover:bg-white/10 hover:text-white"><?= icon('store', 18) ?> عرض المتجر</a>
@@ -69,7 +76,7 @@ function admin_header(string $title, string $active = ''): void {
   </aside>
   <div class="flex min-w-0 flex-1 flex-col">
     <header class="sticky top-0 z-30 flex items-center gap-3 border-b border-neutral-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
-      <button onclick="document.getElementById('admin-side').classList.remove('translate-x-full')" class="grid h-10 w-10 place-items-center rounded-xl border border-neutral-200"><?= icon('menu', 20) ?></button>
+      <button onclick="document.getElementById('admin-side').classList.remove('translate-x-full')" class="relative grid h-10 w-10 place-items-center rounded-xl border border-neutral-200"><?= icon('menu', 20) ?><?php if ($badgeTotal > 0): ?><span class="absolute -left-1 -top-1 grid min-w-[1.25rem] place-items-center rounded-full bg-red-500 px-1 py-0.5 text-[10px] font-extrabold leading-none text-white"><?= $badgeTotal > 99 ? '99+' : $badgeTotal ?></span><?php endif; ?></button>
       <b><?= e($title) ?></b>
     </header>
     <main class="min-w-0 flex-1 p-4 sm:p-8">
