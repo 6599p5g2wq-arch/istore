@@ -8,10 +8,14 @@ import { useCart } from "./CartContext";
 import { formatPrice } from "@/lib/format";
 import type { City } from "@/lib/types";
 
-export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold }: { cities: City[]; currency: string; whatsapp: string; freeThreshold: number }) {
+export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold, customer }: { cities: City[]; currency: string; whatsapp: string; freeThreshold: number; customer?: { name: string; phone: string; city: string; address: string } | null }) {
   const { items, total, clear } = useCart();
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", phone: "", city: cities[0]?.name || "", address: "", notes: "" });
+  const [form, setForm] = useState({
+    name: customer?.name || "", phone: customer?.phone || "",
+    city: cities.find((c) => c.name === customer?.city)?.name || cities[0]?.name || "",
+    address: customer?.address || "", notes: "",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [coupon, setCoupon] = useState("");

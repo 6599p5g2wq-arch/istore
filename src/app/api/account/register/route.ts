@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { bad } from "@/lib/admin-api";
-import { registerCustomer, createCustomerSession } from "@/lib/customer-auth";
+import { registerCustomer, createCustomerSession, MIN_PASSWORD } from "@/lib/customer-auth";
+import { normalizeLibyanPhone } from "@/lib/phone";
+import { clientIp, tooMany } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  if (tooMany("reg:" + clientIp(req), 10)) return bad("محاولات كثيرة، حاول بعد قليل", 429);
   const b = await req.json().catch(() => ({}));
   const name = (b.name || "").trim().slice(0, 100);
   const email = (b.email || "").trim().toLowerCase();
-  const phone = (b.phone || "").trim();
+  const phone = normalizeLibyanPhone(b.phone || "");
   const password = String(b.password || "");
-  if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return bad("الاسم والبريد الإلكتروني مطلوبان");
-  if (password.length < 6) return bad("كلمة المرور 6 أحرف على الأقل");
+  if (!name) return bad("الاسم مطلوب");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return bad("البريد الإلكتروني غير صحيح");
+  if (!phone) return bad("رقم الهاتف غير صحيح (مثال: 0912345678)");
+  if (password.length < MIN_PASSWORD) return bad(`كلمة المرور ${MIN_PASSWORD} أحرف على الأقل`);
   const r = registerCustomer(name, email, phone, password);
   if ("error" in r) return bad(r.error);
   const token = createCustomerSession(r.id);

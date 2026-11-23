@@ -202,6 +202,11 @@ function initSchema(db: Database.Database) {
     "ALTER TABLE products ADD COLUMN options TEXT NOT NULL DEFAULT '[]'",
     "ALTER TABLE order_items ADD COLUMN variant_id INTEGER",
     "ALTER TABLE order_items ADD COLUMN variant_label TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE customers ADD COLUMN blocked INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE customers ADD COLUMN last_login TEXT",
+    "ALTER TABLE customers ADD COLUMN city TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE customers ADD COLUMN address TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE customers ADD COLUMN must_change INTEGER NOT NULL DEFAULT 0",
   ]) {
     try { db.exec(stmt); } catch { /* column already exists */ }
   }

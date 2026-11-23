@@ -6,7 +6,10 @@ import { getSessionCustomer } from "@/lib/customer-auth";
 import { formatPrice, formatDate } from "@/lib/format";
 import AccountForms from "@/components/store/AccountForms";
 import LogoutButton from "@/components/store/LogoutButton";
-import { Package, Mail, Phone, ChevronLeft } from "lucide-react";
+import { ProfileForm, PasswordForm } from "@/components/store/AccountProfile";
+import OrderTimeline from "@/components/store/OrderTimeline";
+import { getSettings } from "@/lib/settings";
+import { Package, Mail, Phone, ChevronLeft, UserRound, KeyRound } from "lucide-react";
 import type { Order } from "@/lib/types";
 import type { Metadata } from "next";
 
@@ -26,13 +29,14 @@ export default function AccountPage() {
       <div className="mx-auto max-w-xl px-4 pt-12 sm:px-6">
         <h1 className="text-center text-3xl font-black text-white sm:text-4xl">حسابي</h1>
         <p className="mt-3 text-center text-[var(--text-dim)]">سجل دخولك لمتابعة طلباتك وبياناتك</p>
-        <AccountForms />
+        <AccountForms whatsapp={getSettings().whatsapp} />
       </div>
     );
   }
 
   const db = getDb();
-  const orders = db.prepare("SELECT * FROM orders WHERE customer_id = ? OR phone = ? ORDER BY id DESC LIMIT 20").all(customer.id, customer.phone || "\0") as Order[];
+  const orders = db.prepare("SELECT * FROM orders WHERE customer_id = ? ORDER BY id DESC LIMIT 20").all(customer.id) as Order[];
+  const cityNames = (db.prepare("SELECT name FROM cities WHERE active = 1 ORDER BY sort_order, name").all() as { name: string }[]).map((c) => c.name);
 
   return (
     <div className="mx-auto max-w-3xl px-4 pt-12 sm:px-6">
@@ -58,17 +62,26 @@ export default function AccountPage() {
       ) : (
         <ul className="mt-6 space-y-3">
           {orders.map((o) => (
-            <li key={o.id}>
-              <Link href={`/order-success/${o.code}`} className="flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--border)] bg-white/[0.04] px-5 py-4 transition hover:border-white/25">
+            <li key={o.id} className="rounded-2xl border border-[var(--border)] bg-white/[0.04] px-5 py-4">
+              <Link href={`/order-success/${o.code}`} className="flex flex-wrap items-center gap-3 transition hover:opacity-80">
                 <span className="font-extrabold text-white" dir="ltr">{o.code}</span>
                 <span className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_CLS[o.status] || "bg-[var(--chip)] text-[var(--text-dim)]"}`}>{STATUS_LABEL[o.status] || o.status}</span>
                 <span className="mr-auto text-sm text-[var(--text-dim)]">{formatDate(o.created_at)}</span>
                 <span className="font-extrabold text-white">{formatPrice(o.total)}</span>
               </Link>
+              <OrderTimeline code={o.code} status={o.status} />
             </li>
           ))}
         </ul>
       )}
+
+      <h2 className="mt-14 flex items-center gap-2 text-xl font-extrabold text-white"><UserRound size={20} className="text-[var(--accent)]" /> بياناتي وعنوان التوصيل</h2>
+      <p className="mt-1 text-sm text-[var(--text-dim)]">تُعبّأ تلقائياً عند إتمام الطلب.</p>
+      <ProfileForm customer={customer} cities={cityNames} />
+
+      <h2 id="password" className="mt-14 flex items-center gap-2 text-xl font-extrabold text-white"><KeyRound size={20} className="text-[var(--accent)]" /> كلمة المرور</h2>
+      <PasswordForm mustChange={!!customer.must_change} />
+      <div className="h-8" />
     </div>
   );
 }
