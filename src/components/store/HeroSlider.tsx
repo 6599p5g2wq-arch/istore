@@ -1,7 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, animate } from "framer-motion";
 import { ChevronRight, ChevronLeft, Sparkles } from "lucide-react";
 import type { HeroSlide } from "@/lib/types";
 
@@ -22,9 +22,45 @@ export default function HeroSlider({ slides, asH2 = false }: { slides: HeroSlide
     setIndex((i) => (i + d + n) % n);
   }, [n]);
 
+  // Finger swipe (touch only). touch-action: pan-y keeps vertical page scroll native; horizontal moves are ours.
+  const dragX = useMotionValue(0);
+  const touch = useRef<{ id: number; x: number; y: number; t: number; mode: "" | "h" | "v" } | null>(null);
+  const lastAct = useRef(0);
+  const moved = useRef(false);
+  const onDown = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse" || n < 2) return;
+    touch.current = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), mode: "" };
+    moved.current = false; lastAct.current = Date.now();
+  };
+  const onMove = (e: React.PointerEvent) => {
+    const t = touch.current;
+    if (!t || t.id !== e.pointerId) return;
+    const dx = e.clientX - t.x, dy = e.clientY - t.y;
+    if (!t.mode) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      t.mode = Math.abs(dx) > Math.abs(dy) * 1.2 ? "h" : "v";
+    }
+    if (t.mode !== "h") return;
+    moved.current = true; lastAct.current = Date.now();
+    // rubber-band: the farther you drag, the more resistance
+    dragX.set(Math.sign(dx) * Math.min(160, Math.abs(dx) * 0.6));
+  };
+  const onUp = (e: React.PointerEvent) => {
+    const t = touch.current;
+    if (!t || t.id !== e.pointerId) return;
+    touch.current = null;
+    if (t.mode !== "h") return;
+    const dx = e.clientX - t.x;
+    const v = Math.abs(dx) / Math.max(1, performance.now() - t.t); // px per ms
+    lastAct.current = Date.now();
+    // dragging the content left shows the next slide, right the previous (same direction as the slide animation)
+    if (Math.abs(dx) > 55 || (v > 0.45 && Math.abs(dx) > 24)) go(dx < 0 ? 1 : -1);
+    animate(dragX, 0, { duration: 0.5, ease: [0.22, 1, 0.36, 1] });
+  };
+
   useEffect(() => {
     if (n < 2) return;
-    const t = setInterval(() => go(1), 6000);
+    const t = setInterval(() => { if (Date.now() - lastAct.current > 4000 && !touch.current) go(1); }, 6000);
     return () => clearInterval(t);
   }, [go, n]);
 
@@ -33,14 +69,19 @@ export default function HeroSlider({ slides, asH2 = false }: { slides: HeroSlide
 
   return (
     <section ref={sectionRef} className="relative mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-      <div className="on-dark relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#140b30]/85 text-white shadow-[0_30px_90px_-20px_rgba(123,47,247,.45)] backdrop-blur-xl">
+      <div
+        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
+        onClickCapture={(e) => { if (moved.current) { e.preventDefault(); e.stopPropagation(); moved.current = false; } }}
+        style={{ touchAction: "pan-y", isolation: "isolate" }}
+        className="on-dark relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#140b30]/85 text-white shadow-[0_30px_90px_-20px_rgba(123,47,247,.45)] backdrop-blur-xl">
         {/* Static ambience: lives outside the animated slide so it never re-mounts or ghosts during transitions */}
-        <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[var(--accent)] opacity-25 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-40 -right-20 h-96 w-96 rounded-full bg-purple-600 opacity-25 blur-3xl" />
+        <div className="pointer-events-none absolute -left-32 -top-32 h-[34rem] w-[34rem]" style={{ background: "radial-gradient(closest-side, rgba(0,198,255,.28), transparent)" }} />
+        <div className="pointer-events-none absolute -bottom-52 -right-32 h-[34rem] w-[34rem]" style={{ background: "radial-gradient(closest-side, rgba(147,51,234,.3), transparent)" }} />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
         <AnimatePresence mode="wait" custom={dir}>
           <motion.div
             key={s.id}
+            style={{ x: dragX }}
             custom={dir}
             initial={{ opacity: 0, x: dir * 36, scale: 0.99 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -77,10 +118,12 @@ export default function HeroSlider({ slides, asH2 = false }: { slides: HeroSlide
             <div className="relative z-10 order-1 lg:order-2">
               <motion.div
                 initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3, duration: 0.9, ease: [0.32, 0.72, 0, 1] }}
-                className="relative mx-auto aspect-square w-full max-w-md overflow-hidden rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]"
+                className="relative mx-auto aspect-square w-full max-w-md rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={s.image} alt={s.title} className="h-full w-full object-cover" />
+                <div className="h-full w-full overflow-hidden rounded-[2rem]" style={{ WebkitMaskImage: "-webkit-radial-gradient(white, black)", transform: "translateZ(0)" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s.image} alt={s.title} draggable={false} className="h-full w-full rounded-[2rem] object-cover" />
+                </div>
               </motion.div>
             </div>
           </motion.div>
