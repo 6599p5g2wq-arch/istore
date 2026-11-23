@@ -29,10 +29,10 @@ require APP_ROOT . '/includes/store-header.php';
 
   <form method="get" action="<?= url('track.php') ?>" class="mt-8 space-y-4 rounded-3xl border border-[var(--border)] bg-[var(--card)] glass-card p-6">
     <label class="block text-sm font-bold">رقم الطلب
-      <input name="code" required dir="ltr" value="<?= e($code) ?>" placeholder="IST-XXXXXX" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-neutral-600 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20">
+      <input name="code" required dir="ltr" value="<?= e($code) ?>" placeholder="IST-XXXXXX" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20">
     </label>
     <label class="block text-sm font-bold">رقم الهاتف
-      <input name="phone" required dir="ltr" inputmode="tel" value="<?= e($phone) ?>" placeholder="09XXXXXXXX" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-neutral-600 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20">
+      <input name="phone" required dir="ltr" inputmode="tel" value="<?= e($phone) ?>" placeholder="09XXXXXXXX" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20">
     </label>
     <button class="glow-btn w-full rounded-full py-3.5 font-bold transition hover:scale-[1.01]">تتبع</button>
   </form>

@@ -178,16 +178,16 @@ require APP_ROOT . '/includes/store-header.php';
           <h3 class="mb-1 font-black">قيّم هذا المنتج</h3>
           <p class="mb-4 text-xs text-[var(--text-faint)]">التقييم متاح فقط بعد استلام طلبك — نتحقق من رقم الطلب وهاتفك</p>
           <input type="hidden" name="product_id" value="<?= (int)$p['id'] ?>">
-          <input name="name" required placeholder="اسمك" class="mb-2 w-full rounded-xl border border-[var(--border)] bg-transparent px-3 py-2.5 text-sm outline-none">
+          <input name="name" required placeholder="اسمك" class="mb-2 w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm outline-none rv-field">
           <div class="mb-2 flex items-center gap-1" id="rating-stars">
             <?php for ($n = 1; $n <= 5; $n++): ?>
             <button type="button" onclick="setRating(<?= $n ?>)" data-star="<?= $n ?>" class="text-amber-400"><?= icon('star', 22, 'fill-current') ?></button>
             <?php endfor; ?>
             <input type="hidden" name="rating" id="rating-input" value="5">
           </div>
-          <textarea name="comment" rows="3" placeholder="رأيك في المنتج (اختياري)" class="mb-2 w-full rounded-xl border border-[var(--border)] bg-transparent px-3 py-2.5 text-sm outline-none"></textarea>
-          <input name="phone" required placeholder="رقم هاتفك المستخدم في الطلب" class="mb-2 w-full rounded-xl border border-[var(--border)] bg-transparent px-3 py-2.5 text-sm outline-none">
-          <input name="order_code" required placeholder="رقم الطلب (مثل IST-ABC123)" class="mb-3 w-full rounded-xl border border-[var(--border)] bg-transparent px-3 py-2.5 text-sm outline-none" dir="ltr">
+          <textarea name="comment" rows="3" placeholder="رأيك في المنتج (اختياري)" class="mb-2 w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm outline-none rv-field"></textarea>
+          <input name="phone" required placeholder="رقم هاتفك المستخدم في الطلب" class="mb-2 w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm outline-none rv-field">
+          <input name="order_code" required placeholder="رقم الطلب (مثل IST-ABC123)" class="mb-3 w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm outline-none rv-field" dir="ltr">
           <button class="glow-btn w-full rounded-xl py-3 font-bold">إرسال التقييم</button>
           <p class="review-msg mt-2 hidden text-sm font-bold"></p>
         </form>

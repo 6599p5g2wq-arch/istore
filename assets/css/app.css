@@ -11,7 +11,7 @@
   --border-strong: rgba(255,255,255,0.2);
   --text: #f5f6fa;
   --text-dim: #a8aec8;
-  --text-faint: #7c82a3;
+  --text-faint: #9ca2c0;
 }
 html.light {
   --bg: #eef1fb;
@@ -24,7 +24,7 @@ html.light {
   --border-strong: rgba(15,20,60,0.16);
   --text: #171b33;
   --text-dim: #4c5270;
-  --text-faint: #7a7f99;
+  --text-faint: #5a5f7a;
   color-scheme: light;
 }
 .glow-btn { background: linear-gradient(90deg,#00c6ff,#7b2ff7); color: #fff; box-shadow: 0 10px 34px -8px rgba(123,47,247,.55); }
@@ -59,7 +59,7 @@ html.light .shadow-black\/30 { --tw-shadow-color: rgba(0,0,0,.08); }
   --border-strong: rgba(15,20,60,0.16);
   --text: #171b33;
   --text-dim: #4c5270;
-  --text-faint: #7a7f99;
+  --text-faint: #5a5f7a;
   color: #171b33;
   color-scheme: light;
 }
@@ -130,3 +130,8 @@ html.light ::-webkit-scrollbar-thumb { background: #b9c3e2; }
 /* نبضة عداد السلة */
 @keyframes pop { 0% { transform: scale(0); } 70% { transform: scale(1.25); } 100% { transform: scale(1); } }
 .cart-count-pop { animation: pop .35s ease; }
+
+/* حقول نموذج التقييم: نص ومحتوى واضحان في الوضعين */
+.rv-field { color: var(--text); background: var(--surface); border-color: var(--border-strong) !important; }
+.rv-field::placeholder { color: var(--text-dim); opacity: .9; }
+.rv-field:focus { border-color: var(--accent) !important; }
