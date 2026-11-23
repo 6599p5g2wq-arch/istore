@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save, CheckCircle2, Plus, Trash2 } from "lucide-react";
-import { ANNOUNCE_DEFAULT, type AnnounceConfig } from "@/lib/announcement";
+import { ANNOUNCE_DEFAULT, EFFECTS, type AnnounceConfig, type AnnounceEffect } from "@/lib/announcement";
+import AnnouncementBar from "@/components/store/AnnouncementBar";
 
 const inputCls = "mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-black focus:ring-4 focus:ring-black/5";
 
@@ -81,7 +82,12 @@ export default function SiteSettings({ currency, announce }: { currency: string;
               <label className="block text-sm font-bold">التبديل كل (ثانية)
                 <input type="number" min={2} max={30} value={ann.interval} onChange={(e) => setAnn({ ...ann, interval: Number(e.target.value) || 5 })} className={inputCls} />
               </label>
-              <span />
+              <label className="block text-sm font-bold">طريقة العرض
+                <select value={ann.effect} onChange={(e) => setAnn({ ...ann, effect: e.target.value as AnnounceEffect })} className={inputCls}>
+                  {EFFECTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+                {ann.effect === "marquee" && <span className="mt-1 block text-[11px] font-normal text-neutral-400">في الشريط المتحرك تظهر كل الرسائل متتابعة ولا يُستخدم "التبديل كل".</span>}
+              </label>
               <label className="block text-sm font-bold">يبدأ في (اختياري)
                 <input type="datetime-local" dir="ltr" value={ann.start} onChange={(e) => setAnn({ ...ann, start: e.target.value })} className={`text-left ${inputCls}`} />
               </label>
@@ -92,16 +98,12 @@ export default function SiteSettings({ currency, announce }: { currency: string;
             <p className="mt-2 text-[11px] text-neutral-400">التوقيت بتوقيت ليبيا. يختفي الشريط تلقائياً خارج هذه الفترة.</p>
 
             <div className="mt-4 space-y-2.5 text-sm font-bold">
-              <label className="flex items-center gap-2.5"><input type="checkbox" checked={ann.countdown} onChange={(e) => setAnn({ ...ann, countdown: e.target.checked })} className="h-4 w-4" /> عدّاد تنازلي حتى تاريخ الانتهاء {!ann.end && <span className="text-[11px] font-normal text-amber-600">(حدد تاريخ الانتهاء أولاً)</span>}</label>
+              <label className="flex items-center gap-2.5"><input type="checkbox" checked={ann.countdown} onChange={(e) => setAnn({ ...ann, countdown: e.target.checked })} className="h-4 w-4" /> عرض عدّاد تنازلي للزائر حتى تاريخ الانتهاء {!ann.end && <span className="text-[11px] font-normal text-amber-600">(حدد تاريخ الانتهاء أولاً)</span>}</label>
               <label className="flex items-center gap-2.5"><input type="checkbox" checked={ann.closable} onChange={(e) => setAnn({ ...ann, closable: e.target.checked })} className="h-4 w-4" /> السماح للزائر بإغلاق الشريط (زر X)</label>
             </div>
 
             <p className="mb-2 mt-6 text-xs font-bold text-neutral-400">معاينة</p>
-            <div style={{ background: ann.bg, color: ann.color }} className="relative rounded-2xl px-10 py-2.5 text-center text-xs font-bold sm:text-sm">
-              {previewMsg}
-              {ann.countdown && ann.end && <span dir="rtl" className="mr-3 rounded-full px-2.5 py-0.5 text-xs" style={{ background: "rgba(255,255,255,0.18)" }}>2 يوم 03:25:10</span>}
-              {ann.closable && <span className="absolute left-3 top-1/2 -translate-y-1/2 opacity-80">✕</span>}
-            </div>
+            <AnnouncementBar key={ann.effect + ann.messages.length} preview sig="preview" config={{ ...ann, messages: ann.messages.filter((m) => m.text.trim()).length ? ann.messages.filter((m) => m.text.trim()) : [{ text: "نص الإعلان يظهر هنا", link: "" }] }} />
           </div>
         </>
       )}

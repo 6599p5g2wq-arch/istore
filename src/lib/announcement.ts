@@ -1,5 +1,13 @@
 // شريط الإعلانات: الإعدادات تُخزَّن كـ JSON في مفتاح announce_config
 export type AnnounceMessage = { text: string; link: string };
+export type AnnounceEffect = "fade" | "slide" | "vertical" | "marquee";
+export const EFFECTS: { value: AnnounceEffect; label: string }[] = [
+  { value: "fade", label: "تلاشي (الحالي)" },
+  { value: "slide", label: "انزلاق جانبي ناعم" },
+  { value: "vertical", label: "انزلاق عمودي" },
+  { value: "marquee", label: "شريط متحرك مستمر (Ticker)" },
+];
+
 export type AnnounceConfig = {
   enabled: boolean;
   messages: AnnounceMessage[];
@@ -10,10 +18,11 @@ export type AnnounceConfig = {
   end: string;
   countdown: boolean;
   closable: boolean;
+  effect: AnnounceEffect; // طريقة العرض
 };
 
 export const ANNOUNCE_DEFAULT: AnnounceConfig = {
-  enabled: true, messages: [], interval: 5, bg: "#000000", color: "#ffffff", start: "", end: "", countdown: false, closable: false,
+  enabled: true, messages: [], interval: 5, bg: "#000000", color: "#ffffff", start: "", end: "", countdown: false, closable: false, effect: "fade",
 };
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -42,6 +51,7 @@ export function sanitizeAnnounce(raw: unknown): AnnounceConfig {
     end: DATE.test(String(r.end)) ? String(r.end) : "",
     countdown: !!r.countdown && r.countdown !== "0",
     closable: !!r.closable && r.closable !== "0",
+    effect: (EFFECTS.map((e) => e.value) as string[]).includes(String(r.effect)) ? (String(r.effect) as AnnounceEffect) : "fade",
   };
 }
 
