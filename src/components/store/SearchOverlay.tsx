@@ -36,7 +36,7 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
           >
             <div className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-4">
               <Search size={20} className="text-[var(--text-faint)]" />
-              <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث عن منتج… آيفون، سماعة، شاحن" className="flex-1 bg-transparent text-lg text-white outline-none placeholder:text-neutral-600" />
+              <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث عن منتج… آيفون، سماعة، شاحن" className="flex-1 bg-transparent text-lg text-white outline-none placeholder:text-[var(--text-dim)] placeholder:opacity-90" />
               <button onClick={onClose} aria-label="إغلاق" className="grid h-9 w-9 place-items-center rounded-full text-[var(--text-dim)] hover:bg-[var(--chip)]"><X size={18} /></button>
             </div>
             <div className="max-h-80 overflow-y-auto p-2">

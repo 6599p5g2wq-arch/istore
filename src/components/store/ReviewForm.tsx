@@ -40,14 +40,14 @@ export default function ReviewForm({ productId, onDone }: { productId: number; o
     );
   }
 
-  const inputCls = "w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2.5 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-[var(--accent)]";
+  const inputCls = "w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2.5 text-sm text-white outline-none placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)]";
 
   return (
     <motion.form initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onSubmit={submit} className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
       <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((n) => (
           <button type="button" key={n} onClick={() => setForm({ ...form, rating: n })} aria-label={`${n} نجوم`}>
-            <Star size={26} className={n <= form.rating ? "text-amber-400" : "text-neutral-700"} fill="currentColor" />
+            <Star size={26} className={n <= form.rating ? "text-amber-400" : "text-[var(--text-faint)]"} fill="currentColor" />
           </button>
         ))}
       </div>

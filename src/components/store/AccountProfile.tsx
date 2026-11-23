@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Pencil, KeyRound, Check } from "lucide-react";
 import type { Customer } from "@/lib/types";
 
-const inputCls = "w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3 text-white outline-none transition placeholder:text-neutral-600 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20";
+const inputCls = "w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3 text-white outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20";
 
 export function ProfileForm({ customer, cities }: { customer: Customer; cities: string[] }) {
   const router = useRouter();

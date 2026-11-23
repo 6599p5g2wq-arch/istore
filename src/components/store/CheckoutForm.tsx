@@ -92,7 +92,7 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
     );
   }
 
-  const inputCls = "w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20";
+  const inputCls = "w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-white outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20";
 
   return (
     <form onSubmit={submit} className="mt-10 grid gap-10 lg:grid-cols-5">
@@ -139,7 +139,7 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
           ) : (
             <div>
               <div className="flex gap-2">
-                <input dir="ltr" value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder="ISTORE10" className="flex-1 rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3 text-left text-white outline-none placeholder:text-neutral-600 focus:border-[var(--accent)]" />
+                <input dir="ltr" value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder="ISTORE10" className="flex-1 rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3 text-left text-white outline-none placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)]" />
                 <button type="button" onClick={applyCoupon} disabled={couponLoading} className="rounded-2xl bg-white px-6 py-3 text-sm font-bold text-black hover:bg-neutral-200 disabled:opacity-60">
                   {couponLoading ? <Loader2 size={16} className="animate-spin" /> : "تطبيق"}
                 </button>
