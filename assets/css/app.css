@@ -146,7 +146,7 @@ html.light .intro-logo { mix-blend-mode: normal; }
 html.light .intro-title { background-image: linear-gradient(90deg, #171b33, #5b2fd6 70%, #0096d6); }
 .intro-tagline { margin: 0 auto; max-width: 560px; font-size: clamp(16px, 2.6vw, 22px); line-height: 1.8; color: var(--text-dim); }
 .intro-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 26px 0 0; padding: 0; list-style: none; }
-.intro-chip { display: inline-flex; align-items: center; gap: 8px; border-radius: 16px; border: 1px solid var(--border-strong); background: var(--card); backdrop-filter: blur(8px); padding: 10px 16px; font-size: 14px; font-weight: 700; color: var(--text); opacity: 0; transform: translateY(14px); animation: intro-up .7s ease forwards; }
+.intro-chip { display: inline-flex; align-items: center; gap: 8px; border-radius: 16px; border: 1px solid var(--border-strong); background: var(--card); backdrop-filter: blur(8px); padding: 10px 16px; font-size: 14px; font-weight: 700; color: var(--text); opacity: 0; transform: translateY(14px); animation: intro-up .9s cubic-bezier(.22,1,.36,1) forwards; }
 .intro-cta { display: inline-block; margin-top: 28px; border-radius: 999px; padding: 14px 34px; font-weight: 800; color: #fff; }
 .intro-cue { position: absolute; bottom: 22px; left: 0; right: 0; display: grid; justify-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-dim); background: none; border: 0; cursor: pointer; }
 .intro-mouse { position: relative; width: 22px; height: 36px; border: 2px solid var(--text-faint); border-radius: 14px; }
