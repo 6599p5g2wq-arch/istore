@@ -27,12 +27,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $uploaded = handle_image_upload('image_file');
     if ($uploaded) $image = $uploaded;
     $images = array_values(array_filter(array_map('trim', explode("\n", $_POST['images'] ?? ''))));
+    // رفع عدة صور للمعرض دفعة واحدة
+    if (!empty($_FILES['gallery_files']) && is_array($_FILES['gallery_files']['name'])) {
+        foreach ($_FILES['gallery_files']['name'] as $gi => $gname) {
+            if (($_FILES['gallery_files']['error'][$gi] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) continue;
+            if (($_FILES['gallery_files']['size'][$gi] ?? 0) > 4 * 1024 * 1024) continue;
+            $gext = strtolower(pathinfo($gname, PATHINFO_EXTENSION));
+            if (!in_array($gext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'], true)) continue;
+            $gfile = 'up-' . date('Ymd-His') . '-' . bin2hex(random_bytes(4)) . '.' . $gext;
+            $gdir = APP_ROOT . '/uploads';
+            if (!is_dir($gdir)) mkdir($gdir, 0775, true);
+            if (move_uploaded_file($_FILES['gallery_files']['tmp_name'][$gi], $gdir . '/' . $gfile)) $images[] = 'uploads/' . $gfile;
+        }
+        $images = array_slice(array_values(array_unique($images)), 0, 8);
+    }
     $options = json_encode(parse_options($_POST['options_json'] ?? ''), JSON_UNESCAPED_UNICODE);
     $variantInputs = json_decode($_POST['variants_json'] ?? '[]', true);
     if (!is_array($variantInputs)) $variantInputs = [];
     $hasVariants = count(json_decode($options, true) ?: []) > 0;
     if (!$name || $price <= 0) {
         flash('الاسم والسعر مطلوبان', true);
+    } elseif ($oldPrice !== null && $oldPrice <= $price) {
+        flash('السعر قبل الخصم يجب أن يكون أكبر من السعر الحالي', true);
     } else {
         // تأكد من فرادة الرابط
         $dup = qone('SELECT id FROM products WHERE slug = ? AND id != ?', [$slug, $id]);
@@ -81,6 +97,8 @@ admin_header($p ? 'تعديل منتج' : 'منتج جديد', 'products.php');
       <label class="block text-sm font-bold">رابط الصورة الرئيسية<input name="image" dir="ltr" value="<?= e($p['image'] ?? '') ?>" class="admin-input mt-1.5 text-left" placeholder="images/...jpg أو https://..."></label>
       <label class="block text-sm font-bold">أو رفع صورة جديدة<input type="file" name="image_file" accept="image/*" class="admin-input mt-1.5"></label>
       <label class="block text-sm font-bold">صور إضافية (رابط في كل سطر)<textarea name="images" dir="ltr" rows="4" class="admin-input mt-1.5 resize-none text-left"><?= e($imagesText) ?></textarea></label>
+      <label class="block text-sm font-bold">أو رفع عدة صور للمعرض<input type="file" name="gallery_files[]" accept="image/*" multiple class="admin-input mt-1.5"></label>
+      <p class="text-xs text-[var(--text-faint)]">حتى 8 صور إضافية تظهر كمعرض في صفحة المنتج.</p>
       <?php if ($p && $p['image']): ?><img src="<?= e(img_url($p['image'])) ?>" class="h-24 w-24 rounded-2xl object-cover" alt=""><?php endif; ?>
     </div>
     <div class="admin-card space-y-4 p-6" id="variants-card">
@@ -207,7 +225,31 @@ var INIT_VARIANTS = <?= json_encode($existingVariants, JSON_UNESCAPED_UNICODE) ?
   document.querySelector('form').addEventListener('submit', function () {
     document.getElementById('options_json').value = JSON.stringify(readRows());
     document.getElementById('variants_json').value = JSON.stringify(currentVariantInputs());
+    window.__formSaved = true;
   });
+
+  // توليد الـ slug تلقائياً من الاسم عند الإضافة ما لم يُعدّل يدوياً
+  (function () {
+    var nameInput = document.querySelector('input[name=name]');
+    var slugInput = document.querySelector('input[name=slug]');
+    if (!nameInput || !slugInput) return;
+    var touched = slugInput.value !== '';
+    slugInput.addEventListener('input', function () { touched = true; });
+    nameInput.addEventListener('input', function () {
+      if (touched) return;
+      slugInput.value = nameInput.value.trim().toLowerCase()
+        .replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-');
+    });
+  })();
+
+  // تحذير عند مغادرة الصفحة بتعديلات غير محفوظة
+  (function () {
+    var dirty = false;
+    document.querySelector('form').addEventListener('input', function () { dirty = true; });
+    window.addEventListener('beforeunload', function (e) {
+      if (dirty && !window.__formSaved) { e.preventDefault(); e.returnValue = ''; }
+    });
+  })();
 })();
 </script>
 <?php admin_footer(); ?>
