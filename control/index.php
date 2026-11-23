@@ -15,9 +15,6 @@ $SECTIONS = [
     ['title' => 'وسائل التواصل الاجتماعي', 'fields' => [
         ['facebook', 'فيسبوك', false, true], ['instagram', 'انستغرام', false, true], ['tiktok', 'تيك توك', false, true],
     ]],
-    ['title' => 'الشحن', 'fields' => [
-        ['free_shipping_threshold', 'حد الشحن المجاني (0 لتعطيله)', false, true],
-    ]],
     ['title' => 'التتبع والتكاملات', 'fields' => [
         ['site_url', 'رابط المتجر العلني (للخريطة والإشعارات)', false, true],
         ['meta_pixel_id', 'معرف بكسل فيسبوك (Meta Pixel ID)', false, true],
@@ -26,6 +23,10 @@ $SECTIONS = [
     ]],
     ['title' => 'إشعارات الطلبات (تيليجرام)', 'fields' => [
         ['telegram_chat_id', 'معرف المحادثة (Chat ID)', false, true], ['telegram_bot_token', 'توكن البوت (Bot Token)', false, true],
+    ]],
+    ['title' => 'وضع الصيانة', 'fields' => [
+        ['maintenance_enabled', 'إغلاق المتجر للزوار (يرون رسالة الإغلاق ولا يستطيعون الطلب، والمشرف المسجّل في /admin يتصفح عادياً)', false, false, 'toggle'],
+        ['maintenance_message', 'رسالة الإغلاق', true],
     ]],
     ['title' => 'صفحة من نحن', 'fields' => [
         ['about_text', 'نبذة عن المتجر', true], ['delivery_policy', 'سياسة التوصيل', true], ['returns_policy', 'سياسة الاستبدال والاسترجاع', true],
@@ -41,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($SECTIONS as $sec) {
             foreach ($sec['fields'] as $f) {
                 $key = $f[0];
+                if (($f[4] ?? '') === 'toggle') { set_setting($key, !empty($_POST[$key]) ? '1' : '0'); continue; }
                 if (!array_key_exists($key, $_POST)) continue;
                 // التوكن لا يُمسح بقيمة فارغة: يُحدَّث فقط عند كتابة قيمة جديدة
                 if ($key === 'telegram_bot_token' && trim((string)$_POST[$key]) === '') continue;
@@ -88,9 +90,11 @@ $storeName = setting('store_name', 'آي ستور');
       <div class="rounded-3xl bg-white p-6 shadow-sm">
         <h2 class="mb-5 text-lg font-extrabold"><?= e($sec['title']) ?></h2>
         <div class="grid gap-4 sm:grid-cols-2">
-          <?php foreach ($sec['fields'] as $f): [$key, $label, $area, $ltr] = $f + [2 => false, 3 => false]; ?>
+          <?php foreach ($sec['fields'] as $f): [$key, $label, $area, $ltr] = $f + [2 => false, 3 => false]; $toggle = ($f[4] ?? '') === 'toggle'; ?>
             <label class="block text-sm font-bold <?= $area ? 'sm:col-span-2' : '' ?>"><?= e($label) ?>
-              <?php if ($area): ?>
+              <?php if ($toggle): ?>
+                <input type="checkbox" name="<?= e($key) ?>" value="1" <?= setting($key, '0') === '1' ? 'checked' : '' ?> class="mt-1.5 h-4 w-4">
+              <?php elseif ($area): ?>
                 <textarea name="<?= e($key) ?>" rows="3" class="c-input mt-1.5 resize-none" <?= $ltr ? 'dir="ltr" style="text-align:left"' : '' ?>><?= e(setting($key, '')) ?></textarea>
               <?php elseif ($key === 'telegram_bot_token'): ?>
                 <input type="password" name="telegram_bot_token" value="" autocomplete="off" placeholder="<?= $tgTokenSaved ? 'محفوظ — اتركه فارغاً للإبقاء عليه' : 'من @BotFather' ?>" class="c-input mt-1.5" dir="ltr" style="text-align:left">

@@ -4,11 +4,6 @@ require_once APP_ROOT . '/includes/announcement.php';
 require_admin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['tg_test'])) {
-        $ok = tg_send('✅ رسالة تجريبية: إشعارات طلبات ' . setting('store_name', 'آي ستور') . ' تعمل بنجاح.');
-        flash($ok ? 'وصلت الرسالة التجريبية إلى تيليجرام' : 'فشل الإرسال: احفظ التوكن والمعرف أولاً ثم جرّب', !$ok);
-        redirect_admin('settings.php');
-    }
     $msgs = [];
     $texts = $_POST['msg_text'] ?? []; $links = $_POST['msg_link'] ?? [];
     if (is_array($texts)) foreach ($texts as $i => $t) $msgs[] = ['text' => (string)$t, 'link' => (string)($links[$i] ?? '')];
@@ -28,21 +23,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $err = '';
     if ($s !== null && $e !== null && $s >= $e) $err = 'تاريخ بداية الشريط يجب أن يسبق تاريخ نهايته';
     elseif ($currency === '') $err = 'رمز العملة مطلوب';
-    elseif ($t('store_name', 80) === '') $err = 'اسم المتجر مطلوب';
     elseif ($rate !== '' && !(is_numeric($rate) && (float)$rate > 0)) $err = 'سعر الصرف يجب أن يكون رقماً أكبر من صفر';
     elseif ($thr === '' || !is_numeric($thr) || (float)$thr < 0) $err = 'حد الشحن المجاني يجب أن يكون رقماً (0 لتعطيله)';
     if ($err !== '') {
         flash($err, true);
     } else {
-        foreach (['store_name' => 80, 'store_tagline' => 300, 'footer_text' => 200, 'phone' => 40, 'whatsapp' => 40, 'email' => 120, 'telegram_chat_id' => 60, 'currency2_symbol' => 10, 'maintenance_message' => 300] as $k => $max) set_setting($k, $t($k, $max));
-        // التوكن لا يُمسح بحقل فارغ: يُحدَّث فقط عند كتابة قيمة جديدة
-        if ($t('telegram_bot_token', 200) !== '') set_setting('telegram_bot_token', $t('telegram_bot_token', 200));
+        set_setting('currency2_symbol', $t('currency2_symbol', 10));
         set_setting('currency', $currency);
         set_setting('currency_pos', $pos);
         set_setting('currency_decimals', $dec);
         set_setting('currency2_rate', $rate);
         set_setting('free_shipping_threshold', (string)(float)$thr);
-        set_setting('maintenance_enabled', !empty($_POST['maintenance_enabled']) ? '1' : '0');
         set_setting('announce_config', json_encode($cfg, JSON_UNESCAPED_UNICODE));
         // للتوافق مع القراءة القديمة (التطبيق/الـ API): أول رسالة فعّالة
         set_setting('announcement', announce_active($cfg) ? $cfg['messages'][0]['text'] : '');
@@ -57,92 +48,8 @@ admin_header('الإعدادات', 'settings.php');
 ?>
 <div class="max-w-3xl">
   <h1 class="text-2xl font-black sm:text-3xl">الإعدادات</h1>
-  <p class="mt-1 text-sm text-neutral-500">هوية المتجر والتواصل والعملة والشحن والصيانة وشريط الإعلانات</p>
   <?php admin_msg(); ?>
   <form method="post" class="mt-6 space-y-5">
-    <div class="admin-card p-6">
-      <h2 class="font-extrabold">هوية المتجر</h2>
-      <p class="mt-1 text-xs text-neutral-500">الاسم والوصف يظهران في الموقع والتذييل.</p>
-      <div class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-        <label class="block text-sm font-bold">اسم المتجر<input name="store_name" required maxlength="80" value="<?= e(setting('store_name', 'آي ستور')) ?>" class="admin-input mt-1"></label>
-        <label class="block text-sm font-bold">نص الحقوق أسفل الصفحة<input name="footer_text" maxlength="200" value="<?= e(setting('footer_text', '')) ?>" class="admin-input mt-1"></label>
-        <label class="block text-sm font-bold sm:col-span-2">الوصف المختصر<textarea name="store_tagline" rows="2" maxlength="300" class="admin-input mt-1"><?= e(setting('store_tagline', '')) ?></textarea></label>
-      </div>
-    </div>
-
-    <div class="admin-card p-6">
-      <h2 class="font-extrabold">التواصل</h2>
-      <p class="mt-1 text-xs text-neutral-500">أرقام وبريد التواصل الظاهرة للزبائن.</p>
-      <div class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-        <label class="block text-sm font-bold">رقم الهاتف<input name="phone" dir="ltr" maxlength="40" value="<?= e(setting('phone', '')) ?>" class="admin-input mt-1 text-left"></label>
-        <label class="block text-sm font-bold">رقم واتساب (بالصيغة الدولية بدون +)<input name="whatsapp" dir="ltr" maxlength="40" value="<?= e(setting('whatsapp', '')) ?>" class="admin-input mt-1 text-left"></label>
-        <label class="block text-sm font-bold sm:col-span-2">البريد الإلكتروني<input name="email" dir="ltr" maxlength="120" value="<?= e(setting('email', '')) ?>" class="admin-input mt-1 text-left"></label>
-      </div>
-    </div>
-
-    <div class="admin-card p-6">
-      <h2 class="font-extrabold">إشعارات الطلبات (تيليجرام)</h2>
-      <p class="mt-1 text-xs text-neutral-500">يصلك إشعار على تيليجرام عند كل طلب جديد.</p>
-      <?php $tgSaved = setting('telegram_bot_token', '') !== ''; ?>
-      <div class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-        <label class="block text-sm font-bold">معرف المحادثة (Chat ID)<input name="telegram_chat_id" dir="ltr" maxlength="60" value="<?= e(setting('telegram_chat_id', '')) ?>" class="admin-input mt-1 text-left"></label>
-        <label class="block text-sm font-bold">توكن البوت (Bot Token)
-          <input type="password" name="telegram_bot_token" dir="ltr" autocomplete="off" value="" placeholder="<?= $tgSaved ? 'محفوظ — اكتب توكن جديداً فقط لتغييره' : 'الصق التوكن هنا' ?>" class="admin-input mt-1 text-left">
-          <span class="mt-1 block text-[11px] font-normal text-neutral-400">لا يُعرض التوكن بعد حفظه أبداً. حالياً: <?= $tgSaved ? 'محفوظ' : 'غير محفوظ' ?>.</span>
-        </label>
-      </div>
-      <button type="submit" name="tg_test" value="1" formnovalidate class="admin-btn-ghost mt-3">إرسال رسالة تجريبية</button>
-    </div>
-
-    <div class="admin-card p-6">
-      <h2 class="font-extrabold">العملة وعرض الأسعار</h2>
-      <p class="mt-1 text-xs text-neutral-500">تنطبق على صفحات المتجر.</p>
-      <?php $po = price_opts(); ?>
-      <div class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-        <label class="block text-sm font-bold">رمز العملة
-          <input name="currency" required maxlength="12" value="<?= e(setting('currency', 'د.ل')) ?>" class="admin-input mt-1">
-        </label>
-        <label class="block text-sm font-bold">موضع الرمز
-          <select name="currency_pos" class="admin-input mt-1">
-            <option value="after" <?= $po['pos'] === 'after' ? 'selected' : '' ?>>بعد السعر (150 د.ل)</option>
-            <option value="before" <?= $po['pos'] === 'before' ? 'selected' : '' ?>>قبل السعر (د.ل 150)</option>
-          </select>
-        </label>
-        <label class="block text-sm font-bold">الكسور العشرية
-          <select name="currency_decimals" class="admin-input mt-1">
-            <option value="auto" <?= $po['dec'] === 'auto' ? 'selected' : '' ?>>تلقائي (بدون كسور للأعداد الصحيحة)</option>
-            <option value="0" <?= $po['dec'] === '0' ? 'selected' : '' ?>>بدون كسور دائماً (150)</option>
-            <option value="2" <?= $po['dec'] === '2' ? 'selected' : '' ?>>خانتان دائماً (150.00)</option>
-          </select>
-        </label>
-      </div>
-      <div class="mt-5 rounded-2xl bg-neutral-50 p-4">
-        <p class="text-sm font-bold">عملة ثانية للعرض (اختياري)</p>
-        <p class="mt-1 text-xs text-neutral-500">تظهر بجانب السعر كقيمة تقريبية، مثل ≈ 28.85 $. للعرض فقط: الدفع والطلبات تبقى بالعملة الأساسية. اترك الحقلين فارغين لإيقافها.</p>
-        <div class="mt-3 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-          <label class="block text-sm font-bold">رمز العملة الثانية<input name="currency2_symbol" maxlength="10" placeholder="$" value="<?= e(setting('currency2_symbol', '')) ?>" class="admin-input mt-1"></label>
-          <label class="block text-sm font-bold">سعر الصرف (كم وحدة من عملتك الأساسية تساوي 1 من الثانية)<input name="currency2_rate" dir="ltr" inputmode="decimal" placeholder="5.2" value="<?= e(setting('currency2_rate', '')) ?>" class="admin-input mt-1 text-left"></label>
-        </div>
-      </div>
-    </div>
-
-    <div class="admin-card p-6">
-      <h2 class="font-extrabold">الشحن</h2>
-      <p class="mt-1 text-xs text-neutral-500">الطلبات التي يتجاوز مجموعها هذا الحد يصير توصيلها مجاناً.</p>
-      <label class="mt-4 block max-w-xs text-sm font-bold">حد الشحن المجاني (<?= e(setting('currency', 'د.ل')) ?>) — 0 لتعطيله
-        <input name="free_shipping_threshold" dir="ltr" inputmode="decimal" value="<?= e(setting('free_shipping_threshold', '0')) ?>" class="admin-input mt-1 text-left">
-      </label>
-    </div>
-
-    <div class="admin-card p-6">
-      <h2 class="font-extrabold">وضع الصيانة</h2>
-      <p class="mt-1 text-xs text-neutral-500">عند التفعيل يرى الزوار رسالة الإغلاق بدل المتجر ولا يمكنهم إرسال طلبات. أنت (مسجّلاً في لوحة الإدارة) تتصفح المتجر عادياً.</p>
-      <label class="mt-4 flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="maintenance_enabled" value="1" <?= setting('maintenance_enabled', '0') === '1' ? 'checked' : '' ?> class="h-4 w-4"> إغلاق المتجر للزوار</label>
-      <label class="mt-4 block text-sm font-bold">رسالة الإغلاق
-        <textarea name="maintenance_message" rows="2" maxlength="300" placeholder="المتجر مغلق مؤقتاً للصيانة، نعود قريباً." class="admin-input mt-1"><?= e(setting('maintenance_message', '')) ?></textarea>
-      </label>
-    </div>
-
     <div class="admin-card p-6">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -190,6 +97,46 @@ admin_header('الإعدادات', 'settings.php');
       <label class="mt-4 flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="countdown" value="1" <?= $c['countdown'] ? 'checked' : '' ?> class="h-4 w-4"> عرض عدّاد تنازلي للزائر حتى تاريخ الانتهاء</label>
       <label class="mt-2 flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="closable" value="1" <?= $c['closable'] ? 'checked' : '' ?> class="h-4 w-4"> السماح للزائر بإغلاق الشريط (زر X)</label>
     </div>
+    <div class="admin-card p-6">
+      <h2 class="font-extrabold">العملة وعرض الأسعار</h2>
+      <p class="mt-1 text-xs text-neutral-500">تنطبق على صفحات المتجر.</p>
+      <?php $po = price_opts(); ?>
+      <div class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+        <label class="block text-sm font-bold">رمز العملة
+          <input name="currency" required maxlength="12" value="<?= e(setting('currency', 'د.ل')) ?>" class="admin-input mt-1">
+        </label>
+        <label class="block text-sm font-bold">موضع الرمز
+          <select name="currency_pos" class="admin-input mt-1">
+            <option value="after" <?= $po['pos'] === 'after' ? 'selected' : '' ?>>بعد السعر (150 د.ل)</option>
+            <option value="before" <?= $po['pos'] === 'before' ? 'selected' : '' ?>>قبل السعر (د.ل 150)</option>
+          </select>
+        </label>
+        <label class="block text-sm font-bold">الكسور العشرية
+          <select name="currency_decimals" class="admin-input mt-1">
+            <option value="auto" <?= $po['dec'] === 'auto' ? 'selected' : '' ?>>تلقائي (بدون كسور للأعداد الصحيحة)</option>
+            <option value="0" <?= $po['dec'] === '0' ? 'selected' : '' ?>>بدون كسور دائماً (150)</option>
+            <option value="2" <?= $po['dec'] === '2' ? 'selected' : '' ?>>خانتان دائماً (150.00)</option>
+          </select>
+        </label>
+      </div>
+      <div class="mt-5 rounded-2xl bg-neutral-50 p-4">
+        <p class="text-sm font-bold">عملة ثانية للعرض (اختياري)</p>
+        <p class="mt-1 text-xs text-neutral-500">تظهر بجانب السعر كقيمة تقريبية، مثل ≈ 28.85 $. للعرض فقط: الدفع والطلبات تبقى بالعملة الأساسية. اترك الحقلين فارغين لإيقافها.</p>
+        <div class="mt-3 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+          <label class="block text-sm font-bold">رمز العملة الثانية<input name="currency2_symbol" maxlength="10" placeholder="$" value="<?= e(setting('currency2_symbol', '')) ?>" class="admin-input mt-1"></label>
+          <label class="block text-sm font-bold">سعر الصرف (كم وحدة من عملتك الأساسية تساوي 1 من الثانية)<input name="currency2_rate" dir="ltr" inputmode="decimal" placeholder="5.2" value="<?= e(setting('currency2_rate', '')) ?>" class="admin-input mt-1 text-left"></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-card p-6">
+      <h2 class="font-extrabold">الشحن</h2>
+      <p class="mt-1 text-xs text-neutral-500">الطلبات التي يتجاوز مجموعها هذا الحد يصير توصيلها مجاناً.</p>
+      <label class="mt-4 block max-w-xs text-sm font-bold">حد الشحن المجاني (<?= e(setting('currency', 'د.ل')) ?>) — 0 لتعطيله
+        <input name="free_shipping_threshold" dir="ltr" inputmode="decimal" value="<?= e(setting('free_shipping_threshold', '0')) ?>" class="admin-input mt-1 text-left">
+      </label>
+    </div>
+
     <button class="admin-btn">حفظ الإعدادات</button>
   </form>
 </div>
