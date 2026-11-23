@@ -21,7 +21,7 @@ if ($m === 'GET') {
         ]]);
     }
     $c = api_require_customer();
-    $orders = qall('SELECT * FROM orders WHERE customer_id = ? OR phone = ? ORDER BY id DESC LIMIT 50', [(int)$c['id'], $c['phone'] ?: "\0"]);
+    $orders = qall('SELECT * FROM orders WHERE customer_id = ? ORDER BY id DESC LIMIT 50', [(int)$c['id']]);
     api_ok(['orders' => array_map(fn($o) => [
         'code' => $o['code'], 'status' => $o['status'], 'status_label' => order_status_label($o['status']),
         'city' => $o['city'], 'total' => (float)$o['total'], 'created_at' => $o['created_at'],
@@ -71,7 +71,7 @@ if ($m === 'POST') {
         }
         $discount = 0;
         if ($couponCode !== '') {
-            $v = validate_coupon($couponCode, $subtotal);
+            $v = validate_coupon($couponCode, $subtotal, $customer['id'] ?? null);
             if (!$v['ok']) throw new RuntimeException($v['error']);
             $discount = $v['discount'];
         }
@@ -81,6 +81,7 @@ if ($m === 'POST') {
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [$code, $name, $phone, $city, $address, $notes, $subtotal, $discount, $discount > 0 ? strtoupper($couponCode) : '', $deliveryFee, $subtotal - $discount + $deliveryFee, $customer['id'] ?? null]);
         $orderId = (int)$pdo->lastInsertId();
+        if ($discount > 0) q('UPDATE coupons SET used_count = used_count + 1 WHERE UPPER(code) = UPPER(?)', [$couponCode]);
         foreach ($lines as $l) {
             q('INSERT INTO order_items (order_id, product_id, name, price, qty, variant_id, variant_label) VALUES (?, ?, ?, ?, ?, ?, ?)',
               [$orderId, $l['id'], $l['name'], $l['price'], $l['qty'], $l['variant_id'], $l['variant_label']]);

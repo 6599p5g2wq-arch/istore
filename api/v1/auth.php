@@ -21,6 +21,8 @@ if ($action === 'login') {
     $email = mb_strtolower(trim($b['email'] ?? ''));
     $u = qone('SELECT * FROM customers WHERE email = ?', [$email]);
     if (!$u || !password_verify((string)($b['password'] ?? ''), $u['pass_hash'])) api_fail('بيانات الدخول غير صحيحة', 401);
+    if (!empty($u['blocked'])) api_fail('هذا الحساب موقوف', 403);
+    q('UPDATE customers SET last_login = NOW() WHERE id = ?', [(int)$u['id']]);
     api_ok(['token' => api_issue_token((int)$u['id']), 'customer' => ['id' => (int)$u['id'], 'name' => $u['name'], 'email' => $u['email'], 'phone' => $u['phone']]]);
 }
 if ($action === 'logout') {

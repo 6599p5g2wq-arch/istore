@@ -13,8 +13,10 @@ function admin_header(string $title, string $active = ''): void {
         ['categories.php', 'التصنيفات', 'grid'],
         ['brands.php', 'الماركات', 'tag'],
         ['orders.php', 'الطلبات', 'shopping-cart'],
+        ['customers.php', 'الزبائن', 'users'],
         ['leads.php', 'السلات المهجورة', 'shopping-bag'],
         ['coupons.php', 'أكواد الخصم', 'ticket'],
+        ['loyalty.php', 'الولاء و VIP', 'gift'],
         ['reviews.php', 'التقييمات', 'star'],
         ['stock-alerts.php', 'إشعارات التوفر', 'bell'],
         ['hero.php', 'شرائح الرئيسية', 'image'],
@@ -96,6 +98,53 @@ function admin_msg(): void {
         echo '<div class="mb-5 rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700">' . e($_SESSION['admin_error']) . '</div>';
         unset($_SESSION['admin_error']);
     }
+}
+
+// إعدادات الولاء/الترحيب/VIP: الحقول المسموحة وحدودها (مجموعة => [مفتاح => [min, max]])
+function program_fields(): array {
+    return [
+        'welcome' => ['welcome_percent' => [1, 90], 'welcome_days' => [1, 3650], 'welcome_max_uses' => [1, 1000]],
+        'loyalty' => ['loyalty_per_lyd' => [0.01, 1000], 'loyalty_redeem_points' => [1, 1000000], 'loyalty_redeem_value' => [0.01, 100000]],
+        'vip' => ['vip_threshold' => [1, 100000000]],
+    ];
+}
+
+// يعالج نموذج program_panel عند POST؛ يعيد true إذا تمت معالجته
+function handle_program_post(string $backPage): bool {
+    if (($_POST['action'] ?? '') !== 'program') return false;
+    $group = $_POST['group'] ?? '';
+    $fields = program_fields()[$group] ?? null;
+    if (!$fields) { flash('مجموعة غير صالحة', true); redirect_admin($backPage); }
+    $vals = [$group . '_enabled' => !empty($_POST['enabled']) ? '1' : '0'];
+    foreach ($fields as $k => [$min, $max]) {
+        $n = $_POST[$k] ?? '';
+        if (!is_numeric($n) || (float)$n < $min || (float)$n > $max) { flash('قيمة غير صالحة', true); redirect_admin($backPage); }
+        $vals[$k] = (string)(float)$n;
+    }
+    foreach ($vals as $k => $v) set_setting($k, $v);
+    flash('تم حفظ الإعدادات');
+    redirect_admin($backPage);
+}
+
+// بطاقة إعدادات: $fields = [[key, label, hint, step], ...]
+function program_panel(string $group, string $title, string $desc, bool $enabled, array $fields): void {
+    ?>
+    <form method="post" class="admin-card p-6">
+      <input type="hidden" name="action" value="program"><input type="hidden" name="group" value="<?= e($group) ?>">
+      <h2 class="font-extrabold"><?= e($title) ?></h2>
+      <p class="mt-1 text-xs text-neutral-500"><?= e($desc) ?></p>
+      <label class="mt-3 flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="enabled" value="1" <?= $enabled ? 'checked' : '' ?> class="h-4 w-4"> مفعّل</label>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <?php foreach ($fields as [$key, $label, $hint, $step]): ?>
+          <label class="block text-sm font-bold"><?= e($label) ?>
+            <input type="number" name="<?= e($key) ?>" step="<?= e((string)$step) ?>" min="0" required value="<?= e(rtrim(rtrim(number_format((float)setting($key, (string)$hint), 2, '.', ''), '0'), '.')) ?>" class="admin-input mt-1.5">
+            <span class="mt-1 block text-[11px] font-normal text-neutral-400">الافتراضي: <?= e((string)$hint) ?></span>
+          </label>
+        <?php endforeach; ?>
+      </div>
+      <button class="admin-btn mt-4"><?= icon('check', 16) ?> حفظ</button>
+    </form>
+    <?php
 }
 
 function flash(string $msg, bool $error = false): void {

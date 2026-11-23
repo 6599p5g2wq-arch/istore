@@ -91,16 +91,30 @@ function require_control(): array {
 // ---- حسابات الزبائن ----
 
 function customer_register(string $name, string $email, string $phone, string $password): array {
-    $exists = qone('SELECT id FROM customers WHERE email = ?', [$email]);
-    if ($exists) return ['ok' => false, 'error' => 'هذا البريد مسجل من قبل، سجل دخولك'];
+    $ph = normalize_libyan_phone($phone);
+    if (!$ph) return ['ok' => false, 'error' => 'رقم الهاتف غير صحيح (مثال: 0912345678)'];
+    if (mb_strlen($password) < 8) return ['ok' => false, 'error' => 'كلمة المرور 8 أحرف على الأقل'];
+    if (qone('SELECT id FROM customers WHERE email = ?', [$email])) return ['ok' => false, 'error' => 'هذا البريد مسجل من قبل، سجل دخولك'];
+    if (qone('SELECT id FROM customers WHERE phone = ?', [$ph])) return ['ok' => false, 'error' => 'هذا الرقم مسجل من قبل، سجل دخولك'];
     q('INSERT INTO customers (name, email, phone, pass_hash) VALUES (?, ?, ?, ?)',
-        [$name, $email, $phone, password_hash($password, PASSWORD_DEFAULT)]);
+        [$name, $email, $ph, password_hash($password, PASSWORD_DEFAULT)]);
+    $newId = (int)(qone('SELECT id FROM customers WHERE email = ?', [$email])['id'] ?? 0);
+    if ($newId) { try { create_welcome_coupon($newId); } catch (Throwable $e) { /* لا يمنع التسجيل */ } }
     return customer_login($email, $password);
 }
 
-function customer_login(string $email, string $password): array {
-    $u = qone('SELECT * FROM customers WHERE email = ?', [$email]);
+// الدخول بالبريد أو برقم الهاتف
+function customer_login(string $identifier, string $password): array {
+    $identifier = trim($identifier);
+    if (str_contains($identifier, '@')) {
+        $u = qone('SELECT * FROM customers WHERE email = ?', [mb_strtolower($identifier)]);
+    } else {
+        $ph = normalize_libyan_phone($identifier);
+        $u = qone('SELECT * FROM customers WHERE phone = ? OR phone = ?', [$ph ?? "\0", $identifier]);
+    }
     if (!$u || !password_verify($password, $u['pass_hash'])) return ['ok' => false, 'error' => 'بيانات الدخول غير صحيحة'];
+    if (!empty($u['blocked'])) return ['ok' => false, 'error' => 'هذا الحساب موقوف، تواصل معنا عبر واتساب'];
+    q('UPDATE customers SET last_login = NOW() WHERE id = ?', [$u['id']]);
     $token = random_token();
     q('INSERT INTO customer_sessions (token, customer_id, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))', [$token, $u['id']]);
     setcookie('istore_customer', $token, [
@@ -115,7 +129,7 @@ function customer_user() {
     $token = $_COOKIE['istore_customer'] ?? ($_SESSION['istore_customer'] ?? '');
     if (!$token) return null;
     return qone(
-        'SELECT c.id, c.name, c.email, c.phone FROM customer_sessions s JOIN customers c ON c.id = s.customer_id WHERE s.token = ? AND s.expires_at > NOW()',
+        'SELECT c.id, c.name, c.email, c.phone, c.city, c.address, c.must_change, c.points FROM customer_sessions s JOIN customers c ON c.id = s.customer_id WHERE s.token = ? AND s.expires_at > NOW() AND c.blocked = 0',
         [$token]);
 }
 

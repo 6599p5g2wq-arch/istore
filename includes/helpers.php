@@ -78,14 +78,92 @@ function order_status_class(string $s): string {
     ][$s] ?? 'bg-neutral-100 text-neutral-600';
 }
 
-function validate_coupon(string $code, float $subtotal): array {
+function validate_coupon(string $code, float $subtotal, ?int $customerId = null): array {
     $c = qone('SELECT * FROM coupons WHERE UPPER(code) = UPPER(?)', [trim($code)]);
     if (!$c || !$c['active']) return ['ok' => false, 'error' => 'كود الخصم غير صالح'];
-    if ($c['expires_at'] && $c['expires_at'] < date('Y-m-d')) return ['ok' => false, 'error' => 'انتهت صلاحية هذا الكود'];
+    // كوبون خاص بزبون محدد (مثل كوبون الترحيب)
+    if (!empty($c['customer_id']) && (int)$c['customer_id'] !== (int)$customerId) return ['ok' => false, 'error' => 'كود الخصم غير صالح'];
+    $today = date('Y-m-d');
+    if (!empty($c['starts_at']) && $c['starts_at'] > $today) return ['ok' => false, 'error' => 'هذا الكود لم يبدأ بعد'];
+    if ($c['expires_at'] && $c['expires_at'] < $today) return ['ok' => false, 'error' => 'انتهت صلاحية هذا الكود'];
+    if ((int)$c['max_uses'] > 0 && (int)$c['used_count'] >= (int)$c['max_uses']) return ['ok' => false, 'error' => 'انتهى عدد مرات استخدام هذا الكود'];
     if ($subtotal < (float)$c['min_total']) return ['ok' => false, 'error' => 'هذا الكود يتطلب حد أدنى للطلب ' . format_price($c['min_total'])];
     $discount = $c['kind'] === 'percent' ? round($subtotal * ((float)$c['value'] / 100)) : min((float)$c['value'], $subtotal);
     if ($discount <= 0) return ['ok' => false, 'error' => 'كود الخصم غير صالح'];
     return ['ok' => true, 'discount' => $discount, 'coupon' => $c];
+}
+
+// ===== الولاء / الترحيب / VIP =====
+function program(): array {
+    return [
+        'welcome_enabled' => setting('welcome_enabled', '0') === '1',
+        'welcome_percent' => (float)setting('welcome_percent', '10'),
+        'welcome_days' => (int)setting('welcome_days', '30'),
+        'welcome_max_uses' => (int)setting('welcome_max_uses', '1'),
+        'loyalty_enabled' => setting('loyalty_enabled', '0') === '1',
+        'loyalty_per_lyd' => (float)setting('loyalty_per_lyd', '1'),
+        'redeem_points' => max(1, (int)setting('loyalty_redeem_points', '100')),
+        'redeem_value' => (float)setting('loyalty_redeem_value', '5'),
+        'vip_enabled' => setting('vip_enabled', '0') === '1',
+        'vip_threshold' => (float)setting('vip_threshold', '2000'),
+    ];
+}
+
+function add_points(int $customerId, int $delta, string $reason, ?int $orderId = null): void {
+    $cur = (int)(qone('SELECT points FROM customers WHERE id = ?', [$customerId])['points'] ?? 0);
+    $next = max(0, $cur + $delta);
+    q('UPDATE customers SET points = ? WHERE id = ?', [$next, $customerId]);
+    q('INSERT INTO points_log (customer_id, delta, reason, order_id) VALUES (?, ?, ?, ?)', [$customerId, $next - $cur, mb_substr($reason, 0, 200), $orderId]);
+}
+
+function is_vip(float $spent, $override, ?array $p = null): bool {
+    $p = $p ?? program();
+    if ($override !== null && (int)$override === 1) return true;
+    if ($override !== null && (int)$override === 0) return false;
+    return $p['vip_enabled'] && $spent >= $p['vip_threshold'];
+}
+
+function create_welcome_coupon(int $customerId): ?string {
+    $p = program();
+    if (!$p['welcome_enabled']) return null;
+    $code = 'WELCOME-' . strtoupper(bin2hex(random_bytes(3)));
+    $exp = date('Y-m-d', time() + $p['welcome_days'] * 86400);
+    q("INSERT INTO coupons (code, kind, value, min_total, expires_at, max_uses, customer_id) VALUES (?, 'percent', ?, 0, ?, ?, ?)", [$code, $p['welcome_percent'], $exp, $p['welcome_max_uses'], $customerId]);
+    return $code;
+}
+
+// نقاط الولاء المستبدلة: عدد النقاط والخصم (كتل كاملة فقط، ولا يتجاوز المبلغ المتبقي)
+function points_redemption(int $customerId, float $base, array $p): array {
+    if (!$p['loyalty_enabled']) return [0, 0.0];
+    $bal = (int)(qone('SELECT points FROM customers WHERE id = ? FOR UPDATE', [$customerId])['points'] ?? 0);
+    $blocks = min(intdiv($bal, $p['redeem_points']), (int)floor($base / max(0.01, $p['redeem_value'])));
+    if ($blocks <= 0) return [0, 0.0];
+    return [$blocks * $p['redeem_points'], $blocks * $p['redeem_value']];
+}
+
+// آثار تغيير حالة الطلب على النقاط وعدّاد الكوبون
+function apply_order_status_effects(int $orderId, string $old, string $new): void {
+    if ($old === $new) return;
+    $o = qone('SELECT * FROM orders WHERE id = ?', [$orderId]);
+    if (!$o) return;
+    $p = program();
+    $cid = $o['customer_id'] ? (int)$o['customer_id'] : 0;
+    if ($new === 'cancelled') {
+        if ($o['coupon_code'] && (float)$o['discount'] > 0) q('UPDATE coupons SET used_count = GREATEST(0, used_count - 1) WHERE UPPER(code) = UPPER(?)', [$o['coupon_code']]);
+        if ($cid) {
+            if ((int)$o['points_used'] > 0 && !$o['points_refunded']) { add_points($cid, (int)$o['points_used'], 'إرجاع نقاط طلب ملغي', $orderId); q('UPDATE orders SET points_refunded = 1 WHERE id = ?', [$orderId]); }
+            if ((int)$o['points_awarded'] > 0) { add_points($cid, -(int)$o['points_awarded'], 'سحب نقاط طلب ملغي', $orderId); q('UPDATE orders SET points_awarded = 0 WHERE id = ?', [$orderId]); }
+        }
+        return;
+    }
+    if ($old === 'cancelled') {
+        if ($o['coupon_code'] && (float)$o['discount'] > 0) q('UPDATE coupons SET used_count = used_count + 1 WHERE UPPER(code) = UPPER(?)', [$o['coupon_code']]);
+        if ($cid && $o['points_refunded']) { add_points($cid, -(int)$o['points_used'], 'خصم نقاط بعد إعادة تفعيل الطلب', $orderId); q('UPDATE orders SET points_refunded = 0 WHERE id = ?', [$orderId]); }
+    }
+    if ($new === 'delivered' && $cid && $p['loyalty_enabled'] && !(int)$o['points_awarded']) {
+        $earned = (int)floor(max(0, (float)$o['subtotal'] - (float)$o['discount'] - (float)$o['points_discount']) * $p['loyalty_per_lyd']);
+        if ($earned > 0) { add_points($cid, $earned, 'نقاط طلب مكتمل', $orderId); q('UPDATE orders SET points_awarded = ? WHERE id = ?', [$earned, $orderId]); }
+    }
 }
 
 function random_token(int $bytes = 32): string {
@@ -143,4 +221,47 @@ function track_view(): void {
     $path = substr($_SERVER['REQUEST_URI'] ?? '/', 0, 490);
     $ref = substr($_SERVER['HTTP_REFERER'] ?? '', 0, 490);
     try { q('INSERT INTO page_views (path, referrer) VALUES (?, ?)', [$path, $ref]); } catch (Throwable $e) {}
+}
+
+// توحيد الأرقام الليبية: 09XXXXXXXX / 9XXXXXXXX / +2189XXXXXXXX / 002189XXXXXXXX  =>  +2189XXXXXXXX (أو null)
+function normalize_libyan_phone(string $input): ?string {
+    $t = strtr($input, ['٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9']);
+    $t = preg_replace('/[\s\-().]/u', '', $t);
+    if (str_starts_with($t, '+')) $d = substr($t, 1);
+    elseif (str_starts_with($t, '00')) $d = substr($t, 2);
+    else $d = $t;
+    if ($d === '' || !ctype_digit($d)) return null;
+    if (str_starts_with($d, '218')) $rest = substr($d, 3);
+    elseif (str_starts_with($d, '0')) $rest = substr($d, 1);
+    else $rest = $d;
+    if (str_starts_with($rest, '0')) $rest = substr($rest, 1);
+    return preg_match('/^9\d{8}$/', $rest) ? '+218' . $rest : null;
+}
+
+// رقم واتساب (أرقام فقط) من أي رقم محفوظ
+function wa_number(string $phone): string {
+    $n = normalize_libyan_phone($phone);
+    if ($n) return substr($n, 1);
+    return preg_replace('/\D+/', '', preg_replace('/^0/', '218', $phone));
+}
+
+// حد المحاولات (في قاعدة البيانات): true إذا تجاوز $max خلال $windowSec
+function rate_limited(string $key, int $max = 8, int $windowSec = 900): bool {
+    $key = substr($key, 0, 190);
+    $row = qone('SELECT cnt, reset_at FROM login_attempts WHERE k = ?', [$key]);
+    if (!$row || strtotime($row['reset_at']) < time()) {
+        q('REPLACE INTO login_attempts (k, cnt, reset_at) VALUES (?, 1, ?)', [$key, date('Y-m-d H:i:s', time() + $windowSec)]);
+        return false;
+    }
+    q('UPDATE login_attempts SET cnt = cnt + 1 WHERE k = ?', [$key]);
+    return ((int)$row['cnt'] + 1) > $max;
+}
+
+function rate_reset(string $key): void {
+    q('DELETE FROM login_attempts WHERE k = ?', [substr($key, 0, 190)]);
+}
+
+function client_ip(): string {
+    $f = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
+    return $f !== '' ? trim(explode(',', $f)[0]) : ($_SERVER['REMOTE_ADDR'] ?? 'local');
 }

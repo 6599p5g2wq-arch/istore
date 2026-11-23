@@ -14,6 +14,7 @@ function db(): PDO {
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
     migrate_variants($pdo);
+    migrate_customers($pdo);
     return $pdo;
 }
 
@@ -50,4 +51,32 @@ function qall(string $sql, array $params = []): array {
 function qone(string $sql, array $params = []) {
     $row = q($sql, $params)->fetch();
     return $row === false ? null : $row;
+}
+
+// ترقية حسابات الزبائن: إيقاف الحساب، آخر دخول، العنوان الافتراضي، وجدول محاولات الدخول. آمنة للتكرار
+function migrate_customers(PDO $pdo): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    foreach ([
+        'ALTER TABLE customers ADD COLUMN blocked TINYINT NOT NULL DEFAULT 0',
+        'ALTER TABLE customers ADD COLUMN last_login DATETIME NULL',
+        "ALTER TABLE customers ADD COLUMN city VARCHAR(100) NOT NULL DEFAULT ''",
+        "ALTER TABLE customers ADD COLUMN address VARCHAR(300) NOT NULL DEFAULT ''",
+        'ALTER TABLE customers ADD COLUMN must_change TINYINT NOT NULL DEFAULT 0',
+        'ALTER TABLE customers ADD COLUMN points INT NOT NULL DEFAULT 0',
+        'ALTER TABLE customers ADD COLUMN vip_override TINYINT NULL',
+        'ALTER TABLE coupons ADD COLUMN max_uses INT NOT NULL DEFAULT 0',
+        'ALTER TABLE coupons ADD COLUMN used_count INT NOT NULL DEFAULT 0',
+        'ALTER TABLE coupons ADD COLUMN customer_id INT NULL',
+        "ALTER TABLE coupons ADD COLUMN starts_at VARCHAR(40) NOT NULL DEFAULT ''",
+        'ALTER TABLE orders ADD COLUMN points_used INT NOT NULL DEFAULT 0',
+        'ALTER TABLE orders ADD COLUMN points_discount DECIMAL(10,2) NOT NULL DEFAULT 0',
+        'ALTER TABLE orders ADD COLUMN points_awarded INT NOT NULL DEFAULT 0',
+        'ALTER TABLE orders ADD COLUMN points_refunded TINYINT NOT NULL DEFAULT 0',
+        'CREATE TABLE IF NOT EXISTS points_log (id INT AUTO_INCREMENT PRIMARY KEY, customer_id INT NOT NULL, delta INT NOT NULL, reason VARCHAR(200) NOT NULL DEFAULT \'\', order_id INT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX (customer_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+        'CREATE TABLE IF NOT EXISTS login_attempts (k VARCHAR(190) PRIMARY KEY, cnt INT NOT NULL DEFAULT 0, reset_at DATETIME NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+    ] as $sql) {
+        try { $pdo->exec($sql); } catch (PDOException $e) { /* موجود مسبقاً */ }
+    }
 }

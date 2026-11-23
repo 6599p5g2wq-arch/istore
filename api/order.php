@@ -9,6 +9,7 @@ $city = trim($b['city'] ?? '');
 $address = trim($b['address'] ?? '');
 $notes = trim($b['notes'] ?? '');
 $couponCode = trim($b['coupon'] ?? '');
+$usePoints = !empty($b['use_points']);
 $items = [];
 foreach ((is_array($b['items'] ?? null) ? $b['items'] : []) as $i) {
     if (is_array($i) && (int)($i['id'] ?? 0) > 0 && (int)($i['qty'] ?? 0) > 0) $items[] = ['id' => (int)$i['id'], 'qty' => (int)$i['qty'], 'variant_id' => (int)($i['variant_id'] ?? 0)];
@@ -43,19 +44,25 @@ try {
         $lines[] = ['id' => (int)$p['id'], 'name' => $p['name'], 'price' => $unitPrice, 'qty' => $qty,
                     'variant_id' => $variant ? (int)$variant['id'] : null, 'variant_label' => $variant ? (string)$variant['label'] : ''];
     }
+    $customer = customer_user();
     $discount = 0;
     if ($couponCode !== '') {
-        $v = validate_coupon($couponCode, $subtotal);
+        $v = validate_coupon($couponCode, $subtotal, $customer['id'] ?? null);
         if (!$v['ok']) throw new RuntimeException($v['error']);
         $discount = $v['discount'];
     }
-    $deliveryFee = ($freeThreshold > 0 && $subtotal - $discount >= $freeThreshold) ? 0 : (float)$cityRow['fee'];
+    // استبدال نقاط الولاء بخصم (للمسجَّل فقط)
+    $pointsUsed = 0; $pointsDiscount = 0.0;
+    if ($usePoints && $customer) [$pointsUsed, $pointsDiscount] = points_redemption((int)$customer['id'], $subtotal - $discount, program());
+    $deliveryFee = ($freeThreshold > 0 && $subtotal - $discount - $pointsDiscount >= $freeThreshold) ? 0 : (float)$cityRow['fee'];
     $code = 'IST-' . strtoupper(bin2hex(random_bytes(3)));
-    $customer = customer_user();
-    q('INSERT INTO orders (code, customer_name, phone, city, address, notes, subtotal, discount, coupon_code, delivery_fee, total, customer_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [$code, $name, $phone, $city, $address, $notes, $subtotal, $discount, $discount > 0 ? strtoupper($couponCode) : '', $deliveryFee, $subtotal - $discount + $deliveryFee, $customer['id'] ?? null]);
+    $total = $subtotal - $discount - $pointsDiscount + $deliveryFee;
+    q('INSERT INTO orders (code, customer_name, phone, city, address, notes, subtotal, discount, coupon_code, delivery_fee, total, customer_id, points_used, points_discount)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [$code, $name, $phone, $city, $address, $notes, $subtotal, $discount, $discount > 0 ? strtoupper($couponCode) : '', $deliveryFee, $total, $customer['id'] ?? null, $pointsUsed, $pointsDiscount]);
     $orderId = (int)$pdo->lastInsertId();
+    if ($discount > 0) q('UPDATE coupons SET used_count = used_count + 1 WHERE UPPER(code) = UPPER(?)', [$couponCode]);
+    if ($pointsUsed > 0 && $customer) add_points((int)$customer['id'], -$pointsUsed, 'استبدال نقاط في طلب', $orderId);
     foreach ($lines as $l) {
         q('INSERT INTO order_items (order_id, product_id, name, price, qty, variant_id, variant_label) VALUES (?, ?, ?, ?, ?, ?, ?)',
           [$orderId, $l['id'], $l['name'], $l['price'], $l['qty'], $l['variant_id'], $l['variant_label']]);
@@ -73,11 +80,11 @@ q('DELETE FROM cart_leads WHERE phone = ?', [$phone]);
 try {
     notify_new_order(['code' => $code, 'customer' => $name, 'phone' => $phone, 'city' => $city, 'address' => $address, 'notes' => $notes,
         'items' => $lines, 'subtotal' => $subtotal, 'discount' => $discount, 'couponCode' => $couponCode, 'deliveryFee' => $deliveryFee,
-        'total' => $subtotal - $discount + $deliveryFee]);
+        'total' => $total]);
 } catch (Throwable $e) { /* ignore */ }
 // تنبيه تيليجرام للمالك — لا يؤثر على إتمام الطلب إطلاقاً
 try {
     tg_order_alert(['order_id' => $orderId, 'code' => $code, 'customer' => $name, 'phone' => $phone, 'city' => $city,
-        'items' => $lines, 'total' => $subtotal - $discount + $deliveryFee]);
+        'items' => $lines, 'total' => $total]);
 } catch (Throwable $e) { /* ignore */ }
 json_response(['ok' => true, 'code' => $code]);

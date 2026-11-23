@@ -4,28 +4,40 @@ require APP_ROOT . '/includes/auth.php';
 $cities = qall('SELECT * FROM cities WHERE active = 1 ORDER BY sort_order, name');
 $threshold = (float)setting('free_shipping_threshold', '0');
 $page_title = 'إتمام الطلب';
+$cu = customer_user();
+$prog = program();
+$LOY = ($cu && $prog['loyalty_enabled'] && (int)$cu['points'] > 0) ? ['points' => (int)$cu['points'], 'rp' => $prog['redeem_points'], 'rv' => $prog['redeem_value']] : null;
 require APP_ROOT . '/includes/store-header.php';
 ?>
 <div class="mx-auto max-w-6xl px-4 pt-10 sm:px-6">
   <h1 class="text-3xl font-black sm:text-4xl">إتمام الطلب</h1>
+  <?php if (!$cu): ?><p class="mt-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--text-dim)]">يمكنك إتمام الطلب كزائر، أو <a href="<?= url('account.php') ?>" class="font-bold text-[var(--accent)] hover:underline">سجّل دخولك</a> لتعبئة بياناتك تلقائياً وتتبع طلباتك.</p><?php endif; ?>
   <div id="checkout-root" class="mt-8"></div>
 </div>
 
 <script>
 var CITIES = <?= json_encode(array_map(fn($c) => ['name' => $c['name'], 'fee' => (float)$c['fee']], $cities), JSON_UNESCAPED_UNICODE) ?>;
 var FREE_THRESHOLD = <?= json_encode($threshold) ?>;
-var discount = 0, couponCode = '';
+var discount = 0, couponCode = '', usePoints = false;
+var LOY = <?= json_encode($LOY) ?>;
+function pointsCalc() {
+  if (!LOY || !usePoints) return { used: 0, disc: 0 };
+  var blocks = Math.max(0, Math.min(Math.floor(LOY.points / LOY.rp), Math.floor((Cart.total() - discount) / LOY.rv)));
+  return { used: blocks * LOY.rp, disc: blocks * LOY.rv };
+}
 
 function cityFee() {
   var sel = document.getElementById('f-city');
   var c = CITIES.find(function (x) { return x.name === sel.value; });
   var sub = Cart.total();
-  if (FREE_THRESHOLD > 0 && sub - discount >= FREE_THRESHOLD) return 0;
+  if (FREE_THRESHOLD > 0 && sub - discount - pointsCalc().disc >= FREE_THRESHOLD) return 0;
   return c ? c.fee : 0;
 }
 
 function renderSummary() {
-  var sub = Cart.total(), fee = cityFee(), total = sub - discount + fee;
+  var sub = Cart.total(), fee = cityFee(), pc = pointsCalc(), total = sub - discount - pc.disc + fee;
+  var pr = document.getElementById('sum-points-row');
+  if (pr) { pr.classList.toggle('hidden', pc.disc <= 0); document.getElementById('sum-points').textContent = '-' + window.fmtPrice(pc.disc); }
   document.getElementById('sum-sub').textContent = window.fmtPrice(sub);
   document.getElementById('sum-discount-row').classList.toggle('hidden', discount <= 0);
   document.getElementById('sum-discount').textContent = '-' + window.fmtPrice(discount);
@@ -64,6 +76,7 @@ function submitOrder(ev) {
     address: document.getElementById('f-address').value.trim(),
     notes: document.getElementById('f-notes').value.trim(),
     coupon: couponCode,
+    use_points: usePoints,
     items: Cart.items.map(function (i) { return { id: i.id, qty: i.qty, variant_id: i.variant_id || 0 }; })
   };
   fetch(window.BASE + '/api/order.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -123,15 +136,25 @@ window.initCheckoutPage = function () {
     + '<div class="mb-4 flex gap-2"><input id="f-coupon" dir="ltr" placeholder="كود الخصم" class="w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3 text-left outline-none placeholder:text-neutral-600 focus:border-[var(--accent)]">'
     + '<button type="button" onclick="applyCoupon()" class="shrink-0 rounded-2xl bg-[var(--chip)] px-4 text-sm font-bold transition hover:bg-[var(--chip-hover)]">تطبيق</button></div>'
     + '<p id="coupon-msg" class="mb-2"></p>'
+    + (LOY ? '<label class="mb-4 flex items-start gap-2 rounded-2xl bg-[var(--chip)] p-3 text-sm font-bold"><input type="checkbox" class="mt-1 h-4 w-4" onchange="usePoints = this.checked; renderSummary()"><span>استخدم نقاط الولاء (رصيدك ' + LOY.points + ' نقطة، كل ' + LOY.rp + ' نقطة = ' + window.fmtPrice(LOY.rv) + ')</span></label>' : '')
     + '<div class="space-y-2 border-t border-[var(--border)] pt-4 text-sm">'
     + '<div class="flex justify-between"><span class="text-[var(--text-dim)]">المجموع الفرعي</span><b id="sum-sub"></b></div>'
     + '<div id="sum-discount-row" class="hidden flex justify-between text-emerald-400"><span>الخصم</span><b id="sum-discount"></b></div>'
+    + '<div id="sum-points-row" class="hidden flex justify-between text-emerald-400"><span>نقاط الولاء</span><b id="sum-points"></b></div>'
     + '<div class="flex justify-between"><span class="text-[var(--text-dim)]">التوصيل</span><b id="sum-fee"></b></div>'
     + '<div class="flex justify-between border-t border-[var(--border)] pt-3 text-lg font-extrabold"><span>الإجمالي</span><span id="sum-total" class="text-[var(--accent)]"></span></div>'
     + '</div>'
     + '<p id="order-err" class="mt-3 hidden rounded-xl bg-red-500/10 p-3 text-sm font-bold text-red-400"></p>'
     + '<button id="submit-btn" class="glow-btn mt-5 w-full rounded-full py-4 text-lg font-bold transition hover:scale-[1.01] active:scale-95">تأكيد الطلب</button>'
     + '</div></div></form>';
+  var PRE = <?= json_encode($cu ? ['name' => $cu['name'], 'phone' => $cu['phone'], 'city' => $cu['city'], 'address' => $cu['address']] : null, JSON_UNESCAPED_UNICODE) ?>;
+  if (PRE) {
+    document.getElementById('f-name').value = PRE.name || '';
+    document.getElementById('f-phone').value = PRE.phone || '';
+    document.getElementById('f-address').value = PRE.address || '';
+    var cs = document.getElementById('f-city');
+    if (PRE.city) { for (var k = 0; k < cs.options.length; k++) { if (cs.options[k].value === PRE.city) cs.value = PRE.city; } }
+  }
   renderSummary();
 };
 </script>

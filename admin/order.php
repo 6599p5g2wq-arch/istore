@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['status'] ?? '', $v
             q('UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?', [(int)$it['qty'], (int)$it['product_id']]);
         }
     }
+    apply_order_status_effects($id, $old, $new);
     // عند التسليم: تنبيه طلبات إشعارات التوفر غير متعلق هنا؛ التسليم يحدّث فقط الحالة
     flash('تم تحديث حالة الطلب إلى «' . order_status_label($new) . '»');
     redirect_admin('order.php?id=' . $id);

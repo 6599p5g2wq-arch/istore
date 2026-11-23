@@ -40,7 +40,7 @@ function api_customer() {
     $h = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     if (!preg_match('/Bearer\s+([a-f0-9]{64})/i', $h, $m)) return null;
     return qone(
-        'SELECT c.id, c.name, c.email, c.phone FROM api_tokens t JOIN customers c ON c.id = t.customer_id WHERE t.token = ? AND t.expires_at > NOW()',
+        'SELECT c.id, c.name, c.email, c.phone FROM api_tokens t JOIN customers c ON c.id = t.customer_id WHERE t.token = ? AND t.expires_at > NOW() AND c.blocked = 0',
         [strtolower($m[1])]);
 }
 
