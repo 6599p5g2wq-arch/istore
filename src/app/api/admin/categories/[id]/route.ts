@@ -13,11 +13,46 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = requireAdmin(); if (auth) return auth;
+  const b = await req.json().catch(() => ({}));
+  const db = getDb();
+  if (typeof b.active === "boolean") {
+    db.prepare("UPDATE categories SET active = ? WHERE id = ?").run(b.active ? 1 : 0, params.id);
+    return NextResponse.json({ ok: true });
+  }
+  if (b.move === "up" || b.move === "down") {
+    const rows = db.prepare("SELECT id FROM categories ORDER BY sort_order, id").all() as { id: number }[];
+    const ids = rows.map((r) => r.id);
+    const i = ids.indexOf(Number(params.id));
+    if (i === -1) return bad("التصنيف غير موجود");
+    const j = b.move === "up" ? i - 1 : i + 1;
+    if (j < 0 || j >= ids.length) return NextResponse.json({ ok: true });
+    // إعادة ترقيم متسلسلة ثم تبديل الجارين
+    ids.forEach((id, k) => db.prepare("UPDATE categories SET sort_order = ? WHERE id = ?").run((k + 1) * 10, id));
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+    db.prepare("UPDATE categories SET sort_order = ? WHERE id = ?").run((j + 1) * 10, ids[j]);
+    db.prepare("UPDATE categories SET sort_order = ? WHERE id = ?").run((i + 1) * 10, ids[i]);
+    return NextResponse.json({ ok: true });
+  }
+  return bad("عملية غير معروفة");
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = requireAdmin(); if (auth) return auth;
   const db = getDb();
   const used = (db.prepare("SELECT COUNT(*) c FROM products WHERE category_id = ?").get(params.id) as { c: number }).c;
-  if (used > 0) return bad(`لا يمكن حذف التصنيف: مرتبط بـ ${used} منتج. انقل المنتجات لتصنيف آخر أولاً.`);
+  if (used > 0) {
+    const raw = new URL(req.url).searchParams.get("reassign");
+    if (raw === null) return bad(`لا يمكن حذف التصنيف: مرتبط بـ ${used} منتج. اختر نقلها لتصنيف آخر أو بدون تصنيف.`);
+    if (raw === "" || raw === "0") {
+      db.prepare("UPDATE products SET category_id = NULL WHERE category_id = ?").run(params.id);
+    } else {
+      const target = db.prepare("SELECT id FROM categories WHERE id = ? AND id != ?").get(Number(raw), params.id);
+      if (!target) return bad("التصنيف البديل غير موجود");
+      db.prepare("UPDATE products SET category_id = ? WHERE category_id = ?").run(Number(raw), params.id);
+    }
+  }
   db.prepare("DELETE FROM categories WHERE id = ?").run(params.id);
   return NextResponse.json({ ok: true });
 }

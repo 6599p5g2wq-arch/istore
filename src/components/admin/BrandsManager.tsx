@@ -1,22 +1,29 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Loader2, Save, X, Tag } from "lucide-react";
+import { Plus, Pencil, Loader2, Save, X, Tag, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import ImagePicker from "./ImagePicker";
-import DeleteButton from "./DeleteButton";
 
-type Brand = { id: number; name: string; slug: string; image: string; sort_order: number; active: number; products_count?: number };
-const EMPTY = { name: "", slug: "", image: "", sort_order: 99, active: true };
+type Brand = { id: number; name: string; slug: string; description: string; image: string; sort_order: number; active: number; products_count?: number };
+const EMPTY = { name: "", slug: "", description: "", image: "", active: true };
+
+const slugify = (s: string) => s.trim().replace(new RegExp("[^\\p{L}\\p{N}]+","gu"), "-").replace(/^-+|-+$/g, "");
 
 export default function BrandsManager({ brands }: { brands: Brand[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState<Brand | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(EMPTY);
+  const [slugTouched, setSlugTouched] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(0);
+  const [del, setDel] = useState<Brand | null>(null);
+  const [reassign, setReassign] = useState("0");
+  const [delLoading, setDelLoading] = useState(false);
 
-  const openNew = () => { setForm(EMPTY); setCreating(true); setEditing(null); };
-  const openEdit = (b: Brand) => { setForm({ name: b.name, slug: b.slug, image: b.image, sort_order: b.sort_order, active: !!b.active }); setEditing(b); setCreating(false); };
+  const openNew = () => { setForm(EMPTY); setSlugTouched(false); setCreating(true); setEditing(null); };
+  const openEdit = (b: Brand) => { setForm({ name: b.name, slug: b.slug, description: b.description || "", image: b.image, active: !!b.active }); setSlugTouched(true); setEditing(b); setCreating(false); };
   const close = () => { setCreating(false); setEditing(null); };
 
   const save = async (e: React.FormEvent) => {
@@ -34,15 +41,34 @@ export default function BrandsManager({ brands }: { brands: Brand[] }) {
     }
   };
 
+  const patch = async (b: Brand, body: Record<string, unknown>) => {
+    setBusy(b.id);
+    await fetch(`/api/admin/brands/${b.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    setBusy(0);
+    router.refresh();
+  };
+
+  const doDelete = async () => {
+    if (!del) return;
+    setDelLoading(true);
+    const r = await fetch(`/api/admin/brands/${del.id}?reassign=${encodeURIComponent(reassign)}`, { method: "DELETE" });
+    setDelLoading(false);
+    if (r.ok) { setDel(null); router.refresh(); } else {
+      const d = await r.json().catch(() => ({}));
+      alert(d.error || "حدث خطأ");
+    }
+  };
+
   const inputCls = "w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-black";
+  const iconBtn = "grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white disabled:opacity-30";
   const showForm = creating || editing;
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2">
         <div className="grid gap-4 sm:grid-cols-2">
-          {brands.map((b) => (
-            <div key={b.id} className="flex items-center gap-4 rounded-3xl bg-white p-4 shadow-sm">
+          {brands.map((b, i) => (
+            <div key={b.id} className={`flex items-center gap-3 rounded-3xl bg-white p-4 shadow-sm ${b.active ? "" : "opacity-60"}`}>
               {b.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={b.image} alt="" className="h-16 w-16 shrink-0 rounded-2xl bg-neutral-100 object-cover" />
@@ -51,11 +77,20 @@ export default function BrandsManager({ brands }: { brands: Brand[] }) {
               )}
               <div className="min-w-0 flex-1">
                 <p className="font-extrabold">{b.name}</p>
-                <p className="text-xs text-neutral-400" dir="ltr">/{b.slug} — {b.products_count ?? 0} منتج</p>
-                {!b.active && <span className="text-xs font-bold text-red-400">مخفي</span>}
+                <Link href={`/admin/products?brand=${b.id}`} className="text-xs font-bold text-violet-700 underline-offset-2 hover:underline">{b.products_count ?? 0} منتج</Link>
+                {!b.active && <span className="ms-2 text-xs font-bold text-red-400">مخفي</span>}
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <button disabled={busy === b.id || i === 0} onClick={() => patch(b, { move: "up" })} aria-label="رفع" className={`${iconBtn} h-7 w-7`}><ArrowUp size={13} /></button>
+                  <button disabled={busy === b.id || i === brands.length - 1} onClick={() => patch(b, { move: "down" })} aria-label="خفض" className={`${iconBtn} h-7 w-7`}><ArrowDown size={13} /></button>
+                  <button disabled={busy === b.id} onClick={() => patch(b, { active: !b.active })}
+                    aria-label={b.active ? "إخفاء" : "إظهار"}
+                    className={`relative h-5 w-9 rounded-full transition ${b.active ? "bg-emerald-500" : "bg-neutral-300"}`}>
+                    <span className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all" style={{ insetInlineStart: b.active ? "calc(100% - 18px)" : "2px" }} />
+                  </button>
+                </div>
               </div>
-              <button onClick={() => openEdit(b)} aria-label="تعديل" className="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white"><Pencil size={15} /></button>
-              <DeleteButton resource="brands" id={b.id} label={b.name} />
+              <button onClick={() => openEdit(b)} aria-label="تعديل" className={iconBtn}><Pencil size={15} /></button>
+              <button onClick={() => { setDel(b); setReassign("0"); }} aria-label="حذف" className={`${iconBtn} hover:bg-red-600`}><Trash2 size={15} /></button>
             </div>
           ))}
         </div>
@@ -70,15 +105,40 @@ export default function BrandsManager({ brands }: { brands: Brand[] }) {
             <h2 className="font-extrabold">{editing ? `تعديل: ${editing.name}` : "ماركة جديدة"}</h2>
             <button type="button" onClick={close} aria-label="إغلاق"><X size={18} /></button>
           </div>
-          <label className="block text-sm font-bold">الاسم *<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={`mt-1.5 ${inputCls}`} /></label>
-          <label className="block text-sm font-bold">slug *<input dir="ltr" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className={`mt-1.5 text-left ${inputCls}`} /></label>
-          <label className="block text-sm font-bold">الترتيب<input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} className={`mt-1.5 ${inputCls}`} /></label>
+          <label className="block text-sm font-bold">الاسم *<input required value={form.name} onChange={(e) => { const name = e.target.value; setForm({ ...form, name, slug: slugTouched ? form.slug : slugify(name) }); }} className={`mt-1.5 ${inputCls}`} /></label>
+          <label className="block text-sm font-bold">slug *<input dir="ltr" required value={form.slug} onChange={(e) => { setSlugTouched(true); setForm({ ...form, slug: e.target.value }); }} className={`mt-1.5 text-left ${inputCls}`} /></label>
+          <label className="block text-sm font-bold">الوصف<textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`mt-1.5 resize-none ${inputCls}`} /></label>
           <ImagePicker label="شعار الماركة" value={form.image} onChange={(v) => setForm({ ...form, image: v })} />
           <label className="flex cursor-pointer items-center justify-between text-sm font-bold">ظاهر<input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} className="h-5 w-5 accent-black" /></label>
           <button disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-full bg-black py-3 font-bold text-white disabled:opacity-60">
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} حفظ
           </button>
         </form>
+      )}
+
+      {del && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={() => !delLoading && setDel(null)}>
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="font-extrabold">حذف «{del.name}»</h2>
+            {(del.products_count ?? 0) > 0 ? (
+              <>
+                <p className="mt-3 text-sm text-neutral-600">هذه الماركة مرتبطة بـ <b>{del.products_count}</b> منتج. ماذا نفعل بها؟</p>
+                <select value={reassign} onChange={(e) => setReassign(e.target.value)} className={`mt-3 ${inputCls}`}>
+                  <option value="0">بدون ماركة</option>
+                  {brands.filter((b) => b.id !== del.id).map((b) => <option key={b.id} value={b.id}>نقل إلى: {b.name}</option>)}
+                </select>
+              </>
+            ) : (
+              <p className="mt-3 text-sm text-neutral-600">لا توجد منتجات مرتبطة بهذه الماركة.</p>
+            )}
+            <div className="mt-5 flex gap-2">
+              <button onClick={doDelete} disabled={delLoading} className="flex flex-1 items-center justify-center gap-2 rounded-full bg-red-600 py-3 font-bold text-white disabled:opacity-60">
+                {delLoading ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />} حذف الماركة
+              </button>
+              <button onClick={() => setDel(null)} disabled={delLoading} className="rounded-full bg-neutral-100 px-6 py-3 font-bold">إلغاء</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

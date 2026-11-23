@@ -1,5 +1,5 @@
 export type Category = { id: number; name: string; slug: string; description: string; image: string; sort_order: number; active: number };
-export type Brand = { id: number; name: string; slug: string; image: string; sort_order: number; active: number };
+export type Brand = { id: number; name: string; slug: string; description: string; image: string; sort_order: number; active: number };
 export type Product = {
   id: number; name: string; slug: string; category_id: number | null; description: string;
   price: number; old_price: number | null; stock: number; image: string; images: string;

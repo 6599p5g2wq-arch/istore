@@ -202,6 +202,7 @@ function initSchema(db: Database.Database) {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
+    description TEXT NOT NULL DEFAULT '',
     image TEXT NOT NULL DEFAULT '',
     sort_order INTEGER NOT NULL DEFAULT 0,
     active INTEGER NOT NULL DEFAULT 1
@@ -232,6 +233,7 @@ function initSchema(db: Database.Database) {
     "ALTER TABLE orders ADD COLUMN points_awarded INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE orders ADD COLUMN points_refunded INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE orders ADD COLUMN admin_notes TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE brands ADD COLUMN description TEXT NOT NULL DEFAULT ''",
   ]) {
     try { db.exec(stmt); } catch { /* column already exists */ }
   }

@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/format";
 import { Plus, Pencil, Star, Eye } from "lucide-react";
 import DeleteButton from "@/components/admin/DeleteButton";
 import ProductsBulkBar from "@/components/admin/ProductsBulkBar";
+import ProductsFilters from "@/components/admin/ProductsFilters";
 import ProductToggles from "@/components/admin/ProductToggles";
 import DuplicateButton from "@/components/admin/DuplicateButton";
 import type { Product } from "@/lib/types";
@@ -30,6 +31,7 @@ export default function AdminProducts({ searchParams }: { searchParams: Record<s
   const s = getSettings();
   const q = (searchParams.q || "").trim();
   const cat = (searchParams.cat || "").trim();
+  const brand = (searchParams.brand || "").trim();
   const sort = searchParams.sort || "new";
   const stock = searchParams.stock || "all";
   const vis = searchParams.vis || "all";
@@ -42,6 +44,7 @@ export default function AdminProducts({ searchParams }: { searchParams: Record<s
     args.push(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`);
   }
   if (cat) { where.push("p.category_id = ?"); args.push(Number(cat)); }
+  if (brand) { where.push("p.brand_id = ?"); args.push(Number(brand)); }
   if (vis === "active") where.push("p.active = 1");
   if (vis === "hidden") where.push("p.active = 0");
   if (stock === "low") { where.push("p.stock > 0 AND p.stock <= ?"); args.push(LOW_STOCK); }
@@ -106,23 +109,7 @@ export default function AdminProducts({ searchParams }: { searchParams: Record<s
         </Link>
       </div>
 
-      <form className="mt-6 flex flex-wrap items-center gap-2" action="/admin/products" method="GET">
-        <input name="q" defaultValue={q} placeholder="ابحث بالاسم، الـ slug، التصنيف أو الماركة…" autoComplete="off"
-          className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:border-black" />
-        <select name="cat" defaultValue={cat} className="rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-black">
-          <option value="">كل التصنيفات</option>
-          {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <select name="sort" defaultValue={sort} className="rounded-2xl border border-neutral-200 bg-white px-3 py-3 text-sm font-bold outline-none focus:border-black">
-          <option value="new">ترتيب: الأحدث</option>
-          <option value="sold">الأكثر مبيعاً</option>
-          <option value="price">السعر: الأعلى</option>
-          <option value="stock">المخزون: الأقل</option>
-        </select>
-        {stock !== "all" && <input type="hidden" name="stock" value={stock} />}
-        {vis !== "all" && <input type="hidden" name="vis" value={vis} />}
-        <button className="rounded-full bg-black px-5 py-3 text-sm font-bold text-white transition hover:bg-neutral-800">تطبيق</button>
-      </form>
+      <ProductsFilters q={q} cat={cat} sort={sort} categories={categories} />
 
       <div className="mt-4 flex flex-wrap gap-2">
         {chips.map((c) => (
