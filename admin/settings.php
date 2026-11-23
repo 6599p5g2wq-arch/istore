@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'enabled' => !empty($_POST['enabled']), 'messages' => $msgs, 'interval' => $_POST['interval'] ?? 5,
         'bg' => $_POST['bg'] ?? '', 'color' => $_POST['color'] ?? '',
         'start' => $_POST['start'] ?? '', 'end' => $_POST['end'] ?? '',
-        'countdown' => !empty($_POST['countdown']), 'closable' => !empty($_POST['closable']),
+        'effect' => $_POST['effect'] ?? 'fade', 'countdown' => !empty($_POST['countdown']), 'closable' => !empty($_POST['closable']),
     ]);
     $s = announce_ms($cfg['start']); $e = announce_ms($cfg['end']);
     $currency = trim(mb_substr((string)($_POST['currency'] ?? ''), 0, 12));
@@ -72,12 +72,17 @@ admin_header('الإعدادات', 'settings.php');
         <label class="block text-sm font-bold">لون الخلفية <input type="color" name="bg" value="<?= e($c['bg']) ?>" class="mt-1 block h-10 w-20 cursor-pointer rounded-lg border border-neutral-300"></label>
         <label class="block text-sm font-bold">لون النص <input type="color" name="color" value="<?= e($c['color']) ?>" class="mt-1 block h-10 w-20 cursor-pointer rounded-lg border border-neutral-300"></label>
         <label class="block text-sm font-bold">التبديل كل (ثانية) <input type="number" name="interval" min="2" max="30" value="<?= (int)$c['interval'] ?>" class="admin-input mt-1"></label>
-        <span></span>
+        <label class="block text-sm font-bold">طريقة العرض
+          <select name="effect" class="admin-input mt-1">
+            <?php foreach (announce_effects() as $k => $lbl): ?><option value="<?= e($k) ?>" <?= $c['effect'] === $k ? 'selected' : '' ?>><?= e($lbl) ?></option><?php endforeach; ?>
+          </select>
+          <span class="mt-1 block text-[11px] font-normal text-neutral-400">في الشريط المتحرك تظهر كل الرسائل متتابعة ولا يُستخدم «التبديل كل».</span>
+        </label>
         <label class="block text-sm font-bold">يبدأ في (اختياري) <input type="datetime-local" name="start" value="<?= e($c['start']) ?>" class="admin-input mt-1"></label>
         <label class="block text-sm font-bold">ينتهي في (اختياري) <input type="datetime-local" name="end" value="<?= e($c['end']) ?>" class="admin-input mt-1"></label>
       </div>
       <p class="mt-2 text-xs text-neutral-500">التوقيت بتوقيت ليبيا. يختفي الشريط تلقائياً خارج هذه الفترة.</p>
-      <label class="mt-4 flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="countdown" value="1" <?= $c['countdown'] ? 'checked' : '' ?> class="h-4 w-4"> عدّاد تنازلي حتى تاريخ الانتهاء</label>
+      <label class="mt-4 flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="countdown" value="1" <?= $c['countdown'] ? 'checked' : '' ?> class="h-4 w-4"> عرض عدّاد تنازلي للزائر حتى تاريخ الانتهاء</label>
       <label class="mt-2 flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="closable" value="1" <?= $c['closable'] ? 'checked' : '' ?> class="h-4 w-4"> السماح للزائر بإغلاق الشريط (زر X)</label>
     </div>
     <button class="admin-btn">حفظ الإعدادات</button>
