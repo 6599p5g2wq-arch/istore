@@ -256,7 +256,7 @@ if (typeof window.initCheckoutPage === 'function') window.initCheckoutPage();
   function paint(p) {
     var f = sm(p);
     if (content) { content.style.opacity = 1 - sm(p * 1.05); content.style.transform = reduce ? '' : 'translate3d(0,' + (-f * 36) + 'px,0) scale(' + (1 - f * 0.035) + ')'; }
-    if (logo) { logo.style.opacity = op * (1 - f); logo.style.transform = reduce ? '' : 'translate3d(0,' + (f * 70) + 'px,0) scale(' + (1 + f * 0.15) + ')'; }
+    if (logo) { logo.style.opacity = op * (1 - f); logo.style.transform = reduce ? '' : 'translate3d(0,' + (f * 70) + 'px,0) scale(' + (1 + f * 0.25) + ')'; }
     if (cue) cue.style.opacity = 1 - sm(p * 3);
   }
   function tick(now) {
