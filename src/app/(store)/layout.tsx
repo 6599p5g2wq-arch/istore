@@ -39,7 +39,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       <WishlistProvider>
         <Analytics metaPixel={s.meta_pixel_id || ""} tiktokPixel={s.tiktok_pixel_id || ""} gaId={s.ga_id || ""} />
         {isActive(ann) && <AnnouncementBar config={ann} sig={annSig} />}
-        <Header storeName={s.store_name || "آي ستور"} categories={cats} />
+        <Header storeName={s.store_name || "آي ستور"} categories={cats} logo={s.intro_logo ? (s.intro_logo.startsWith("data:") ? `/api/logo?v=${crypto.createHash("md5").update(s.intro_logo).digest("hex").slice(0, 10)}` : s.intro_logo) : ""} />
         <BackButton />
         <main className="min-h-[60vh]">{children}</main>
         <Footer />

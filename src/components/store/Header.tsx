@@ -9,7 +9,7 @@ import CartDrawer from "./CartDrawer";
 import SearchOverlay from "./SearchOverlay";
 import ThemeToggle from "./ThemeToggle";
 
-export default function Header({ storeName, categories }: { storeName: string; categories: { name: string; slug: string }[] }) {
+export default function Header({ storeName, categories, logo = "" }: { storeName: string; categories: { name: string; slug: string }[]; logo?: string }) {
   const { count, open, setOpen } = useCart();
   const { count: wishCount } = useWishlist();
   const [scrolled, setScrolled] = useState(false);
@@ -34,7 +34,14 @@ export default function Header({ storeName, categories }: { storeName: string; c
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-2 font-extrabold text-lg sm:text-xl tracking-tight text-white">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--text)] text-[var(--bg)]"><Store size={20} /></span>
+              {logo ? (
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--border)] bg-[var(--chip)] p-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={logo} alt="" className="h-full w-full object-contain" />
+                </span>
+              ) : (
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--text)] text-[var(--bg)]"><Store size={20} /></span>
+              )}
               <span className="max-[360px]:hidden">{storeName}</span>
             </Link>
             <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-[var(--text-dim)]">
@@ -74,7 +81,15 @@ export default function Header({ storeName, categories }: { storeName: string; c
               className="absolute inset-y-0 left-0 w-80 max-w-[85vw] bg-[var(--surface)] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
-                <span className="font-extrabold text-lg text-white">{storeName}</span>
+                <span className="flex items-center gap-2 font-extrabold text-lg text-white">
+                  {logo && (
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[var(--border)] bg-[var(--chip)] p-1">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={logo} alt="" className="h-full w-full object-contain" />
+                    </span>
+                  )}
+                  {storeName}
+                </span>
                 <button onClick={() => setMenu(false)} aria-label="إغلاق" className="grid h-9 w-9 place-items-center rounded-full text-[var(--text-dim)] hover:bg-[var(--chip)]"><X size={18} /></button>
               </div>
               <nav className="flex flex-col gap-1 text-base font-medium">
