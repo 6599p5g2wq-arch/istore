@@ -72,6 +72,19 @@ tailwind.config = { future: { hoverOnlyWhenSupported: true }, corePlugins: { pre
     </div>
   </div>
 </header>
+<?php if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'index.php'): ?>
+<div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+  <button type="button" id="back-btn" aria-label="الرجوع للصفحة السابقة" class="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-strong)] bg-[var(--chip)] py-2 pe-4 ps-2.5 text-sm font-bold text-[var(--text)] transition hover:-translate-y-0.5 hover:bg-[var(--chip-hover)]"><?= icon('chevron-right', 18) ?> رجوع</button>
+</div>
+<script>
+document.getElementById('back-btn').addEventListener('click', function () {
+  var same = false;
+  try { same = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
+  if (history.length > 1 && same) history.back();
+  else location.href = <?= json_encode(basename($_SERVER['SCRIPT_NAME'] ?? '') === 'product.php' ? url('products.php') : url('index.php')) ?>;
+});
+</script>
+<?php endif; ?>
 
 <!-- قائمة الجوال -->
 <div id="mobile-menu" class="menu-overlay drawer-overlay fixed inset-0 z-50 bg-black/40" onclick="if(event.target===this)toggleMenu(false)">
