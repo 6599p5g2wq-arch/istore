@@ -3,6 +3,7 @@ import { CartProvider } from "@/components/store/CartContext";
 import { WishlistProvider } from "@/components/store/WishlistContext";
 import Analytics from "@/components/store/Analytics";
 import Header from "@/components/store/Header";
+import BackButton from "@/components/store/BackButton";
 import BackToTop from "@/components/store/BackToTop";
 import MotionProvider from "@/components/store/MotionProvider";
 import Footer from "@/components/store/Footer";
@@ -39,6 +40,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
         <Analytics metaPixel={s.meta_pixel_id || ""} tiktokPixel={s.tiktok_pixel_id || ""} gaId={s.ga_id || ""} />
         {isActive(ann) && <AnnouncementBar config={ann} sig={annSig} />}
         <Header storeName={s.store_name || "آي ستور"} categories={cats} />
+        <BackButton />
         <main className="min-h-[60vh]">{children}</main>
         <Footer />
         <BackToTop />
