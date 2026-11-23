@@ -94,7 +94,7 @@ document.getElementById('back-btn').addEventListener('click', function () {
 
 <!-- قائمة الجوال -->
 <div id="mobile-menu" class="menu-overlay drawer-overlay fixed inset-0 z-50 bg-black/40" onclick="if(event.target===this)toggleMenu(false)">
-  <div class="menu-panel absolute inset-y-0 left-0 w-80 max-w-[85vw] bg-[var(--surface)] p-6 shadow-2xl backdrop-blur-xl">
+  <div class="menu-panel sheet-h sheet-scroll sheet-pad-b absolute left-0 top-0 w-80 max-w-[85vw] bg-[var(--surface)] p-6 shadow-2xl backdrop-blur-xl">
     <div class="mb-8 flex items-center justify-between">
       <span class="flex items-center gap-2 text-lg font-extrabold text-white"><?php if (($s['intro_logo'] ?? '') !== ''): ?><span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[var(--border)] bg-[var(--chip)] p-1"><img src="<?= e(img_url($s['intro_logo'])) ?>" alt="" class="h-full w-full object-contain"></span><?php endif; ?><?= e($s['store_name'] ?? 'آي ستور') ?></span>
       <button onclick="toggleMenu(false)" aria-label="إغلاق" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text-dim)] hover:bg-[var(--chip)]"><?= icon('x', 18) ?></button>
@@ -120,13 +120,13 @@ document.getElementById('back-btn').addEventListener('click', function () {
 
 <!-- سلة التسوق الجانبية -->
 <div id="cart-drawer" class="drawer-overlay fixed inset-0 z-50 bg-black/40" onclick="if(event.target===this)Cart.closeDrawer()">
-  <div class="drawer-panel absolute inset-y-0 left-0 flex w-96 max-w-[92vw] flex-col bg-[var(--surface)] shadow-2xl backdrop-blur-xl">
+  <div class="drawer-panel sheet-h absolute left-0 top-0 flex w-96 max-w-[92vw] flex-col bg-[var(--surface)] shadow-2xl backdrop-blur-xl">
     <div class="flex items-center justify-between border-b border-[var(--border)] p-5">
       <span class="text-lg font-extrabold text-white">سلة التسوق</span>
       <button onclick="Cart.closeDrawer()" aria-label="إغلاق" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text-dim)] hover:bg-[var(--chip)]"><?= icon('x', 18) ?></button>
     </div>
     <div id="cart-drawer-items" class="flex-1 space-y-3 overflow-y-auto p-4"></div>
-    <div id="cart-drawer-footer" class="hidden border-t border-[var(--border)] p-5">
+    <div id="cart-drawer-footer" class="sheet-pad-b hidden border-t border-[var(--border)] p-5">
       <div class="mb-4 flex items-center justify-between text-base font-extrabold">
         <span>الإجمالي</span>
         <span id="cart-drawer-total">0</span>
