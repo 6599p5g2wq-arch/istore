@@ -42,8 +42,8 @@ require APP_ROOT . '/includes/store-header.php';
 <?php if ($slides): ?>
 <section class="relative mx-auto max-w-7xl px-4 pt-6 sm:px-6">
   <div id="hero-slider" class="on-dark relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#140b30]/85 text-white shadow-[0_30px_90px_-20px_rgba(123,47,247,.45)] backdrop-blur-xl">
-    <div class="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[var(--accent)] opacity-25 blur-3xl"></div>
-    <div class="pointer-events-none absolute -bottom-40 -right-20 h-96 w-96 rounded-full bg-purple-600 opacity-25 blur-3xl"></div>
+    <div class="pointer-events-none absolute -left-32 -top-32 h-[34rem] w-[34rem]" style="background:radial-gradient(closest-side,rgba(0,198,255,.28),transparent)"></div>
+    <div class="pointer-events-none absolute -bottom-52 -right-32 h-[34rem] w-[34rem]" style="background:radial-gradient(closest-side,rgba(147,51,234,.3),transparent)"></div>
     <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
     <?php foreach ($slides as $i => $sl): ?>
     <div class="hero-slide <?= $i === 0 ? 'active' : '' ?> relative z-10 grid min-h-[540px] items-center gap-8 p-8 sm:p-14 lg:min-h-[640px] lg:grid-cols-2">
@@ -59,8 +59,10 @@ require APP_ROOT . '/includes/store-header.php';
         </div>
       </div>
       <div class="relative z-10 order-1 lg:order-2">
-        <div class="relative mx-auto aspect-square w-full max-w-md overflow-hidden rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]">
-          <img src="<?= e(img_url($sl['image'])) ?>" alt="<?= e($sl['title']) ?>" class="h-full w-full object-cover">
+        <div class="relative mx-auto aspect-square w-full max-w-md rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]">
+          <div class="h-full w-full overflow-hidden rounded-[2rem]" style="-webkit-mask-image:-webkit-radial-gradient(white,black);transform:translateZ(0)">
+          <img src="<?= e(img_url($sl['image'])) ?>" alt="<?= e($sl['title']) ?>" class="h-full w-full rounded-[2rem] object-cover">
+          </div>
         </div>
       </div>
     </div>

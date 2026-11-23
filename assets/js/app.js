@@ -210,7 +210,43 @@
     window.heroGo = function (d) { show(idx + d); };
     window.heroShow = show;
     show(0);
-    setInterval(function () { show(idx + 1); }, 6000);
+    var lastAct = 0, touching = false;
+    setInterval(function () { if (!touching && Date.now() - lastAct > 4000) show(idx + 1); }, 6000);
+
+    // سحب بالإصبع (لمس فقط): touch-action: pan-y يُبقي التمرير العمودي طبيعياً
+    var st = null, moved = false;
+    root.style.touchAction = 'pan-y';
+    root.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse') return;
+      st = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), mode: '' };
+      moved = false; touching = true; lastAct = Date.now();
+    });
+    root.addEventListener('pointermove', function (e) {
+      if (!st || st.id !== e.pointerId) return;
+      var dx = e.clientX - st.x, dy = e.clientY - st.y;
+      if (!st.mode) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        st.mode = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'h' : 'v';
+      }
+      if (st.mode !== 'h') return;
+      moved = true; lastAct = Date.now();
+      var a = slides[idx];
+      a.style.transition = 'none';
+      a.style.transform = 'translate3d(' + (Math.sign(dx) * Math.min(160, Math.abs(dx) * 0.6)) + 'px,0,0)';
+    });
+    function end(e) {
+      if (!st || st.id !== e.pointerId) return;
+      var s0 = st; st = null; touching = false; lastAct = Date.now();
+      if (s0.mode !== 'h') return;
+      var a = slides[idx];
+      a.style.transition = ''; a.style.transform = '';   // يعود بانتقال CSS الناعم
+      var dx = e.clientX - s0.x, v = Math.abs(dx) / Math.max(1, performance.now() - s0.t);
+      if (Math.abs(dx) > 55 || (v > 0.45 && Math.abs(dx) > 24)) show(idx + (dx < 0 ? 1 : -1));
+    }
+    root.addEventListener('pointerup', end);
+    root.addEventListener('pointercancel', end);
+    root.addEventListener('click', function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+    root.querySelectorAll('img').forEach(function (im) { im.draggable = false; });
   }
 
   // ---------- زر العودة للأعلى ----------
