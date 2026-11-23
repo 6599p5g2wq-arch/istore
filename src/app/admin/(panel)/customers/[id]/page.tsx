@@ -32,6 +32,13 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const spent = valid.reduce((a, o) => a + o.total, 0);
   const avg = valid.length ? spent / valid.length : 0;
   const waPhone = waNumber(c.phone);
+  const addrMap = new Map<string, { city: string; address: string; n: number; last: string }>();
+  for (const o of orders) {
+    const k = `${o.city}||${o.address}`.trim();
+    const cur = addrMap.get(k);
+    if (cur) cur.n += 1; else addrMap.set(k, { city: o.city, address: o.address, n: 1, last: o.created_at });
+  }
+  const pastAddrs = Array.from(addrMap.values());
   const prog = getProgram(db);
   const vip = isVip(spent, c.vip_override, prog);
   const plog = db.prepare("SELECT delta, reason, created_at FROM points_log WHERE customer_id = ? ORDER BY id DESC LIMIT 20").all(c.id) as { delta: number; reason: string; created_at: string }[];
@@ -76,6 +83,25 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         <p className="mt-2 flex items-center gap-2 text-sm text-neutral-600"><Mail size={15} /> <span dir="ltr">{c.email}</span></p>
         {(c.city || c.address) && <p className="mt-2 flex items-center gap-2 text-sm text-neutral-600"><MapPin size={15} /> {c.city}{c.address ? ` — ${c.address}` : ""}</p>}
         <a href={`https://wa.me/${waPhone}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-5 py-2 text-sm font-bold text-white transition hover:opacity-90"><MessageCircle size={15} /> مراسلة واتساب</a>
+      </div>
+
+      <div className="mt-5 rounded-3xl bg-white p-6 shadow-sm">
+        <h2 className="mb-4 flex items-center gap-2 font-extrabold"><MapPin size={17} /> العناوين</h2>
+        <p className="text-xs font-bold text-neutral-400">العنوان المحفوظ في الحساب</p>
+        {c.city || c.address ? (
+          <p className="mt-1.5 rounded-2xl bg-neutral-50 px-4 py-3 text-sm font-bold">{c.city}{c.address ? ` — ${c.address}` : ""}</p>
+        ) : <p className="mt-1.5 text-sm text-neutral-400">لم يحفظ الزبون عنواناً بعد</p>}
+        <p className="mt-5 text-xs font-bold text-neutral-400">عناوين من طلباته السابقة</p>
+        {pastAddrs.length === 0 ? <p className="mt-1.5 text-sm text-neutral-400">لا توجد طلبات</p> : (
+          <ul className="mt-1.5 space-y-2">
+            {pastAddrs.map((a, i) => (
+              <li key={i} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-neutral-50 px-4 py-3 text-sm">
+                <span className="font-bold">{a.city}{a.address ? ` — ${a.address}` : ""}</span>
+                <span className="text-xs text-neutral-400">{a.n} {a.n === 1 ? "طلب" : "طلبات"} · آخر استخدام {formatDate(a.last)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="mt-5 rounded-3xl bg-white p-6 shadow-sm">
