@@ -5,28 +5,52 @@ $id = (int)($_GET['id'] ?? 0);
 $order = $id ? qone('SELECT * FROM orders WHERE id = ?', [$id]) : null;
 if (!$order) { flash('الطلب غير موجود', true); redirect_admin('orders.php'); }
 $valid = ['new', 'confirmed', 'shipped', 'delivered', 'cancelled'];
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['status'] ?? '', $valid, true)) {
-    $old = $order['status'];
-    $new = $_POST['status'];
-    q('UPDATE orders SET status = ? WHERE id = ?', [$new, $id]);
-    // إعادة المخزون عند الإلغاء، وخصمه عند التراجع عن الإلغاء
-    if ($new === 'cancelled' && $old !== 'cancelled') {
-        foreach (qall('SELECT product_id, qty, variant_id FROM order_items WHERE order_id = ? AND product_id IS NOT NULL', [$id]) as $it) {
-            if ($it['variant_id']) q('UPDATE product_variants SET stock = stock + ? WHERE id = ?', [(int)$it['qty'], (int)$it['variant_id']]);
-            q('UPDATE products SET stock = stock + ? WHERE id = ?', [(int)$it['qty'], (int)$it['product_id']]);
-        }
-    } elseif ($old === 'cancelled' && $new !== 'cancelled') {
-        foreach (qall('SELECT product_id, qty, variant_id FROM order_items WHERE order_id = ? AND product_id IS NOT NULL', [$id]) as $it) {
-            if ($it['variant_id']) q('UPDATE product_variants SET stock = GREATEST(0, stock - ?) WHERE id = ?', [(int)$it['qty'], (int)$it['variant_id']]);
-            q('UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?', [(int)$it['qty'], (int)$it['product_id']]);
-        }
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? 'status';
+
+    // حذف الطلب نهائياً (يحذف عناصره وسجل حالاته بالتبعية)
+    if ($action === 'delete') {
+        q('DELETE FROM orders WHERE id = ?', [$id]);
+        flash('تم حذف الطلب «' . $order['code'] . '» نهائياً');
+        redirect_admin('orders.php');
     }
-    apply_order_status_effects($id, $old, $new);
-    // عند التسليم: تنبيه طلبات إشعارات التوفر غير متعلق هنا؛ التسليم يحدّث فقط الحالة
-    flash('تم تحديث حالة الطلب إلى «' . order_status_label($new) . '»');
-    redirect_admin('order.php?id=' . $id);
+
+    // ملاحظات الأدمن الداخلية (لا تظهر للعميل)
+    if ($action === 'notes') {
+        q('UPDATE orders SET admin_notes = ? WHERE id = ?', [mb_substr(trim((string)($_POST['admin_notes'] ?? '')), 0, 2000), $id]);
+        flash('تم حفظ الملاحظة');
+        redirect_admin('order.php?id=' . $id);
+    }
+
+    if (in_array($_POST['status'] ?? '', $valid, true)) {
+        $old = $order['status'];
+        $new = $_POST['status'];
+        if ($new !== $old) {
+            q('UPDATE orders SET status = ? WHERE id = ?', [$new, $id]);
+            q('INSERT INTO order_status_log (order_id, status) VALUES (?, ?)', [$id, $new]);
+            // إعادة المخزون عند الإلغاء، وخصمه عند التراجع عن الإلغاء
+            if ($new === 'cancelled' && $old !== 'cancelled') {
+                foreach (qall('SELECT product_id, qty, variant_id FROM order_items WHERE order_id = ? AND product_id IS NOT NULL', [$id]) as $it) {
+                    if ($it['variant_id']) q('UPDATE product_variants SET stock = stock + ? WHERE id = ?', [(int)$it['qty'], (int)$it['variant_id']]);
+                    q('UPDATE products SET stock = stock + ? WHERE id = ?', [(int)$it['qty'], (int)$it['product_id']]);
+                }
+            } elseif ($old === 'cancelled' && $new !== 'cancelled') {
+                foreach (qall('SELECT product_id, qty, variant_id FROM order_items WHERE order_id = ? AND product_id IS NOT NULL', [$id]) as $it) {
+                    if ($it['variant_id']) q('UPDATE product_variants SET stock = GREATEST(0, stock - ?) WHERE id = ?', [(int)$it['qty'], (int)$it['variant_id']]);
+                    q('UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?', [(int)$it['qty'], (int)$it['product_id']]);
+                }
+            }
+            apply_order_status_effects($id, $old, $new);
+            flash('تم تحديث حالة الطلب إلى «' . order_status_label($new) . '»');
+        }
+        redirect_admin('order.php?id=' . $id);
+    }
 }
-$items = qall('SELECT * FROM order_items WHERE order_id = ?', [$id]);
+
+$items = qall('SELECT oi.*, p.image AS pimage FROM order_items oi LEFT JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ?', [$id]);
+$timeline = qall('SELECT status, created_at FROM order_status_log WHERE order_id = ? ORDER BY id ASC', [$id]);
+
 // الرجوع يحافظ على حالة القائمة (فلتر الحالة) إن جاء المستخدم منها
 $backUrl = admin_url('orders.php');
 $ref = $_SERVER['HTTP_REFERER'] ?? '';
@@ -41,14 +65,32 @@ $waText = 'السلام عليكم ' . $order['customer_name'] . '، معك ' . 
 "
     . 'حالة الطلب: ' . order_status_label($order['status']);
 $waUrl = 'https://wa.me/' . $waPhone . '?text=' . rawurlencode($waText);
+$dotCls = ['new' => 'bg-amber-400', 'confirmed' => 'bg-blue-500', 'shipped' => 'bg-purple-500', 'delivered' => 'bg-emerald-500', 'cancelled' => 'bg-red-500'];
 admin_header('طلب ' . $order['code'], 'orders.php');
 ?>
+<style>
+@media print {
+  body * { visibility: hidden !important; }
+  #print-area, #print-area * { visibility: visible !important; }
+  #print-area { position: absolute !important; inset-inline: 0; top: 0; padding: 24px; background: #fff; }
+  .no-print { display: none !important; }
+}
+</style>
+
 <div class="flex flex-wrap items-center justify-between gap-3">
   <h1 class="text-2xl font-black sm:text-3xl">طلب <span dir="ltr"><?= e($order['code']) ?></span></h1>
-  <a href="<?= e($backUrl) ?>" class="admin-btn-ghost"><?= icon('arrow-left', 16) ?> رجوع للطلبات</a>
+  <div class="no-print flex flex-wrap items-center gap-2">
+    <button onclick="window.print()" class="admin-btn-ghost">طباعة الطلب</button>
+    <form method="post" onsubmit="return confirm('حذف الطلب «<?= e($order['code']) ?>» نهائياً؟')" class="inline">
+      <input type="hidden" name="action" value="delete">
+      <button class="admin-btn-ghost !text-red-600"><?= icon('trash', 16) ?> حذف</button>
+    </form>
+    <a href="<?= e($backUrl) ?>" class="admin-btn-ghost"><?= icon('arrow-left', 16) ?> رجوع للطلبات</a>
+  </div>
 </div>
 <?php admin_msg(); ?>
-<div class="mt-6 grid gap-5 lg:grid-cols-3">
+
+<div id="print-area" class="mt-6 grid gap-5 lg:grid-cols-3">
   <div class="space-y-5 lg:col-span-2">
     <div class="admin-card p-6">
       <h2 class="font-extrabold">المنتجات</h2>
@@ -56,7 +98,15 @@ admin_header('طلب ' . $order['code'], 'orders.php');
         <thead><tr><th>المنتج</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr></thead>
         <tbody>
         <?php foreach ($items as $it): ?>
-          <tr><td><?= e($it['name']) ?><?php if (!empty($it['variant_label'])): ?> <span class="text-xs font-bold text-[var(--text-faint)]"><?= e($it['variant_label']) ?></span><?php endif; ?></td><td><?= e(format_price((float)$it['price'])) ?></td><td><?= (int)$it['qty'] ?></td><td class="font-bold"><?= e(format_price((float)$it['price'] * (int)$it['qty'])) ?></td></tr>
+          <tr>
+            <td>
+              <span class="flex items-center gap-3">
+                <?php if (!empty($it['pimage'])): ?><img src="<?= e(img_url($it['pimage'])) ?>" class="h-11 w-11 shrink-0 rounded-xl bg-neutral-100 object-cover" alt=""><?php endif; ?>
+                <span><?= e($it['name']) ?><?php if (!empty($it['variant_label'])): ?> <span class="block text-xs font-bold text-[var(--text-faint)]"><?= e($it['variant_label']) ?></span><?php endif; ?></span>
+              </span>
+            </td>
+            <td><?= e(format_price((float)$it['price'])) ?></td><td><?= (int)$it['qty'] ?></td><td class="font-bold"><?= e(format_price((float)$it['price'] * (int)$it['qty'])) ?></td>
+          </tr>
         <?php endforeach; ?>
         </tbody>
       </table>
@@ -78,12 +128,12 @@ admin_header('طلب ' . $order['code'], 'orders.php');
         <li class="flex items-center gap-2"><?= icon('map-pin', 16) ?> <?= e($order['city']) ?><?= $order['address'] ? ' — ' . e($order['address']) : '' ?></li>
         <li class="flex items-center gap-2"><?= icon('clock', 16) ?> <?= e(format_date($order['created_at'])) ?></li>
       </ul>
-      <a href="<?= e($waUrl) ?>" target="_blank" rel="noopener" class="admin-btn-ghost mt-4 w-full justify-center"><?= icon('whatsapp', 16) ?> مراسلة واتساب</a>
+      <a href="<?= e($waUrl) ?>" target="_blank" rel="noopener" class="admin-btn-ghost no-print mt-4 w-full justify-center"><?= icon('whatsapp', 16) ?> مراسلة واتساب</a>
     </div>
     <div class="admin-card p-6">
       <h2 class="font-extrabold">حالة الطلب</h2>
       <p class="mt-2"><span class="badge <?= order_status_class($order['status']) ?>"><?= e(order_status_label($order['status'])) ?></span></p>
-      <form method="post" class="mt-4 flex gap-2">
+      <form method="post" class="no-print mt-4 flex gap-2">
         <select name="status" class="admin-input">
           <?php foreach ($valid as $v): ?><option value="<?= $v ?>" <?= $order['status'] === $v ? 'selected' : '' ?>><?= e(order_status_label($v)) ?></option><?php endforeach; ?>
         </select>
@@ -92,4 +142,33 @@ admin_header('طلب ' . $order['code'], 'orders.php');
     </div>
   </div>
 </div>
+
+<div class="no-print mt-5 grid gap-5 lg:grid-cols-2">
+  <div class="admin-card p-6">
+    <h2 class="flex items-center gap-2 font-extrabold"><?= icon('clock', 18, 'text-violet-500') ?> سجل الحالات</h2>
+    <?php if (!$timeline): ?>
+      <p class="mt-3 text-sm text-neutral-400">لا سجل بعد</p>
+    <?php else: ?>
+      <ol class="relative mt-4 space-y-4 border-r-2 border-neutral-100 pr-4">
+        <?php foreach ($timeline as $t): ?>
+          <li class="relative">
+            <span class="absolute -right-[23px] top-1 h-3 w-3 rounded-full border-2 border-white <?= $dotCls[$t['status']] ?? 'bg-neutral-300' ?>"></span>
+            <p class="text-sm font-bold"><?= e(order_status_label($t['status'])) ?></p>
+            <p class="text-xs text-neutral-400"><?= e(format_date($t['created_at'])) ?></p>
+          </li>
+        <?php endforeach; ?>
+      </ol>
+    <?php endif; ?>
+  </div>
+  <div class="admin-card p-6">
+    <h2 class="flex items-center gap-2 font-extrabold"><?= icon('edit', 18, 'text-amber-500') ?> ملاحظات داخلية</h2>
+    <p class="mt-1 text-xs text-neutral-400">تظهر لك أنت فقط — العميل لا يراها</p>
+    <form method="post" class="mt-3">
+      <input type="hidden" name="action" value="notes">
+      <textarea name="admin_notes" rows="3" maxlength="2000" placeholder="مثال: اتصل به بعد السادسة مساءً…" class="admin-input w-full"><?= e($order['admin_notes'] ?? '') ?></textarea>
+      <button class="admin-btn mt-2">حفظ الملاحظة</button>
+    </form>
+  </div>
+</div>
+
 <?php admin_footer(); ?>

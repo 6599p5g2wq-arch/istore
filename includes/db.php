@@ -15,7 +15,28 @@ function db(): PDO {
     ]);
     migrate_variants($pdo);
     migrate_customers($pdo);
+    migrate_orders_admin($pdo);
     return $pdo;
+}
+
+// ترقية الطلبات: ملاحظات الأدمن الداخلية + سجل الحالات. آمنة للتكرار
+function migrate_orders_admin(PDO $pdo): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    foreach ([
+        'ALTER TABLE orders ADD COLUMN admin_notes TEXT NULL',
+        'CREATE TABLE IF NOT EXISTS order_status_log (id INT AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, status VARCHAR(20) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX (order_id), FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+    ] as $sql) {
+        try { $pdo->exec($sql); } catch (PDOException $e) { /* موجود مسبقاً */ }
+    }
+    // تعبئة السجل للطلبات الموجودة قبل إنشائه (حالتها الحالية بتاريخ إنشائها)
+    try {
+        $has = (int)$pdo->query('SELECT COUNT(*) c FROM order_status_log')->fetch()['c'];
+        if ($has === 0) {
+            $pdo->exec('INSERT INTO order_status_log (order_id, status, created_at) SELECT id, status, created_at FROM orders');
+        }
+    } catch (PDOException $e) { /* السجل معبأ مسبقاً */ }
 }
 
 // ترقية المتغيرات لقواعد بيانات قائمة: آمنة للتكرار
