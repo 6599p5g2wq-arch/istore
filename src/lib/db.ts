@@ -135,6 +135,14 @@ function initSchema(db: Database.Database) {
     expires_at TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+  CREATE TABLE IF NOT EXISTS points_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+    delta INTEGER NOT NULL,
+    reason TEXT NOT NULL DEFAULT '',
+    order_id INTEGER,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
   CREATE TABLE IF NOT EXISTS stock_alerts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
@@ -207,6 +215,16 @@ function initSchema(db: Database.Database) {
     "ALTER TABLE customers ADD COLUMN city TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE customers ADD COLUMN address TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE customers ADD COLUMN must_change INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE customers ADD COLUMN points INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE customers ADD COLUMN vip_override INTEGER",
+    "ALTER TABLE coupons ADD COLUMN max_uses INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE coupons ADD COLUMN used_count INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE coupons ADD COLUMN customer_id INTEGER",
+    "ALTER TABLE coupons ADD COLUMN starts_at TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE orders ADD COLUMN points_used INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE orders ADD COLUMN points_discount REAL NOT NULL DEFAULT 0",
+    "ALTER TABLE orders ADD COLUMN points_awarded INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE orders ADD COLUMN points_refunded INTEGER NOT NULL DEFAULT 0",
   ]) {
     try { db.exec(stmt); } catch { /* column already exists */ }
   }

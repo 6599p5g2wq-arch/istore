@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Package, Grid3X3, ShoppingCart, Image, Images, Truck, Users, LogOut, Store, Menu, X, Tag, TicketPercent, Star, BellRing, ShoppingBag, UserRound } from "lucide-react";
+import { LayoutDashboard, Package, Grid3X3, ShoppingCart, Image, Images, Truck, Users, LogOut, Store, Menu, X, Tag, TicketPercent, Star, BellRing, ShoppingBag, UserRound, Gift } from "lucide-react";
 
 const LINKS = [
   { href: "/admin", label: "لوحة المعلومات", icon: LayoutDashboard, exact: true },
@@ -13,6 +13,7 @@ const LINKS = [
   { href: "/admin/customers", label: "الزبائن", icon: UserRound },
   { href: "/admin/leads", label: "السلات المهجورة", icon: ShoppingBag },
   { href: "/admin/coupons", label: "أكواد الخصم", icon: TicketPercent },
+  { href: "/admin/loyalty", label: "الولاء و VIP", icon: Gift },
   { href: "/admin/reviews", label: "التقييمات", icon: Star },
   { href: "/admin/stock-alerts", label: "إشعارات التوفر", icon: BellRing },
   { href: "/admin/hero", label: "شرائح الرئيسية", icon: Images },

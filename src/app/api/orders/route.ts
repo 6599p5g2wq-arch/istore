@@ -6,6 +6,7 @@ import { sendTelegram } from "@/lib/telegram";
 import { getSetting } from "@/lib/settings";
 import { validateCoupon } from "@/lib/coupons";
 import { getSessionCustomer } from "@/lib/customer-auth";
+import { getProgram, addPoints } from "@/lib/loyalty";
 import { parseOptions } from "@/lib/variants";
 import type { ProductVariant } from "@/lib/types";
 
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
 type Item = { id: number; qty: number; variant_id?: number | null };
 
 export async function POST(req: NextRequest) {
-  let body: { name?: string; phone?: string; city?: string; address?: string; notes?: string; coupon?: string; items?: Item[] };
+  let body: { name?: string; phone?: string; city?: string; address?: string; notes?: string; coupon?: string; use_points?: boolean; items?: Item[] };
   try {
     body = await req.json();
   } catch {
@@ -67,19 +68,32 @@ export async function POST(req: NextRequest) {
       subtotal += price * qty;
       lines.push({ id: p.id, variantId, name: p.name, label, price, qty });
     }
+    const customer = getSessionCustomer();
     let discount = 0;
     if (couponCode) {
-      const v = validateCoupon(db, couponCode, subtotal);
+      const v = validateCoupon(db, couponCode, subtotal, customer?.id ?? null);
       if (!v.ok) throw new Error(v.error);
       discount = v.discount;
     }
-    const deliveryFee = freeThreshold > 0 && subtotal - discount >= freeThreshold ? 0 : cityRow.fee;
+    // استبدال نقاط الولاء بخصم (للمسجَّل فقط)
+    let pointsUsed = 0;
+    let pointsDiscount = 0;
+    if (body.use_points && customer) {
+      const prog = getProgram(db);
+      if (prog.loyalty.enabled) {
+        const bal = (db.prepare("SELECT points FROM customers WHERE id = ?").get(customer.id) as { points: number } | undefined)?.points ?? 0;
+        const blocks = Math.min(Math.floor(bal / prog.loyalty.redeemPoints), Math.floor((subtotal - discount) / prog.loyalty.redeemValue));
+        if (blocks > 0) { pointsUsed = blocks * prog.loyalty.redeemPoints; pointsDiscount = blocks * prog.loyalty.redeemValue; }
+      }
+    }
+    const deliveryFee = freeThreshold > 0 && subtotal - discount - pointsDiscount >= freeThreshold ? 0 : cityRow.fee;
     const code = "IST-" + crypto.randomBytes(3).toString("hex").toUpperCase();
-    const customer = getSessionCustomer();
     const r = db.prepare(
-      "INSERT INTO orders (code, customer_name, phone, city, address, notes, subtotal, discount, coupon_code, delivery_fee, total, customer_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    ).run(code, name, phone, city, address, notes, subtotal, discount, discount > 0 ? couponCode.toUpperCase() : "", deliveryFee, subtotal - discount + deliveryFee, customer?.id ?? null);
+      "INSERT INTO orders (code, customer_name, phone, city, address, notes, subtotal, discount, coupon_code, delivery_fee, total, customer_id, points_used, points_discount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    ).run(code, name, phone, city, address, notes, subtotal, discount, discount > 0 ? couponCode.toUpperCase() : "", deliveryFee, subtotal - discount - pointsDiscount + deliveryFee, customer?.id ?? null, pointsUsed, pointsDiscount);
     const orderId = Number(r.lastInsertRowid);
+    if (discount > 0) db.prepare("UPDATE coupons SET used_count = used_count + 1 WHERE UPPER(code) = UPPER(?)").run(couponCode);
+    if (pointsUsed > 0 && customer) addPoints(db, customer.id, -pointsUsed, "استبدال نقاط في طلب", orderId);
     const insertItem = db.prepare("INSERT INTO order_items (order_id, product_id, variant_id, name, variant_label, price, qty) VALUES (?, ?, ?, ?, ?, ?, ?)");
     const decStock = db.prepare("UPDATE products SET stock = stock - ? WHERE id = ?");
     const decVariant = db.prepare("UPDATE product_variants SET stock = stock - ? WHERE id = ?");
@@ -88,19 +102,17 @@ export async function POST(req: NextRequest) {
       decStock.run(l.qty, l.id);
       if (l.variantId) decVariant.run(l.qty, l.variantId);
     }
-    const discountAmt = couponCode ? (validateCoupon(db, couponCode, subtotal) as { ok: true; discount: number }).discount : 0;
-    const deliveryFeeFinal = freeThreshold > 0 && subtotal - discountAmt >= freeThreshold ? 0 : cityRow.fee;
-    return { code, orderId, lines, subtotal, discount: discountAmt, deliveryFee: deliveryFeeFinal };
+    return { code, orderId, lines, subtotal, discount, pointsDiscount, deliveryFee };
   });
 
   try {
-    const { code, orderId, lines, subtotal, discount, deliveryFee } = tx();
+    const { code, orderId, lines, subtotal, discount, pointsDiscount, deliveryFee } = tx();
     const currency = (db.prepare("SELECT value FROM settings WHERE key = 'currency'").get() as { value: string } | undefined)?.value || "د.ل";
     // Checkout completed: clear any abandoned-cart lead for this phone.
     db.prepare("DELETE FROM cart_leads WHERE phone = ?").run(phone);
     const notifyLines = lines.map((l) => ({ name: l.label ? `${l.name} — ${l.label}` : l.name, price: l.price, qty: l.qty }));
     // Fire-and-forget: never let the notification delay or break checkout.
-    notifyNewOrder({ code, customer: name, phone, city, address, notes, items: notifyLines, subtotal, discount, couponCode, deliveryFee, total: subtotal - discount + deliveryFee, currency }).catch(() => {});
+    notifyNewOrder({ code, customer: name, phone, city, address, notes, items: notifyLines, subtotal, discount, couponCode, deliveryFee, total: subtotal - discount - pointsDiscount + deliveryFee, currency }).catch(() => {});
     // تنبيه تيليجرام للمالك — لا يؤثر على إتمام الطلب إطلاقاً
     const money = (n: number) => `${n.toLocaleString("en-US")} ${currency}`;
     const siteUrl = getSetting("site_url");
@@ -111,7 +123,7 @@ export async function POST(req: NextRequest) {
       `الهاتف: ${phone}`,
       `المدينة: ${city}`,
       ...notifyLines.map((l) => `• ${l.name} × ${l.qty} — ${money(l.price * l.qty)}`),
-      `الإجمالي: ${money(subtotal - discount + deliveryFee)}`,
+      `الإجمالي: ${money(subtotal - discount - pointsDiscount + deliveryFee)}`,
       orderUrl,
     ].join("\n");
     sendTelegram(tgText).catch(() => {});

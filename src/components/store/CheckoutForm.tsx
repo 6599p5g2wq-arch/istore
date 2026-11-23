@@ -3,12 +3,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Truck, Banknote, MapPin, User, Phone, StickyNote, Loader2, TicketPercent, CheckCircle2 } from "lucide-react";
+import { Gift, Truck, Banknote, MapPin, User, Phone, StickyNote, Loader2, TicketPercent, CheckCircle2 } from "lucide-react";
 import { useCart } from "./CartContext";
 import { formatPrice } from "@/lib/format";
 import type { City } from "@/lib/types";
 
-export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold, customer }: { cities: City[]; currency: string; whatsapp: string; freeThreshold: number; customer?: { name: string; phone: string; city: string; address: string } | null }) {
+export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold, customer, loyalty }: { cities: City[]; currency: string; whatsapp: string; freeThreshold: number; customer?: { name: string; phone: string; city: string; address: string } | null; loyalty?: { points: number; redeemPoints: number; redeemValue: number } | null }) {
   const { items, total, clear } = useCart();
   const router = useRouter();
   const [form, setForm] = useState({
@@ -24,10 +24,14 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
   const [couponLoading, setCouponLoading] = useState(false);
 
   const discount = applied?.discount ?? 0;
+  const [usePoints, setUsePoints] = useState(false);
+  const blocks = loyalty ? Math.max(0, Math.min(Math.floor(loyalty.points / loyalty.redeemPoints), Math.floor((total - discount) / loyalty.redeemValue))) : 0;
+  const pointsDiscount = usePoints && loyalty ? blocks * loyalty.redeemValue : 0;
+  const pointsUsed = usePoints && loyalty ? blocks * loyalty.redeemPoints : 0;
   const fee = useMemo(() => {
-    if (freeThreshold > 0 && total - discount >= freeThreshold) return 0;
+    if (freeThreshold > 0 && total - discount - pointsDiscount >= freeThreshold) return 0;
     return cities.find((c) => c.name === form.city)?.fee ?? 0;
-  }, [form.city, cities, total, discount, freeThreshold]);
+  }, [form.city, cities, total, discount, pointsDiscount, freeThreshold]);
 
   // Abandoned-cart capture: once we have a valid phone + items, record the lead.
   useEffect(() => {
@@ -67,7 +71,7 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
       const r = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, coupon: applied?.code || "", items: items.map((i) => ({ id: i.id, qty: i.qty, variant_id: i.variant_id ?? null })) }),
+        body: JSON.stringify({ ...form, coupon: applied?.code || "", use_points: usePoints, items: items.map((i) => ({ id: i.id, qty: i.qty, variant_id: i.variant_id ?? null })) }),
       });
       const d = await r.json();
       if (!r.ok) { setError(d.error || "حدث خطأ، حاول مرة أخرى"); setLoading(false); return; }
@@ -144,6 +148,16 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
             </div>
           )}
         </div>
+        {loyalty && loyalty.points > 0 && (
+          <div className="rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-extrabold text-white"><Gift size={19} className="text-[var(--accent)]" /> نقاط الولاء</h2>
+            <p className="text-sm text-[var(--text-dim)]">رصيدك: <b className="text-white">{loyalty.points}</b> نقطة ({loyalty.redeemPoints} نقطة = {formatPrice(loyalty.redeemValue, currency)})</p>
+            <label className={`mt-3 flex items-center gap-3 text-sm font-bold ${blocks > 0 ? "text-white" : "text-[var(--text-faint)]"}`}>
+              <input type="checkbox" disabled={blocks === 0} checked={usePoints && blocks > 0} onChange={(e) => setUsePoints(e.target.checked)} className="h-4 w-4" />
+              {blocks > 0 ? `استخدم ${blocks * loyalty.redeemPoints} نقطة واحصل على خصم ${formatPrice(blocks * loyalty.redeemValue, currency)}` : "رصيدك لا يكفي للاستبدال بعد"}
+            </label>
+          </div>
+        )}
         <div className="rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-extrabold text-white"><Banknote size={19} className="text-[var(--accent)]" /> طريقة الدفع</h2>
           <div className="flex items-center gap-3 rounded-2xl border-2 border-[var(--accent)] bg-[var(--accent)]/10 p-4">
@@ -178,6 +192,9 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
             {discount > 0 && (
               <div className="flex justify-between text-emerald-400"><span>الخصم ({applied?.code})</span><span className="font-bold">- {formatPrice(discount, currency)}</span></div>
             )}
+            {pointsDiscount > 0 && (
+              <div className="flex justify-between text-emerald-400"><span>نقاط الولاء ({pointsUsed})</span><span className="font-bold">- {formatPrice(pointsDiscount, currency)}</span></div>
+            )}
             <div className="flex justify-between text-[var(--text-dim)]">
               <span className="flex items-center gap-1"><Truck size={14} /> التوصيل — {form.city || "اختر المدينة"}</span>
               <span className={`font-bold ${fee === 0 ? "text-emerald-400" : "text-white"}`}>{fee === 0 ? "مجاني" : formatPrice(fee, currency)}</span>
@@ -188,7 +205,7 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
           </div>
           <div className="mt-4 flex justify-between border-t border-[var(--border)] pt-4">
             <span className="text-lg font-bold text-white">الإجمالي</span>
-            <span className="text-2xl font-black text-[var(--accent)]">{formatPrice(total - discount + fee, currency)}</span>
+            <span className="text-2xl font-black text-[var(--accent)]">{formatPrice(total - discount - pointsDiscount + fee, currency)}</span>
           </div>
           {error && <p className="mt-4 rounded-xl bg-red-500/10 px-4 py-3 text-sm font-bold text-red-400">{error}</p>}
           <motion.button

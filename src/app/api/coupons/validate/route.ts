@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { bad } from "@/lib/admin-api";
 import { validateCoupon } from "@/lib/coupons";
+import { getSessionCustomer } from "@/lib/customer-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest) {
   const subtotal = Number(b.subtotal) || 0;
   if (!code) return bad("أدخل كود الخصم");
   const db = getDb();
-  const r = validateCoupon(db, code, subtotal);
+  const r = validateCoupon(db, code, subtotal, getSessionCustomer()?.id ?? null);
   if (!r.ok) return bad(r.error);
   return NextResponse.json({ ok: true, discount: r.discount, kind: r.coupon.kind, value: r.coupon.value });
 }

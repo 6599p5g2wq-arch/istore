@@ -6,9 +6,9 @@ import DeleteButton from "./DeleteButton";
 import { formatPrice } from "@/lib/format";
 import type { Coupon } from "@/lib/types";
 
-export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
+export default function CouponsManager({ coupons }: { coupons: (Coupon & { customer_name?: string | null })[] }) {
   const router = useRouter();
-  const [form, setForm] = useState({ code: "", kind: "percent", value: "", min_total: "", expires_at: "" });
+  const [form, setForm] = useState({ code: "", kind: "percent", value: "", min_total: "", expires_at: "", starts_at: "", max_uses: "" });
   const [loading, setLoading] = useState(false);
 
   const add = async (e: React.FormEvent) => {
@@ -17,10 +17,10 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
     const r = await fetch("/api/admin/coupons", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, value: Number(form.value) || 0, min_total: Number(form.min_total) || 0 }),
+      body: JSON.stringify({ ...form, value: Number(form.value) || 0, min_total: Number(form.min_total) || 0, max_uses: Number(form.max_uses) || 0 }),
     });
     setLoading(false);
-    if (r.ok) { setForm({ code: "", kind: "percent", value: "", min_total: "", expires_at: "" }); router.refresh(); }
+    if (r.ok) { setForm({ code: "", kind: "percent", value: "", min_total: "", expires_at: "", starts_at: "", max_uses: "" }); router.refresh(); }
     else { const d = await r.json().catch(() => ({})); alert(d.error || "حدث خطأ"); }
   };
 
@@ -43,7 +43,10 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
               <p className="text-xs text-neutral-500">
                 {c.kind === "percent" ? `خصم ${c.value}%` : `خصم ${formatPrice(c.value)}`}
                 {c.min_total > 0 && ` — حد أدنى ${formatPrice(c.min_total)}`}
+                {c.starts_at && ` — من ${c.starts_at}`}
                 {c.expires_at && ` — حتى ${c.expires_at}`}
+                {` — استُخدم ${c.used_count}${c.max_uses > 0 ? ` من ${c.max_uses}` : " (بلا حد)"}`}
+                {c.customer_id ? ` — خاص بالزبون ${c.customer_name || "#" + c.customer_id}` : ""}
               </p>
             </div>
             <button onClick={() => toggle(c)} className={`rounded-full px-4 py-1.5 text-xs font-bold ${c.active ? "bg-emerald-100 text-emerald-700" : "bg-neutral-100 text-neutral-500"}`}>
@@ -66,6 +69,8 @@ export default function CouponsManager({ coupons }: { coupons: Coupon[] }) {
           <label className="block text-sm font-bold">القيمة *<input required type="number" min={1} value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} className={inputCls} /></label>
         </div>
         <label className="block text-sm font-bold">حد أدنى للطلب (اختياري)<input type="number" min={0} value={form.min_total} onChange={(e) => setForm({ ...form, min_total: e.target.value })} className={inputCls} placeholder="0" /></label>
+        <label className="block text-sm font-bold">أقصى عدد استخدامات (اختياري)<input type="number" min={0} value={form.max_uses} onChange={(e) => setForm({ ...form, max_uses: e.target.value })} className={inputCls} placeholder="0 = بلا حد" /></label>
+        <label className="block text-sm font-bold">تاريخ البداية (اختياري)<input type="date" dir="ltr" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} className={`${inputCls} text-left`} /></label>
         <label className="block text-sm font-bold">تاريخ الانتهاء (اختياري)<input type="date" dir="ltr" value={form.expires_at} onChange={(e) => setForm({ ...form, expires_at: e.target.value })} className={`${inputCls} text-left`} /></label>
         <button disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-full bg-black py-3 font-bold text-white disabled:opacity-60">
           {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />} إنشاء

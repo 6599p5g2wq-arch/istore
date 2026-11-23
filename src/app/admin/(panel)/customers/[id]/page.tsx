@@ -7,13 +7,15 @@ import { getSettings } from "@/lib/settings";
 import { formatPrice, formatDate } from "@/lib/format";
 import { waNumber } from "@/lib/phone";
 import CustomerActions from "@/components/admin/CustomerActions";
+import CustomerPoints from "@/components/admin/CustomerPoints";
+import { getProgram, isVip } from "@/lib/loyalty";
 import { ArrowRight, Phone, Mail, MapPin, MessageCircle } from "lucide-react";
 import type { Order } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 const STATUS_LABEL: Record<string, string> = { new: "جديد", confirmed: "مؤكد", shipped: "تم الشحن", delivered: "تم التوصيل", cancelled: "ملغي" };
-type C = { id: number; name: string; email: string; phone: string; created_at: string; last_login: string | null; blocked: number; city: string; address: string };
+type C = { id: number; name: string; email: string; phone: string; created_at: string; last_login: string | null; blocked: number; city: string; address: string; points: number; vip_override: number | null };
 
 export default function CustomerDetail({ params }: { params: { id: string } }) {
   const db = getDb();
@@ -30,6 +32,9 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
   const spent = valid.reduce((a, o) => a + o.total, 0);
   const avg = valid.length ? spent / valid.length : 0;
   const waPhone = waNumber(c.phone);
+  const prog = getProgram(db);
+  const vip = isVip(spent, c.vip_override, prog);
+  const plog = db.prepare("SELECT delta, reason, created_at FROM points_log WHERE customer_id = ? ORDER BY id DESC LIMIT 20").all(c.id) as { delta: number; reason: string; created_at: string }[];
 
   return (
     <div className="max-w-4xl">
@@ -38,6 +43,7 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
       </Link>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-black sm:text-3xl">{c.name}</h1>
+        {vip && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-700">★ VIP</span>}
         {c.blocked ? <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-extrabold text-red-600">موقوف</span> : <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold text-emerald-700">نشط</span>}
       </div>
       <p className="mt-1 text-sm text-neutral-400">مسجّل منذ {formatDate(c.created_at)}{c.last_login ? ` · آخر دخول ${formatDate(c.last_login)}` : ""}</p>
@@ -46,6 +52,22 @@ export default function CustomerDetail({ params }: { params: { id: string } }) {
         <div className="rounded-3xl bg-white p-5 shadow-sm"><p className="text-xs text-neutral-400">إجمالي المشتريات</p><p className="mt-1 text-2xl font-black">{formatPrice(spent, s.currency)}</p></div>
         <div className="rounded-3xl bg-white p-5 shadow-sm"><p className="text-xs text-neutral-400">عدد الطلبات</p><p className="mt-1 text-2xl font-black">{orders.length}</p></div>
         <div className="rounded-3xl bg-white p-5 shadow-sm"><p className="text-xs text-neutral-400">متوسط الطلب</p><p className="mt-1 text-2xl font-black">{formatPrice(avg, s.currency)}</p></div>
+      </div>
+
+      <div className="mt-5 rounded-3xl bg-white p-6 shadow-sm">
+        <h2 className="mb-1 font-extrabold">نقاط الولاء</h2>
+        <p className="text-2xl font-black">{c.points} <span className="text-sm font-bold text-neutral-400">نقطة{prog.loyalty.enabled ? "" : " (البرنامج متوقف)"}</span></p>
+        <div className="mt-4"><CustomerPoints id={c.id} vip={c.vip_override === 1 ? "on" : c.vip_override === 0 ? "off" : "auto"} /></div>
+        {plog.length > 0 && (
+          <ul className="mt-4 divide-y divide-neutral-50 text-sm">
+            {plog.map((l, i) => (
+              <li key={i} className="flex items-center justify-between gap-3 py-2">
+                <span className="text-neutral-600">{l.reason}</span>
+                <span className="flex items-center gap-3"><span className="text-xs text-neutral-400">{formatDate(l.created_at)}</span><b dir="ltr" className={l.delta > 0 ? "text-emerald-600" : "text-red-600"}>{l.delta > 0 ? "+" : ""}{l.delta}</b></span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="mt-5 rounded-3xl bg-white p-6 shadow-sm">

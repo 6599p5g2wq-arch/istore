@@ -9,7 +9,8 @@ import LogoutButton from "@/components/store/LogoutButton";
 import { ProfileForm, PasswordForm } from "@/components/store/AccountProfile";
 import OrderTimeline from "@/components/store/OrderTimeline";
 import { getSettings } from "@/lib/settings";
-import { Package, Mail, Phone, ChevronLeft, UserRound, KeyRound } from "lucide-react";
+import { getProgram, isVip } from "@/lib/loyalty";
+import { Gift, TicketPercent, Package, Mail, Phone, ChevronLeft, UserRound, KeyRound } from "lucide-react";
 import type { Order } from "@/lib/types";
 import type { Metadata } from "next";
 
@@ -36,13 +37,20 @@ export default function AccountPage() {
 
   const db = getDb();
   const orders = db.prepare("SELECT * FROM orders WHERE customer_id = ? ORDER BY id DESC LIMIT 20").all(customer.id) as Order[];
+  const prog = getProgram(db);
+  const spent = (db.prepare("SELECT COALESCE(SUM(total), 0) s FROM orders WHERE customer_id = ? AND status != 'cancelled'").get(customer.id) as { s: number }).s;
+  const vipRow = db.prepare("SELECT vip_override FROM customers WHERE id = ?").get(customer.id) as { vip_override: number | null };
+  const vip = isVip(spent, vipRow.vip_override, prog);
+  const today = new Date().toISOString().slice(0, 10);
+  const myCoupons = db.prepare("SELECT code, kind, value, min_total, expires_at, max_uses, used_count FROM coupons WHERE customer_id = ? AND active = 1 ORDER BY id DESC").all(customer.id) as { code: string; kind: string; value: number; min_total: number; expires_at: string; max_uses: number; used_count: number }[];
+  const liveCoupons = myCoupons.filter((c) => (!c.expires_at || c.expires_at >= today) && (c.max_uses === 0 || c.used_count < c.max_uses));
   const cityNames = (db.prepare("SELECT name FROM cities WHERE active = 1 ORDER BY sort_order, name").all() as { name: string }[]).map((c) => c.name);
 
   return (
     <div className="mx-auto max-w-3xl px-4 pt-12 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white">مرحباً، {customer.name} 👋</h1>
+          <h1 className="text-3xl font-black text-white">مرحباً، {customer.name} 👋{vip && <span className="mr-3 rounded-full bg-amber-500/15 px-3 py-1 align-middle text-sm font-extrabold text-amber-400">★ VIP</span>}</h1>
           <p className="mt-2 flex flex-wrap items-center gap-4 text-sm text-[var(--text-dim)]">
             <span className="flex items-center gap-1.5"><Mail size={14} /> <span dir="ltr">{customer.email}</span></span>
             {customer.phone && <span className="flex items-center gap-1.5"><Phone size={14} /> <span dir="ltr">{customer.phone}</span></span>}
@@ -50,6 +58,25 @@ export default function AccountPage() {
         </div>
         <LogoutButton />
       </div>
+
+      {(liveCoupons.length > 0 || (prog.loyalty.enabled && customer.points > 0)) && (
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          {liveCoupons.map((c) => (
+            <div key={c.code} className="rounded-2xl border border-[var(--border)] bg-white/[0.04] px-5 py-4">
+              <p className="flex items-center gap-2 text-sm font-bold text-[var(--text-dim)]"><TicketPercent size={16} className="text-[var(--accent)]" /> كوبونك الخاص</p>
+              <p className="mt-2 text-xl font-black text-white" dir="ltr">{c.code}</p>
+              <p className="mt-1 text-xs text-[var(--text-dim)]">{c.kind === "percent" ? `خصم ${c.value}%` : `خصم ${formatPrice(c.value)}`}{c.expires_at ? ` · صالح حتى ${c.expires_at}` : ""} · خاص بحسابك فقط</p>
+            </div>
+          ))}
+          {prog.loyalty.enabled && customer.points > 0 && (
+            <div className="rounded-2xl border border-[var(--border)] bg-white/[0.04] px-5 py-4">
+              <p className="flex items-center gap-2 text-sm font-bold text-[var(--text-dim)]"><Gift size={16} className="text-[var(--accent)]" /> نقاط الولاء</p>
+              <p className="mt-2 text-xl font-black text-white">{customer.points} نقطة</p>
+              <p className="mt-1 text-xs text-[var(--text-dim)]">{prog.loyalty.redeemPoints} نقطة = {formatPrice(prog.loyalty.redeemValue)} خصم عند إتمام الطلب</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <h2 className="mt-12 flex items-center gap-2 text-xl font-extrabold text-white"><Package size={20} className="text-[var(--accent)]" /> طلباتي</h2>
       {orders.length === 0 ? (

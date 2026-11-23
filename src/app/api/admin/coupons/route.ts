@@ -14,6 +14,10 @@ export async function POST(req: NextRequest) {
   if (value <= 0 || (b.kind === "percent" && value > 90)) return bad("قيمة الخصم غير صالحة");
   const db = getDb();
   if (db.prepare("SELECT id FROM coupons WHERE UPPER(code) = ?").get(code)) return bad("هذا الكود موجود مسبقاً");
-  const r = db.prepare("INSERT INTO coupons (code, kind, value, min_total, expires_at) VALUES (?, ?, ?, ?, ?)").run(code, b.kind, value, Number(b.min_total) || 0, (b.expires_at || "").trim());
+  const startsAt = (b.starts_at || "").trim();
+  const expiresAt = (b.expires_at || "").trim();
+  if (startsAt && expiresAt && startsAt > expiresAt) return bad("تاريخ البداية بعد تاريخ الانتهاء");
+  const maxUses = Math.max(0, Math.floor(Number(b.max_uses) || 0));
+  const r = db.prepare("INSERT INTO coupons (code, kind, value, min_total, expires_at, starts_at, max_uses) VALUES (?, ?, ?, ?, ?, ?, ?)").run(code, b.kind, value, Number(b.min_total) || 0, expiresAt, startsAt, maxUses);
   return NextResponse.json({ ok: true, id: Number(r.lastInsertRowid) });
 }

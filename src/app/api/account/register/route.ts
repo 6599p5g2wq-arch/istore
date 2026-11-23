@@ -3,6 +3,8 @@ import { bad } from "@/lib/admin-api";
 import { registerCustomer, createCustomerSession, MIN_PASSWORD } from "@/lib/customer-auth";
 import { normalizeLibyanPhone } from "@/lib/phone";
 import { clientIp, tooMany } from "@/lib/rate-limit";
+import { getDb } from "@/lib/db";
+import { createWelcomeCoupon } from "@/lib/loyalty";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +21,7 @@ export async function POST(req: NextRequest) {
   if (password.length < MIN_PASSWORD) return bad(`كلمة المرور ${MIN_PASSWORD} أحرف على الأقل`);
   const r = registerCustomer(name, email, phone, password);
   if ("error" in r) return bad(r.error);
+  try { createWelcomeCoupon(getDb(), r.id); } catch { /* لا يمنع التسجيل */ }
   const token = createCustomerSession(r.id);
   const res = NextResponse.json({ ok: true });
   res.cookies.set("customer_session", token, { httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 30, path: "/" });

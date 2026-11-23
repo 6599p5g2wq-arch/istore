@@ -51,7 +51,7 @@ export function getSessionCustomer(): Customer | null {
   const db = getDb();
   const row = db
     .prepare(
-      `SELECT c.id, c.name, c.email, c.phone, c.created_at, c.city, c.address, c.must_change FROM customer_sessions s JOIN customers c ON c.id = s.customer_id
+      `SELECT c.id, c.name, c.email, c.phone, c.created_at, c.city, c.address, c.must_change, c.points FROM customer_sessions s JOIN customers c ON c.id = s.customer_id
        WHERE s.token = ? AND s.expires_at > datetime('now') AND c.blocked = 0`
     )
     .get(token) as Customer | undefined;

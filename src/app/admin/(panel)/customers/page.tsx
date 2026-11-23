@@ -5,11 +5,12 @@ import { getSettings } from "@/lib/settings";
 import { formatPrice, formatDate } from "@/lib/format";
 import { waNumber } from "@/lib/phone";
 import CustomersSearch from "@/components/admin/CustomersSearch";
+import { getProgram, isVip } from "@/lib/loyalty";
 import { Download, MessageCircle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-type Row = { id: number; name: string; email: string; phone: string; created_at: string; last_login: string | null; blocked: number; oc: number; spent: number; last_order: string | null };
+type Row = { id: number; name: string; email: string; phone: string; created_at: string; last_login: string | null; blocked: number; points: number; vip_override: number | null; oc: number; spent: number; last_order: string | null };
 type Guest = { name: string; phone: string; oc: number; spent: number; last_order: string };
 
 const SORTS: Record<string, { label: string; sql: string }> = {
@@ -27,10 +28,11 @@ export default function AdminCustomers({ searchParams }: { searchParams: { tab?:
   const guestCount = (db.prepare("SELECT COUNT(DISTINCT phone) c FROM orders WHERE customer_id IS NULL").get() as { c: number }).c;
 
   const accounts = tab === "accounts"
-    ? db.prepare(`SELECT c.id, c.name, c.email, c.phone, c.created_at, c.last_login, c.blocked, COUNT(o.id) oc,
+    ? db.prepare(`SELECT c.id, c.name, c.email, c.phone, c.created_at, c.last_login, c.blocked, c.points, c.vip_override, COUNT(o.id) oc,
         COALESCE(SUM(CASE WHEN o.status != 'cancelled' THEN o.total END), 0) spent, MAX(o.created_at) last_order
         FROM customers c LEFT JOIN orders o ON o.customer_id = c.id GROUP BY c.id ORDER BY ${SORTS[sort].sql}`).all() as Row[]
     : [];
+  const prog = getProgram(db);
   const guests = tab === "guests"
     ? db.prepare(`SELECT MAX(customer_name) name, phone, COUNT(*) oc, COALESCE(SUM(CASE WHEN status != 'cancelled' THEN total END), 0) spent, MAX(created_at) last_order
         FROM orders WHERE customer_id IS NULL GROUP BY phone ORDER BY last_order DESC`).all() as Guest[]
@@ -75,7 +77,7 @@ export default function AdminCustomers({ searchParams }: { searchParams: { tab?:
                 <thead>
                   <tr className="border-b text-right text-xs text-neutral-400">
                     <th className="p-3 font-bold">الاسم</th><th className="p-3 font-bold">الهاتف</th><th className="p-3 font-bold">البريد</th>
-                    <th className="p-3 font-bold">الطلبات</th><th className="p-3 font-bold">إجمالي المشتريات</th><th className="p-3 font-bold">آخر طلب</th><th className="p-3 font-bold">التسجيل</th>
+                    <th className="p-3 font-bold">الطلبات</th><th className="p-3 font-bold">إجمالي المشتريات</th><th className="p-3 font-bold">النقاط</th><th className="p-3 font-bold">آخر طلب</th><th className="p-3 font-bold">التسجيل</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -83,12 +85,14 @@ export default function AdminCustomers({ searchParams }: { searchParams: { tab?:
                     <tr key={c.id} data-search={`${c.name} ${c.phone} ${c.email}`.toLowerCase()} className="js-customer-row border-b border-neutral-50 last:border-0 hover:bg-neutral-50/60">
                       <td className="p-3">
                         <Link href={`/admin/customers/${c.id}`} className="font-extrabold text-[var(--accent)]">{c.name}</Link>
+                        {isVip(c.spent, c.vip_override, prog) && <span className="mr-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-extrabold text-amber-700">★ VIP</span>}
                         {c.blocked ? <span className="mr-2 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-extrabold text-red-600">موقوف</span> : null}
                       </td>
                       <td className="p-3 text-neutral-500" dir="ltr">{c.phone}</td>
                       <td className="p-3 text-neutral-500" dir="ltr">{c.email}</td>
                       <td className="p-3 font-bold">{c.oc}</td>
                       <td className="p-3 font-bold">{formatPrice(c.spent, s.currency)}</td>
+                      <td className="p-3 font-bold">{c.points}</td>
                       <td className="p-3 text-xs text-neutral-400">{c.last_order ? formatDate(c.last_order) : "—"}</td>
                       <td className="p-3 text-xs text-neutral-400">{formatDate(c.created_at)}</td>
                     </tr>

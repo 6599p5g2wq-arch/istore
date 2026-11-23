@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireAdmin, bad } from "@/lib/admin-api";
+import { applyOrderStatusEffects } from "@/lib/loyalty";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     for (const it of items) if (it.product_id) restore.run(it.qty, it.product_id);
   }
   db.prepare("UPDATE orders SET status = ? WHERE id = ?").run(b.status, params.id);
+  applyOrderStatusEffects(db, Number(params.id), order.status, b.status);
   return NextResponse.json({ ok: true });
 }
 
