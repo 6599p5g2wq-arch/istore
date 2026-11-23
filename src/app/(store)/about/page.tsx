@@ -1,7 +1,7 @@
 import React from "react";
 import { getSettings } from "@/lib/settings";
 import Reveal from "@/components/store/Reveal";
-import { RefreshCcw, Truck, Store } from "lucide-react";
+import { RefreshCcw, Truck, Store, MapPin } from "lucide-react";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +32,11 @@ export default function AboutPage() {
           <h2 className="flex items-center gap-2 text-xl font-extrabold text-white"><Store size={20} className="text-[var(--accent)]" /> معلومات التواصل</h2>
           <p className="mt-3 leading-8 text-[var(--text-dim)]">{s.address} — <span dir="ltr">{s.phone}</span> — {s.email}</p>
           <p className="text-[var(--text-dim)]">{s.working_hours}</p>
+          {s.map_url && (
+            <a href={s.map_url} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition hover:-translate-y-0.5 hover:bg-neutral-200">
+              <MapPin size={18} /> فتح الموقع على الخريطة
+            </a>
+          )}
         </div>
       </Reveal>
     </div>

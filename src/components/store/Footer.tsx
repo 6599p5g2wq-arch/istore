@@ -24,6 +24,7 @@ export default function Footer() {
               {s.facebook && <a href={s.facebook} target="_blank" rel="noreferrer" aria-label="فيسبوك" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><Facebook size={18} /></a>}
               {s.instagram && <a href={s.instagram} target="_blank" rel="noreferrer" aria-label="انستغرام" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><Instagram size={18} /></a>}
               {s.tiktok && <a href={s.tiktok} target="_blank" rel="noreferrer" aria-label="تيك توك" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><Music2 size={18} /></a>}
+              {s.map_url && <a href={s.map_url} target="_blank" rel="noreferrer" aria-label="موقع المحل على الخريطة" title="موقع المحل على الخريطة" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><MapPin size={18} /></a>}
             </div>
           </div>
           <div>

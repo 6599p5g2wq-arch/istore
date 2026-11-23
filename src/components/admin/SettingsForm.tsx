@@ -18,8 +18,14 @@ const SECTIONS: { title: string; fields: { key: string; label: string; area?: bo
       { key: "phone", label: "رقم الهاتف", ltr: true },
       { key: "whatsapp", label: "رقم واتساب (بالصيغة الدولية بدون +)", ltr: true },
       { key: "email", label: "البريد الإلكتروني", ltr: true },
+    ],
+  },
+  {
+    title: "موقع المحل",
+    fields: [
       { key: "address", label: "العنوان" },
       { key: "working_hours", label: "أوقات العمل" },
+      { key: "map_url", label: "رابط الموقع على خرائط قوقل (Google Maps) — اتركه فارغاً لإخفاء الأيقونة والزر", ltr: true },
     ],
   },
   {
@@ -69,6 +75,7 @@ export default function SettingsForm({ settings, telegramTokenSaved = false }: {
   const [form, setForm] = useState<Record<string, string>>({ ...settings, telegram_bot_token: "" });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [err, setErr] = useState("");
   const [testState, setTestState] = useState<"idle" | "sending" | "ok" | "fail">("idle");
 
   const save = async (e: React.FormEvent) => {
@@ -78,7 +85,14 @@ export default function SettingsForm({ settings, telegramTokenSaved = false }: {
     const body: Record<string, string> = {};
     for (const sec of SECTIONS) for (const fl of sec.fields) body[fl.key] = form[fl.key] || "";
     if (!body.telegram_bot_token) delete body.telegram_bot_token;
-    await fetch("/api/control/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    setErr("");
+    const r = await fetch("/api/control/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      setErr(j.error || "تعذّر الحفظ");
+      setLoading(false);
+      return;
+    }
     setLoading(false); setSaved(true);
     router.refresh();
     setTimeout(() => setSaved(false), 2500);
@@ -129,6 +143,7 @@ export default function SettingsForm({ settings, telegramTokenSaved = false }: {
           </div>
         </div>
       ))}
+      {err && <div className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700">{err}</div>}
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" onClick={testTelegram} disabled={testState === "sending"} className="rounded-full border border-neutral-300 bg-white px-6 py-3 text-sm font-bold text-neutral-600 transition hover:bg-neutral-100 disabled:opacity-60">
           {testState === "sending" ? "جارٍ الإرسال..." : testState === "ok" ? "وصلت الرسالة التجريبية ✓" : testState === "fail" ? "فشل الإرسال — راجع التوكن والمعرف" : "إرسال رسالة تجريبية عبر تيليجرام"}
