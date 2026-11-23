@@ -1,4 +1,5 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteRule ^favicon\.ico$ favicon.php?s=48 [L]
+RewriteRule ^favicon\.ico$ favicon.php?ico=1 [L]
+RewriteRule ^apple-touch-icon(?:-precomposed)?\.png$ favicon.php?s=180 [L]
 </IfModule>

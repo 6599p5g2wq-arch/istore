@@ -34,6 +34,7 @@ function admin_header(string $title, string $active = ''): void {
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
+<?php require APP_ROOT . '/includes/favicon-head.php'; ?>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
