@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Package, Grid3X3, ShoppingCart, Image, Images, Truck, Users, LogOut, Store, Menu, X, Tag, TicketPercent, Star, BellRing, ShoppingBag } from "lucide-react";
@@ -20,10 +20,18 @@ const LINKS = [
   { href: "/admin/admins", label: "المشرفون", icon: Users },
 ];
 
-export default function AdminSidebar({ storeName, username }: { storeName: string; username: string }) {
+export default function AdminSidebar({ storeName, username, newOrders = 0, lowStock = 0 }: { storeName: string; username: string; newOrders?: number; lowStock?: number }) {
+  const badges: Record<string, number> = { "/admin/orders": newOrders, "/admin/products": lowStock };
+  const totalAlerts = newOrders + lowStock;
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  // Refresh counts every minute (server layout recomputes them).
+  useEffect(() => {
+    const t = setInterval(() => router.refresh(), 60000);
+    return () => clearInterval(t);
+  }, [router]);
 
   const logout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -46,7 +54,10 @@ export default function AdminSidebar({ storeName, username }: { storeName: strin
           return (
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
               className={`mb-1 flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-bold transition ${active ? "bg-white text-black" : "text-white/70 hover:bg-white/10 hover:text-white"}`}>
-              <l.icon size={17} /> {l.label}
+              <l.icon size={17} /> <span className="flex-1">{l.label}</span>
+              {(badges[l.href] ?? 0) > 0 && (
+                <span title={l.href === "/admin/orders" ? "طلبات جديدة" : "منتجات مخزونها منخفض"} className={`grid min-w-[1.4rem] place-items-center rounded-full px-1.5 py-0.5 text-[11px] font-extrabold leading-none text-white ${l.href === "/admin/orders" ? "bg-red-500" : "bg-amber-500"}`}>{badges[l.href] > 99 ? "99+" : badges[l.href]}</span>
+              )}
             </Link>
           );
         })}
@@ -64,7 +75,7 @@ export default function AdminSidebar({ storeName, username }: { storeName: strin
 
   return (
     <>
-      <button onClick={() => setOpen(true)} aria-label="القائمة" className="fixed right-4 top-4 z-40 grid h-11 w-11 place-items-center rounded-full bg-black text-white shadow-lg lg:hidden"><Menu size={20} /></button>
+      <button onClick={() => setOpen(true)} aria-label="القائمة" className="fixed right-4 top-4 z-40 grid h-11 w-11 place-items-center rounded-full bg-black text-white shadow-lg lg:hidden"><Menu size={20} />{totalAlerts > 0 && <span className="absolute -left-1 -top-1 grid min-w-[1.25rem] place-items-center rounded-full bg-red-500 px-1 py-0.5 text-[10px] font-extrabold leading-none text-white">{totalAlerts > 99 ? "99+" : totalAlerts}</span>}</button>
       <aside className="fixed inset-y-0 right-0 z-30 hidden w-64 lg:block">{nav}</aside>
       {open && (
         <div className="fixed inset-0 z-50 bg-black/50 lg:hidden" onClick={() => setOpen(false)}>
