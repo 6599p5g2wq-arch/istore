@@ -2,6 +2,9 @@
 require __DIR__ . '/includes/bootstrap.php';
 require APP_ROOT . '/includes/auth.php';
 require APP_ROOT . '/includes/product-card.php';
+require APP_ROOT . '/includes/intro.php';
+$intro = intro_cfg();
+$heroTag = $intro['enabled'] ? 'h2' : 'h1';
 
 $slides = qall('SELECT * FROM hero_slides WHERE active = 1 ORDER BY sort_order');
 $cats = categories();
@@ -14,6 +17,27 @@ $threshold = (float)setting('free_shipping_threshold', '0');
 require APP_ROOT . '/includes/store-header.php';
 ?>
 
+<?php if ($intro['enabled']): $ilink = str_starts_with($intro['cta_link'], 'http') ? $intro['cta_link'] : url(ltrim($intro['cta_link'], '/')); ?>
+<!-- القسم الافتتاحي -->
+<section class="intro" id="intro" data-opacity="<?= e((string)$intro['opacity']) ?>">
+  <?php if ($intro['logo'] !== ''): ?><div class="intro-logo" aria-hidden="true" style="background-image:url('<?= e(img_url($intro['logo'])) ?>');opacity:<?= e((string)($intro['opacity'] / 100)) ?>"></div><?php endif; ?>
+  <div class="intro-content">
+    <?php if ($intro['pill'] !== ''): ?><span class="intro-pill"><?= icon('sparkles', 14) ?> <?= e($intro['pill']) ?></span><?php endif; ?>
+    <h1 class="intro-title"><?= e($intro['title']) ?></h1>
+    <?php if ($intro['tagline'] !== ''): ?><p class="intro-tagline"><?= e($intro['tagline']) ?></p><?php endif; ?>
+    <?php if ($intro['chips']): ?>
+    <ul class="intro-chips">
+      <?php foreach ($intro['chips'] as $i => $c): ?>
+      <li class="intro-chip" style="animation-delay:<?= 0.25 + $i * 0.12 ?>s"><span class="text-[var(--accent)]"><?= icon($c['icon'], 18) ?></span><?= e($c['text']) ?></li>
+      <?php endforeach; ?>
+    </ul>
+    <?php endif; ?>
+    <?php if ($intro['cta_text'] !== ''): ?><a href="<?= e($ilink) ?>" class="intro-cta glow-btn"><?= e($intro['cta_text']) ?></a><?php endif; ?>
+  </div>
+  <button type="button" class="intro-cue" id="intro-cue" aria-label="انتقل للأسفل"><span class="intro-mouse"></span><span>اسحب للأسفل</span></button>
+</section>
+<?php endif; ?>
+
 <!-- سلايدر الهيرو -->
 <?php if ($slides): ?>
 <section class="relative mx-auto max-w-7xl px-4 pt-6 sm:px-6">
@@ -25,7 +49,7 @@ require APP_ROOT . '/includes/store-header.php';
     <div class="hero-slide <?= $i === 0 ? 'active' : '' ?> relative z-10 grid min-h-[540px] items-center gap-8 p-8 sm:p-14 lg:min-h-[640px] lg:grid-cols-2">
       <div class="relative z-10 order-2 lg:order-1">
         <span class="hst mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-bold backdrop-blur"><?= icon('sparkles', 14) ?> تشكيلة <?= date('Y') ?> الجديدة</span>
-        <h1 class="hst text-balance whitespace-pre-line text-4xl font-black leading-[1.12] tracking-tight sm:text-5xl lg:text-7xl"><?= e($sl['title']) ?></h1>
+        <<?= $heroTag ?> class="hst text-balance whitespace-pre-line text-4xl font-black leading-[1.12] tracking-tight sm:text-5xl lg:text-7xl"><?= e($sl['title']) ?></<?= $heroTag ?>>
         <p class="hst mt-5 max-w-md text-base leading-8 text-white/70 sm:text-lg"><?= e($sl['subtitle']) ?></p>
         <div class="hst mt-8 flex flex-wrap items-center gap-4">
           <a href="<?= e(str_starts_with($sl['cta_link'], 'http') ? $sl['cta_link'] : url(ltrim($sl['cta_link'], '/'))) ?>" class="glow-btn group inline-flex items-center gap-2 rounded-full px-8 py-3.5 font-bold transition hover:scale-[1.03]">

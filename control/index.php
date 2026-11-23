@@ -37,6 +37,7 @@ $SECTIONS = [
     ]],
 ];
 
+require_once APP_ROOT . '/includes/intro.php';
 $saved = false;
 $formErr = '';
 $tgTest = null;
@@ -57,7 +58,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 set_setting($key, trim((string)$_POST[$key]));
             }
         }
-        $saved = true;
+        // القسم الافتتاحي
+        set_setting('intro_enabled', !empty($_POST['intro_enabled']) ? '1' : '0');
+        foreach (['intro_title' => 80, 'intro_pill' => 40, 'intro_tagline' => 300, 'intro_cta_text' => 40] as $k => $max) {
+            if (array_key_exists($k, $_POST)) set_setting($k, mb_substr(trim((string)$_POST[$k]), 0, $max));
+        }
+        if (array_key_exists('intro_cta_link', $_POST)) set_setting('intro_cta_link', intro_safe_link((string)$_POST['intro_cta_link']));
+        if (isset($_POST['intro_logo_opacity'])) set_setting('intro_logo_opacity', (string)max(0, min(60, (int)$_POST['intro_logo_opacity'])));
+        if (isset($_POST['intro_icon']) && is_array($_POST['intro_icon'])) {
+            $chips = [];
+            foreach ($_POST['intro_icon'] as $i => $ic) {
+                $t = trim(mb_substr((string)($_POST['intro_text'][$i] ?? ''), 0, 40));
+                if ($t === '' || count($chips) >= 6) continue;
+                $chips[] = ['icon' => isset(INTRO_ICON_LABELS[$ic]) ? $ic : 'star', 'text' => $t];
+            }
+            set_setting('intro_chips', json_encode($chips, JSON_UNESCAPED_UNICODE));
+        }
+        if (!empty($_POST['intro_logo_delete'])) { intro_delete_logo(); set_setting('intro_logo', ''); }
+        if (isset($_FILES['intro_logo_file'])) {
+            [$newLogo, $logoErr] = intro_save_logo($_FILES['intro_logo_file']);
+            if ($logoErr !== '') $formErr = $logoErr;
+            elseif ($newLogo) { intro_delete_logo(); set_setting('intro_logo', $newLogo); }
+        }
+        $saved = $formErr === '';
     }
 }
 $tgTokenSaved = setting('telegram_bot_token', '') !== '';
@@ -94,7 +117,43 @@ $storeName = setting('store_name', 'آي ستور');
   <?php if ($formErr !== ''): ?><div class="mt-5 rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700"><?= e($formErr) ?></div><?php endif; ?>
   <?php if ($saved): ?><div class="mt-5 rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-700">تم حفظ الإعدادات بنجاح ✓</div><?php endif; ?>
   <?php if ($tgTest !== null): ?><div class="mt-5 rounded-2xl p-4 text-sm font-bold <?= $tgTest ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' ?>"><?= $tgTest ? 'وصلت الرسالة التجريبية إلى تيليجرام ✓' : 'فشل الإرسال — راجع التوكن ومعرف المحادثة' ?></div><?php endif; ?>
-  <form method="post" class="mt-8 space-y-6">
+  <form method="post" enctype="multipart/form-data" class="mt-8 space-y-6">
+    <?php $ic = intro_cfg(); $icRaw = settings(); $chipRows = $ic['chips']; while (count($chipRows) < 6) $chipRows[] = ['icon' => 'star', 'text' => '']; ?>
+    <div class="rounded-3xl bg-white p-6 shadow-sm">
+      <h2 class="mb-1 text-lg font-extrabold">القسم الافتتاحي (أول شاشة)</h2>
+      <p class="mb-5 text-xs text-neutral-500">شاشة واحدة بنفس خلفية الموقع. اترك الحقول فارغة لاستخدام اسم المتجر ووصفه.</p>
+      <label class="mb-4 flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="intro_enabled" value="1" <?= $ic['enabled'] ? 'checked' : '' ?> class="h-4 w-4"> إظهار القسم الافتتاحي</label>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="block text-sm font-bold">العنوان الكبير<input name="intro_title" value="<?= e($icRaw['intro_title'] ?? '') ?>" maxlength="80" placeholder="<?= e($storeName) ?>" class="c-input mt-1.5"></label>
+        <label class="block text-sm font-bold">الشارة الصغيرة (فارغة = إخفاء)<input name="intro_pill" value="<?= e($ic['pill']) ?>" maxlength="40" class="c-input mt-1.5"></label>
+        <label class="block text-sm font-bold sm:col-span-2">الوصف المختصر<textarea name="intro_tagline" rows="2" maxlength="300" class="c-input mt-1.5 resize-none"><?= e($icRaw['intro_tagline'] ?? '') ?></textarea></label>
+      </div>
+      <div class="mt-5 text-sm font-bold">شعار الخلفية (PNG / JPG / WebP / SVG، الشفافية مدعومة)
+        <div class="mt-2 flex flex-wrap items-center gap-3">
+          <?php if ($ic['logo'] !== ''): ?>
+            <img src="<?= e(img_url($ic['logo'])) ?>" alt="" class="h-16 w-16 rounded-xl border border-neutral-200 bg-neutral-100 object-contain p-1">
+            <label class="flex items-center gap-1 text-xs font-bold text-red-600"><input type="checkbox" name="intro_logo_delete" value="1"> حذف الشعار</label>
+          <?php endif; ?>
+          <input type="file" name="intro_logo_file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="text-xs">
+        </div>
+        <label class="mt-3 block text-xs font-bold">شفافية الشعار: <span id="introOpVal"><?= (int)$ic['opacity'] ?></span>%
+          <input type="range" name="intro_logo_opacity" min="0" max="60" value="<?= (int)$ic['opacity'] ?>" class="w-full" oninput="document.getElementById('introOpVal').textContent=this.value"></label>
+      </div>
+      <div class="mt-5 text-sm font-bold">شرائح العروض (حتى 6، اترك النص فارغاً لحذف الشريحة)
+        <div class="mt-2 space-y-2">
+          <?php foreach ($chipRows as $c): ?>
+          <div class="flex gap-2">
+            <select name="intro_icon[]" class="c-input !w-32 shrink-0"><?php foreach (INTRO_ICON_LABELS as $k => $lb): ?><option value="<?= $k ?>" <?= $c['icon'] === $k ? 'selected' : '' ?>><?= e($lb) ?></option><?php endforeach; ?></select>
+            <input name="intro_text[]" value="<?= e($c['text']) ?>" maxlength="40" class="c-input">
+          </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        <label class="block text-sm font-bold">نص الزر (فارغ = الافتراضي)<input name="intro_cta_text" value="<?= e($icRaw['intro_cta_text'] ?? '') ?>" maxlength="40" class="c-input mt-1.5"></label>
+        <label class="block text-sm font-bold">رابط الزر<input name="intro_cta_link" value="<?= e($icRaw['intro_cta_link'] ?? '/products.php') ?>" class="c-input mt-1.5" dir="ltr" style="text-align:left"></label>
+      </div>
+    </div>
     <?php foreach ($SECTIONS as $sec): ?>
       <div class="rounded-3xl bg-white p-6 shadow-sm">
         <h2 class="mb-5 text-lg font-extrabold"><?= e($sec['title']) ?></h2>

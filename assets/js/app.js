@@ -243,3 +243,24 @@
 if (typeof window.renderCartPage === 'function') window.renderCartPage();
 if (typeof window.renderWishlistPage === 'function') window.renderWishlistPage();
 if (typeof window.initCheckoutPage === 'function') window.initCheckoutPage();
+
+// القسم الافتتاحي: تلاشي عند التمرير (rAF) مع احترام تقليل الحركة
+(function () {
+  var el = document.getElementById('intro');
+  if (!el) return;
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var content = el.querySelector('.intro-content'), logo = el.querySelector('.intro-logo'), cue = document.getElementById('intro-cue');
+  var op = (parseFloat(el.getAttribute('data-opacity')) || 0) / 100, raf = 0;
+  function run() {
+    raf = 0;
+    var h = el.offsetHeight || 1, p = Math.min(1, Math.max(0, window.scrollY / (h * 0.8)));
+    if (content) { content.style.opacity = Math.max(0, 1 - p * 1.25); content.style.transform = reduce ? '' : 'translate3d(0,' + (-p * 50) + 'px,0) scale(' + (1 - p * 0.06) + ')'; }
+    if (logo) { logo.style.opacity = op * (1 - p); logo.style.transform = reduce ? '' : 'translate3d(0,' + (p * 90) + 'px,0) scale(' + (1 + p * 0.25) + ')'; }
+    if (cue) cue.style.opacity = Math.max(0, 1 - p * 4);
+  }
+  function onScroll() { if (!raf) raf = requestAnimationFrame(run); }
+  run();
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll);
+  if (cue) cue.addEventListener('click', function () { scrollTo({ top: el.offsetTop + el.offsetHeight - 70, behavior: reduce ? 'auto' : 'smooth' }); });
+})();
