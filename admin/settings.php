@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/_init.php';
 require_once APP_ROOT . '/includes/announcement.php';
+require_once APP_ROOT . '/includes/intro.php';
+require_once APP_ROOT . '/includes/marquee.php';
 require_admin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -34,6 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         set_setting('currency_decimals', $dec);
         set_setting('currency2_rate', $rate);
         set_setting('free_shipping_threshold', (string)(float)$thr);
+        $chips = []; foreach ((array)($_POST['intro_icon'] ?? []) as $i => $ic) $chips[] = ['icon' => (string)$ic, 'text' => (string)($_POST['intro_text'][$i] ?? '')];
+        set_setting('intro_chips', json_encode(marquee_clean($chips, INTRO_ICON_LABELS), JSON_UNESCAPED_UNICODE));
+        $mqi = []; foreach ((array)($_POST['mq_icon'] ?? []) as $i => $ic) $mqi[] = ['icon' => (string)$ic, 'text' => (string)($_POST['mq_text'][$i] ?? '')];
+        set_setting('marquee_enabled', !empty($_POST['marquee_enabled']) ? '1' : '0');
+        set_setting('marquee_items', json_encode(marquee_clean($mqi, MARQUEE_ICON_LABELS), JSON_UNESCAPED_UNICODE));
         set_setting('announce_config', json_encode($cfg, JSON_UNESCAPED_UNICODE));
         // للتوافق مع القراءة القديمة (التطبيق/الـ API): أول رسالة فعّالة
         set_setting('announcement', announce_active($cfg) ? $cfg['messages'][0]['text'] : '');
@@ -44,6 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $c = announce_read();
 if (!$c['messages']) $c['messages'] = [['text' => '', 'link' => '']];
+$chipRows = intro_cfg()['chips']; while (count($chipRows) < 6) $chipRows[] = ['icon' => 'star', 'text' => ''];
+$mq = marquee_cfg(); $mqRows = $mq['items']; while (count($mqRows) < 6) $mqRows[] = ['icon' => 'star', 'text' => ''];
 admin_header('الإعدادات', 'settings.php');
 ?>
 <div class="max-w-3xl">
@@ -126,6 +135,37 @@ admin_header('الإعدادات', 'settings.php');
           <label class="block text-sm font-bold">رمز العملة الثانية<input name="currency2_symbol" maxlength="10" placeholder="$" value="<?= e(setting('currency2_symbol', '')) ?>" class="admin-input mt-1"></label>
           <label class="block text-sm font-bold">سعر الصرف (كم وحدة من عملتك الأساسية تساوي 1 من الثانية)<input name="currency2_rate" dir="ltr" inputmode="decimal" placeholder="5.2" value="<?= e(setting('currency2_rate', '')) ?>" class="admin-input mt-1 text-left"></label>
         </div>
+      </div>
+    </div>
+
+    <div class="admin-card p-6">
+      <h2 class="font-extrabold">شرائح العروض (المقدمة الافتتاحية)</h2>
+      <p class="mt-1 text-xs text-neutral-500">الشرائح الصغيرة تحت الوصف في أول شاشة من الصفحة الرئيسية، حتى 6. اترك النص فارغاً لحذف الشريحة. باقي نصوص المقدمة والشعار من /control.</p>
+      <div class="mt-4 space-y-2">
+        <?php foreach ($chipRows as $c): ?>
+        <div class="flex gap-2">
+          <select name="intro_icon[]" class="admin-input !w-32 shrink-0"><?php foreach (INTRO_ICON_LABELS as $k => $lb): ?><option value="<?= e($k) ?>" <?= $c['icon'] === $k ? 'selected' : '' ?>><?= e($lb) ?></option><?php endforeach; ?></select>
+          <input name="intro_text[]" value="<?= e($c['text']) ?>" maxlength="40" class="admin-input">
+        </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+
+    <div class="admin-card p-6">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <h2 class="font-extrabold">شريط المميزات المتحرك</h2>
+          <p class="mt-1 text-xs text-neutral-500">الشريط الذي يمر أفقياً تحت السلايدر. حتى 6 عناصر، كل عنصر أيقونة ونص. اترك النص فارغاً لحذف العنصر.</p>
+        </div>
+        <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="marquee_enabled" value="1" <?= setting('marquee_enabled', '1') !== '0' ? 'checked' : '' ?> class="h-4 w-4"> ظاهر</label>
+      </div>
+      <div class="mt-4 space-y-2">
+        <?php foreach ($mqRows as $c): ?>
+        <div class="flex gap-2">
+          <select name="mq_icon[]" class="admin-input !w-32 shrink-0"><?php foreach (MARQUEE_ICON_LABELS as $k => $lb): ?><option value="<?= e($k) ?>" <?= $c['icon'] === $k ? 'selected' : '' ?>><?= e($lb) ?></option><?php endforeach; ?></select>
+          <input name="mq_text[]" value="<?= e($c['text']) ?>" maxlength="40" class="admin-input">
+        </div>
+        <?php endforeach; ?>
       </div>
     </div>
 

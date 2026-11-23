@@ -3,6 +3,7 @@ require __DIR__ . '/includes/bootstrap.php';
 require APP_ROOT . '/includes/auth.php';
 require APP_ROOT . '/includes/product-card.php';
 require APP_ROOT . '/includes/intro.php';
+require APP_ROOT . '/includes/marquee.php';
 $intro = intro_cfg();
 $heroTag = $intro['enabled'] ? 'h2' : 'h1';
 
@@ -81,22 +82,21 @@ require APP_ROOT . '/includes/store-header.php';
 <?php endif; ?>
 
 <!-- شريط المميزات المتحرك -->
+<?php $mq = marquee_cfg(); if ($mq['enabled']):
+  // كل نصف أعرض من أوسع شاشة كي لا تظهر فراغات أثناء الحركة
+  $reps = max(2, (int)ceil(12 / count($mq['items']))); ?>
 <div class="mt-10 overflow-hidden border-y border-[var(--border)] bg-[var(--surface)] py-4" dir="ltr">
   <div class="animate-marquee flex w-max gap-12">
-    <?php
-    $marquee = [
-        ['truck', 'توصيل لكل المدن الليبية'], ['banknote', 'الدفع عند الاستلام'], ['badge-check', 'منتجات أصلية 100%'],
-        ['settings', 'استبدال خلال 7 أيام'], ['shield', 'ضمان على الأجهزة'], ['bell', 'دعم على مدار الساعة'],
-    ];
-    for ($h = 0; $h < 4; $h++): ?>
+    <?php for ($h = 0; $h < 2; $h++): ?>
     <div class="flex gap-12">
-      <?php foreach ($marquee as $m): ?>
-      <span class="flex items-center gap-2.5 whitespace-nowrap text-sm font-bold text-[var(--text-dim)]" dir="rtl"><span class="text-[var(--accent)]"><?= icon($m[0], 18) ?></span><?= $m[1] ?></span>
+      <?php for ($r = 0; $r < $reps; $r++) foreach ($mq['items'] as $m): ?>
+      <span class="flex items-center gap-2.5 whitespace-nowrap text-sm font-bold text-[var(--text-dim)]" dir="rtl"><span class="text-[var(--accent)]"><?= icon($m['icon'], 18) ?></span><?= e($m['text']) ?></span>
       <?php endforeach; ?>
     </div>
     <?php endfor; ?>
   </div>
 </div>
+<?php endif; ?>
 
 <!-- التصنيفات -->
 <section class="mx-auto max-w-7xl px-4 pt-20 sm:px-6">

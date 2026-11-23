@@ -22,6 +22,7 @@ if (maintenance_on()) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($title) ?></title>
 <meta name="description" content="<?= e($desc) ?>">
+<?php $favLogo = (string)setting('intro_logo', ''); if ($favLogo !== ''): ?><link rel="icon" href="<?= e(img_url($favLogo)) ?>"><link rel="apple-touch-icon" href="<?= e(img_url($favLogo)) ?>"><?php endif; ?>
 <script>
 // تطبيق الثيم قبل الرسم لتفادي الوميض
 try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.classList.toggle('light',t==='light')}catch(e){}
