@@ -9,8 +9,6 @@ const SECTIONS: { title: string; fields: { key: string; label: string; area?: bo
     fields: [
       { key: "store_name", label: "اسم المتجر" },
       { key: "store_tagline", label: "الوصف المختصر", area: true },
-      { key: "announcement", label: "شريط الإعلانات (أعلى الصفحة)" },
-      { key: "currency", label: "العملة" },
       { key: "footer_text", label: "نص الحقوق أسفل الصفحة" },
     ],
   },
@@ -73,7 +71,9 @@ export default function SettingsForm({ settings, telegramTokenSaved = false }: {
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setSaved(false);
-    const body: Record<string, string> = { ...form };
+    // يُرسل فقط ما تعرضه هذه الصفحة، كي لا تُكتب فوق إعدادات صفحة «الإعدادات» في لوحة الإدارة
+    const body: Record<string, string> = {};
+    for (const sec of SECTIONS) for (const fl of sec.fields) body[fl.key] = form[fl.key] || "";
     if (!body.telegram_bot_token) delete body.telegram_bot_token;
     await fetch("/api/control/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     setLoading(false); setSaved(true);
