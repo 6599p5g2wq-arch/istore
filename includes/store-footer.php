@@ -16,6 +16,7 @@ $year = date('Y');
           <?php if (!empty($s['facebook'])): ?><a href="<?= e($s['facebook']) ?>" target="_blank" rel="noreferrer" aria-label="فيسبوك" class="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><?= icon('facebook', 18) ?></a><?php endif; ?>
           <?php if (!empty($s['instagram'])): ?><a href="<?= e($s['instagram']) ?>" target="_blank" rel="noreferrer" aria-label="انستغرام" class="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><?= icon('instagram', 18) ?></a><?php endif; ?>
           <?php if (!empty($s['tiktok'])): ?><a href="<?= e($s['tiktok']) ?>" target="_blank" rel="noreferrer" aria-label="تيك توك" class="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><?= icon('music', 18) ?></a><?php endif; ?>
+          <?php if (!empty($s['map_url'])): ?><a href="<?= e($s['map_url']) ?>" target="_blank" rel="noreferrer" aria-label="موقع المحل على الخريطة" title="موقع المحل على الخريطة" class="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><?= icon('map-pin', 18) ?></a><?php endif; ?>
         </div>
       </div>
       <div>

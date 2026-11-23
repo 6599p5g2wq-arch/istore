@@ -10,7 +10,11 @@ $SECTIONS = [
     ]],
     ['title' => 'التواصل', 'fields' => [
         ['phone', 'رقم الهاتف', false, true], ['whatsapp', 'رقم واتساب (بالصيغة الدولية بدون +)', false, true],
-        ['email', 'البريد الإلكتروني', false, true], ['address', 'العنوان'], ['working_hours', 'أوقات العمل'],
+        ['email', 'البريد الإلكتروني', false, true],
+    ]],
+    ['title' => 'موقع المحل', 'fields' => [
+        ['address', 'العنوان'], ['working_hours', 'أوقات العمل'],
+        ['map_url', 'رابط الموقع على خرائط قوقل (Google Maps) — اتركه فارغاً لإخفاء الأيقونة والزر', false, true],
     ]],
     ['title' => 'وسائل التواصل الاجتماعي', 'fields' => [
         ['facebook', 'فيسبوك', false, true], ['instagram', 'انستغرام', false, true], ['tiktok', 'تيك توك', false, true],
@@ -34,9 +38,13 @@ $SECTIONS = [
 ];
 
 $saved = false;
+$formErr = '';
 $tgTest = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['tg_test'])) {
+    $mu = trim((string)($_POST['map_url'] ?? ''));
+    if (!isset($_POST['tg_test']) && $mu !== '' && !(filter_var($mu, FILTER_VALIDATE_URL) && preg_match('~^https?://~i', $mu))) {
+        $formErr = 'رابط الخريطة غير صالح: يجب أن يبدأ بـ https://';
+    } elseif (isset($_POST['tg_test'])) {
         $tgTest = tg_send('✅ رسالة تجريبية: إشعارات طلبات ' . setting('store_name', 'آي ستور') . ' تعمل بنجاح.');
     } else {
         foreach ($SECTIONS as $sec) {
@@ -83,6 +91,7 @@ $storeName = setting('store_name', 'آي ستور');
 <main class="mx-auto max-w-5xl px-4 py-8">
   <h1 class="text-2xl font-black sm:text-3xl">إعدادات الموقع</h1>
   <p class="mt-1 text-sm text-neutral-500">كل ما يخص هوية الموقع ومعلوماته يتعدل من هنا ويتطبق على المتجر مباشرة</p>
+  <?php if ($formErr !== ''): ?><div class="mt-5 rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700"><?= e($formErr) ?></div><?php endif; ?>
   <?php if ($saved): ?><div class="mt-5 rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-700">تم حفظ الإعدادات بنجاح ✓</div><?php endif; ?>
   <?php if ($tgTest !== null): ?><div class="mt-5 rounded-2xl p-4 text-sm font-bold <?= $tgTest ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' ?>"><?= $tgTest ? 'وصلت الرسالة التجريبية إلى تيليجرام ✓' : 'فشل الإرسال — راجع التوكن ومعرف المحادثة' ?></div><?php endif; ?>
   <form method="post" class="mt-8 space-y-6">

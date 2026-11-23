@@ -21,6 +21,7 @@ require APP_ROOT . '/includes/store-header.php';
     <h2 class="flex items-center gap-2 text-xl font-extrabold"><?= icon('store', 20, 'text-[var(--accent)]') ?> معلومات التواصل</h2>
     <p class="mt-3 leading-8 text-[var(--text-dim)]"><?= e(setting('address', '')) ?> — <span dir="ltr"><?= e(setting('phone', '')) ?></span> — <?= e(setting('email', '')) ?></p>
     <p class="text-[var(--text-dim)]"><?= e(setting('working_hours', '')) ?></p>
+    <?php if (setting('map_url', '') !== ''): ?><a href="<?= e(setting('map_url', '')) ?>" target="_blank" rel="noreferrer" class="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition hover:-translate-y-0.5 hover:bg-neutral-200"><?= icon('map-pin', 18) ?> فتح الموقع على الخريطة</a><?php endif; ?>
   </div>
 </div>
 <?php require APP_ROOT . '/includes/store-footer.php'; ?>
