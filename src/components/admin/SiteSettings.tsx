@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import { Loader2, Save, CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { ANNOUNCE_DEFAULT, EFFECTS, type AnnounceConfig, type AnnounceEffect } from "@/lib/announcement";
 import AnnouncementBar from "@/components/store/AnnouncementBar";
+import ChipEditor, { type Chip } from "@/components/admin/ChipEditor";
+import { INTRO_ICONS } from "@/lib/intro";
+import { MARQUEE_ICONS } from "@/lib/marquee";
 
 const inputCls = "mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-black focus:ring-4 focus:ring-black/5";
 
@@ -47,7 +50,9 @@ function Card({ title, desc, children }: { title: string; desc?: string; childre
   );
 }
 
-export default function SiteSettings({ values, announce }: { values: Vals; announce: AnnounceConfig }) {
+export default function SiteSettings({ values, announce, introChips, marquee }: { values: Vals; announce: AnnounceConfig; introChips: Chip[]; marquee: { enabled: boolean; items: Chip[] } }) {
+  const [chips, setChips] = useState<Chip[]>(introChips);
+  const [mq, setMq] = useState(marquee);
   const [v, setV] = useState<Vals>(values);
   const set = (k: keyof Vals, val: string) => setV((o) => ({ ...o, [k]: val }));
   const router = useRouter();
@@ -61,6 +66,9 @@ export default function SiteSettings({ values, announce }: { values: Vals; annou
     setLoading(true); setSaved(false); setErr("");
     const body: Record<string, unknown> = { announce_config: { ...ann, messages: ann.messages.filter((m) => m.text.trim()) } };
     Object.assign(body, v);
+    body.intro_chips = chips.filter((c) => c.text.trim());
+    body.marquee_enabled = mq.enabled ? "1" : "0";
+    body.marquee_items = mq.items.filter((c) => c.text.trim());
     const r = await fetch("/api/admin/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     setLoading(false);
     if (r.ok) { setSaved(true); router.refresh(); setTimeout(() => setSaved(false), 2500); }
@@ -132,6 +140,26 @@ export default function SiteSettings({ values, announce }: { values: Vals; annou
 
             <p className="mb-2 mt-6 text-xs font-bold text-neutral-400">معاينة</p>
             <AnnouncementBar key={ann.effect + ann.messages.length} preview sig="preview" config={{ ...ann, messages: ann.messages.filter((m) => m.text.trim()).length ? ann.messages.filter((m) => m.text.trim()) : [{ text: "نص الإعلان يظهر هنا", link: "" }] }} />
+          </div>
+
+          <Card title="شرائح العروض (المقدمة الافتتاحية)" desc="الشرائح الصغيرة تحت الوصف في أول شاشة من الصفحة الرئيسية، حتى 6 شرائح. اترك النص فارغاً أو احذف الشريحة لإخفائها. باقي نصوص المقدمة والشعار من /control.">
+            <ChipEditor items={chips} onChange={setChips} icons={INTRO_ICONS} addLabel="إضافة شريحة" />
+          </Card>
+
+          <div className="rounded-3xl bg-white p-6 shadow-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="font-extrabold">شريط المميزات المتحرك</h2>
+                <p className="mt-1 text-xs text-neutral-500">الشريط الذي يمر أفقياً تحت السلايدر. حتى 6 عناصر، كل عنصر أيقونة ونص.</p>
+              </div>
+              <button type="button" role="switch" aria-checked={mq.enabled} onClick={() => setMq({ ...mq, enabled: !mq.enabled })} className={`relative h-7 w-12 shrink-0 rounded-full transition ${mq.enabled ? "bg-emerald-500" : "bg-neutral-300"}`}>
+                <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${mq.enabled ? "right-0.5" : "right-[1.375rem]"}`} />
+              </button>
+            </div>
+            <p className={`mt-2 text-xs font-bold ${mq.enabled ? "text-emerald-600" : "text-neutral-400"}`}>{mq.enabled ? "ظاهر في المتجر" : "مخفي (لن يظهر للزبائن)"}</p>
+            <div className="mt-4">
+              <ChipEditor items={mq.items} onChange={(items) => setMq({ ...mq, items })} icons={MARQUEE_ICONS} addLabel="إضافة عنصر" />
+            </div>
           </div>
 
           <Card title="العملة وعرض الأسعار" desc="تنطبق على صفحات المتجر.">

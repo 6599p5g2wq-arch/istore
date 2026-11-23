@@ -88,7 +88,7 @@ export default function SettingsForm({ settings, telegramTokenSaved = false }: {
     for (const sec of SECTIONS) for (const fl of sec.fields) body[fl.key] = form[fl.key] || "";
     if (!body.telegram_bot_token) delete body.telegram_bot_token;
     for (const k of INTRO_KEYS) {
-      if (k === "intro_logo") continue; // يُدار من زر رفع الشعار
+      if (k === "intro_logo" || k === "intro_chips") continue; // الشعار من زر الرفع، والشرائح من لوحة الإدارة
       if (form[k] !== undefined) body[k] = form[k];
     }
     // القيم الافتراضية الظاهرة في الحقول تُحفظ صراحةً كي لا تتغير لاحقاً

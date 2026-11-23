@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, bad } from "@/lib/admin-api";
 import { setSetting } from "@/lib/settings";
 import { sanitizeAnnounce, legacyText } from "@/lib/announcement";
+import { sanitizeItems, MARQUEE_ICONS } from "@/lib/marquee";
+import { INTRO_ICONS } from "@/lib/intro";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +40,18 @@ export async function PUT(req: NextRequest) {
     const t = String(b.free_shipping_threshold).trim();
     if (t === "" || !(Number(t) >= 0 && Number.isFinite(Number(t)))) return bad("حد الشحن المجاني يجب أن يكون رقماً (0 لتعطيله)");
     out.free_shipping_threshold = String(Number(t));
+  }
+
+  if (b.intro_chips !== undefined) {
+    let a: unknown = b.intro_chips;
+    if (typeof a === "string") { try { a = JSON.parse(a); } catch { return bad("شرائح العروض غير صالحة"); } }
+    out.intro_chips = JSON.stringify(sanitizeItems(a, INTRO_ICONS));
+  }
+  if (b.marquee_enabled !== undefined) out.marquee_enabled = b.marquee_enabled === true || b.marquee_enabled === "1" ? "1" : "0";
+  if (b.marquee_items !== undefined) {
+    let a: unknown = b.marquee_items;
+    if (typeof a === "string") { try { a = JSON.parse(a); } catch { return bad("عناصر الشريط غير صالحة"); } }
+    out.marquee_items = JSON.stringify(sanitizeItems(a, MARQUEE_ICONS));
   }
 
   let ann = null;

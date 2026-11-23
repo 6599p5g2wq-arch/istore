@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
 import Intro from "@/components/store/Intro";
 import { readIntro } from "@/lib/intro";
+import { readMarquee } from "@/lib/marquee";
 import HeroSlider from "@/components/store/HeroSlider";
 import Marquee from "@/components/store/Marquee";
 import ProductCard from "@/components/store/ProductCard";
@@ -24,12 +25,13 @@ export default function HomePage() {
   const banners = db.prepare("SELECT * FROM banners WHERE active = 1 ORDER BY sort_order LIMIT 3").all() as Banner[];
   const threshold = Number(s.free_shipping_threshold || 0);
   const intro = readIntro(s);
+  const marquee = readMarquee(s);
 
   return (
     <div>
       {intro.enabled && <Intro cfg={intro} />}
       <HeroSlider slides={slides} asH2={intro.enabled} />
-      <Marquee />
+      {marquee.enabled && <Marquee items={marquee.items} />}
 
       {/* Categories */}
       <section className="mx-auto max-w-7xl px-4 pt-20 sm:px-6">
