@@ -9,5 +9,5 @@ export async function GET(req: NextRequest) {
   const size = [16, 32, 48, 64, 96, 180, 192, 512].includes(s) ? s : 32;
   const png = await logoIconPng(size);
   if (!png) return new NextResponse(null, { status: 404 });
-  return new NextResponse(new Uint8Array(png), { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable" } });
+  return new NextResponse(new Uint8Array(png), { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=0, must-revalidate" } });
 }
