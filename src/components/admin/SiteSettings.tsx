@@ -7,6 +7,34 @@ import AnnouncementBar from "@/components/store/AnnouncementBar";
 
 const inputCls = "mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-black focus:ring-4 focus:ring-black/5";
 
+function fmtLocal(v: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(v);
+  if (!m) return "";
+  const h = Number(m[4]);
+  return `${m[3]}/${m[2]}/${m[1]}  ${String(h % 12 || 12).padStart(2, "0")}:${m[5]} ${h < 12 ? "ص" : "م"}`;
+}
+
+// حقل تاريخ ووقت يعمل على الجوال (iOS Safari يعرض الحقل الفارغ بلا ارتفاع ولا نص)
+function DateField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="block min-w-0 text-sm font-bold">
+      <div className="flex items-center justify-between">
+        <span>{label}</span>
+        {value && <button type="button" onClick={() => onChange("")} className="text-xs font-bold text-red-600 hover:underline">مسح</button>}
+      </div>
+      <div className="relative mt-1.5">
+        <input type="datetime-local" dir="ltr" value={value} onChange={(e) => onChange(e.target.value)} aria-label={label}
+          className="adt-input block h-12 w-full min-w-0 rounded-xl border border-neutral-200 bg-white px-3 text-left text-sm outline-none focus:border-black focus:ring-4 focus:ring-black/5" />
+        <span className={`adt-ph pointer-events-none absolute inset-y-0 left-3 right-11 hidden items-center text-sm ${value ? "font-bold text-neutral-900" : "font-normal text-neutral-400"}`}>
+          {fmtLocal(value) || "اضغط لاختيار التاريخ والوقت"}
+        </span>
+      </div>
+      <p className="mt-1 text-[11px] font-normal text-neutral-400">{value ? "" : "الصيغة: يوم/شهر/سنة ووقت"}</p>
+      <style>{`.adt-input{-webkit-appearance:none;appearance:none;min-height:3rem}@supports (-webkit-touch-callout:none){.adt-input{color:transparent}.adt-input:focus{color:inherit}.adt-ph{display:flex!important}.adt-input::-webkit-datetime-edit{opacity:0}.adt-input:focus::-webkit-datetime-edit{opacity:1}}`}</style>
+    </div>
+  );
+}
+
 export default function SiteSettings({ currency, announce }: { currency: string; announce: AnnounceConfig }) {
   const router = useRouter();
   const [cur, setCur] = useState(currency);
@@ -72,7 +100,7 @@ export default function SiteSettings({ currency, announce }: { currency: string;
               )}
             </div>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
               <label className="block text-sm font-bold">لون الخلفية
                 <span className="mt-1.5 flex items-center gap-2"><input type="color" value={ann.bg} onChange={(e) => setAnn({ ...ann, bg: e.target.value })} className="h-10 w-14 cursor-pointer rounded-lg border border-neutral-200 bg-white p-1" /><span dir="ltr" className="text-xs text-neutral-500">{ann.bg}</span></span>
               </label>
@@ -88,12 +116,8 @@ export default function SiteSettings({ currency, announce }: { currency: string;
                 </select>
                 {ann.effect === "marquee" && <span className="mt-1 block text-[11px] font-normal text-neutral-400">في الشريط المتحرك تظهر كل الرسائل متتابعة ولا يُستخدم "التبديل كل".</span>}
               </label>
-              <label className="block text-sm font-bold">يبدأ في (اختياري)
-                <input type="datetime-local" dir="ltr" value={ann.start} onChange={(e) => setAnn({ ...ann, start: e.target.value })} className={`text-left ${inputCls}`} />
-              </label>
-              <label className="block text-sm font-bold">ينتهي في (اختياري)
-                <input type="datetime-local" dir="ltr" value={ann.end} onChange={(e) => setAnn({ ...ann, end: e.target.value })} className={`text-left ${inputCls}`} />
-              </label>
+              <DateField label="يبدأ في (اختياري)" value={ann.start} onChange={(v) => setAnn({ ...ann, start: v })} />
+              <DateField label="ينتهي في (اختياري)" value={ann.end} onChange={(v) => setAnn({ ...ann, end: v })} />
             </div>
             <p className="mt-2 text-[11px] text-neutral-400">التوقيت بتوقيت ليبيا. يختفي الشريط تلقائياً خارج هذه الفترة.</p>
 
