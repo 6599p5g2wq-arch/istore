@@ -1,0 +1,4 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^favicon\.ico$ favicon.php?s=48 [L]
+</IfModule>

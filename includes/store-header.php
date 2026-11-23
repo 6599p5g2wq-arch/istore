@@ -23,7 +23,7 @@ if (maintenance_on()) {
 <title><?= e($title) ?></title>
 <meta name="description" content="<?= e($desc) ?>">
 <meta name="theme-color" content="#12082e">
-<?php $favLogo = (string)setting('intro_logo', ''); if ($favLogo !== ''): ?><link rel="icon" href="<?= e(img_url($favLogo)) ?>"><link rel="apple-touch-icon" href="<?= e(img_url($favLogo)) ?>"><?php endif; ?>
+<?php $favLogo = (string)setting('intro_logo', ''); if ($favLogo !== ''): $fv = substr(md5($favLogo . @filemtime(APP_ROOT . '/' . ltrim($favLogo, '/'))), 0, 8); ?><link rel="icon" type="image/png" sizes="32x32" href="<?= e(url('favicon.php?s=32&v=' . $fv)) ?>"><link rel="icon" type="image/png" sizes="192x192" href="<?= e(url('favicon.php?s=192&v=' . $fv)) ?>"><link rel="shortcut icon" href="<?= e(url('favicon.php?s=48&v=' . $fv)) ?>"><link rel="apple-touch-icon" sizes="180x180" href="<?= e(url('favicon.php?s=180&v=' . $fv)) ?>"><?php endif; ?>
 <script>
 // تطبيق الثيم قبل الرسم لتفادي الوميض
 try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.classList.toggle('light',t==='light');var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',t==='light'?'#eef1fb':'#12082e');}catch(e){}
