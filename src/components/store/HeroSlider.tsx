@@ -5,7 +5,8 @@ import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { ChevronRight, ChevronLeft, Sparkles } from "lucide-react";
 import type { HeroSlide } from "@/lib/types";
 
-export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
+export default function HeroSlider({ slides, asH2 = false }: { slides: HeroSlide[]; asH2?: boolean }) {
+  const Title = asH2 ? motion.h2 : motion.h1;
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(1);
   const n = slides.length;
@@ -54,12 +55,12 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
               >
                 <Sparkles size={14} /> تشكيلة {new Date().getFullYear()} الجديدة
               </motion.span>
-              <motion.h1
+              <Title
                 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.7 }}
                 className="text-balance whitespace-pre-line text-4xl font-black leading-[1.12] tracking-tight sm:text-5xl lg:text-7xl"
               >
                 {s.title}
-              </motion.h1>
+              </Title>
               <motion.p
                 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38, duration: 0.7 }}
                 className="mt-5 max-w-md text-base leading-8 text-white/70 sm:text-lg"

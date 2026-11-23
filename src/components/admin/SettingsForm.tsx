@@ -1,4 +1,6 @@
 "use client";
+import IntroCard from "@/components/admin/IntroCard";
+import { INTRO_KEYS } from "@/lib/intro";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save, CheckCircle2 } from "lucide-react";
@@ -85,6 +87,12 @@ export default function SettingsForm({ settings, telegramTokenSaved = false }: {
     const body: Record<string, string> = {};
     for (const sec of SECTIONS) for (const fl of sec.fields) body[fl.key] = form[fl.key] || "";
     if (!body.telegram_bot_token) delete body.telegram_bot_token;
+    for (const k of INTRO_KEYS) {
+      if (k === "intro_logo") continue; // يُدار من زر رفع الشعار
+      if (form[k] !== undefined) body[k] = form[k];
+    }
+    // القيم الافتراضية الظاهرة في الحقول تُحفظ صراحةً كي لا تتغير لاحقاً
+    if (body.intro_enabled === undefined) body.intro_enabled = "1";
     setErr("");
     const r = await fetch("/api/control/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!r.ok) {
@@ -143,6 +151,7 @@ export default function SettingsForm({ settings, telegramTokenSaved = false }: {
           </div>
         </div>
       ))}
+      <IntroCard form={form} setForm={setForm} />
       {err && <div className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700">{err}</div>}
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" onClick={testTelegram} disabled={testState === "sending"} className="rounded-full border border-neutral-300 bg-white px-6 py-3 text-sm font-bold text-neutral-600 transition hover:bg-neutral-100 disabled:opacity-60">

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ChevronLeft, Flame, Grid3X3, Star, BadgePercent } from "lucide-react";
 import { getDb } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
+import Intro from "@/components/store/Intro";
+import { readIntro } from "@/lib/intro";
 import HeroSlider from "@/components/store/HeroSlider";
 import Marquee from "@/components/store/Marquee";
 import ProductCard from "@/components/store/ProductCard";
@@ -21,10 +23,12 @@ export default function HomePage() {
   const offers = db.prepare(`SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id = p.category_id WHERE p.active = 1 AND p.old_price IS NOT NULL AND p.old_price > p.price ORDER BY (p.old_price - p.price) DESC LIMIT 8`).all() as Product[];
   const banners = db.prepare("SELECT * FROM banners WHERE active = 1 ORDER BY sort_order LIMIT 3").all() as Banner[];
   const threshold = Number(s.free_shipping_threshold || 0);
+  const intro = readIntro(s);
 
   return (
     <div>
-      <HeroSlider slides={slides} />
+      {intro.enabled && <Intro cfg={intro} />}
+      <HeroSlider slides={slides} asH2={intro.enabled} />
       <Marquee />
 
       {/* Categories */}
