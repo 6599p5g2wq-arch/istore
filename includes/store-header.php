@@ -100,20 +100,21 @@ document.getElementById('back-btn').addEventListener('click', function () {
       <button onclick="toggleMenu(false)" aria-label="إغلاق" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text-dim)] hover:bg-[var(--chip)]"><?= icon('x', 18) ?></button>
     </div>
     <nav class="flex flex-col gap-1 text-base font-medium">
+      <a href="<?= e(url('account.php')) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]">حسابي</a>
+      <a href="<?= e(url('track.php')) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text-dim)] hover:bg-[var(--chip)]">تتبع طلبك</a>
+      <div class="flex items-center justify-between rounded-lg px-3 py-2.5 text-[var(--text-dim)]">
+        <span>المظهر</span>
+        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><span data-theme-icon>☀️</span></button>
+      </div>
+
+      <div class="my-2 border-t border-[var(--border)]"></div>
       <a href="<?= e(url('index.php')) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]">الرئيسية</a>
       <a href="<?= e(url('products.php')) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]">كل المنتجات</a>
       <a href="<?= e(url('brands.php')) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]">الماركات</a>
-      <a href="<?= e(url('account.php')) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]">حسابي</a>
       <div class="my-2 border-t border-[var(--border)]"></div>
       <?php foreach ($cats as $c): ?>
       <a href="<?= e(url('products.php?category=' . $c['slug'])) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text-dim)] hover:bg-[var(--chip)]"><?= e($c['name']) ?></a>
       <?php endforeach; ?>
-      <div class="my-2 border-t border-[var(--border)]"></div>
-      <a href="<?= e(url('track.php')) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text-dim)] hover:bg-[var(--chip)]">تتبع طلبك</a>
-      <div class="mt-2 flex items-center justify-between rounded-lg px-3 py-2.5 text-[var(--text-dim)]">
-        <span>المظهر</span>
-        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><span data-theme-icon>☀️</span></button>
-      </div>
     </nav>
   </div>
 </div>
