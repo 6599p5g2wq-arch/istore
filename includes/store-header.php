@@ -45,7 +45,11 @@ tailwind.config = { future: { hoverOnlyWhenSupported: true }, corePlugins: { pre
   <div class="mx-auto max-w-7xl px-4 sm:px-6">
     <div class="flex h-16 items-center justify-between gap-4">
       <a href="<?= e(url('index.php')) ?>" class="flex items-center gap-2 text-lg font-extrabold tracking-tight text-white sm:text-xl">
+        <?php $hdrLogo = $s['intro_logo'] ?? ''; if ($hdrLogo !== ''): ?>
+        <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--border)] bg-[var(--chip)] p-1"><img src="<?= e(img_url($hdrLogo)) ?>" alt="" class="h-full w-full object-contain"></span>
+        <?php else: ?>
         <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--text)] text-[var(--bg)]"><?= icon('store', 20) ?></span>
+        <?php endif; ?>
         <span class="max-[360px]:hidden"><?= e($s['store_name'] ?? 'آي ستور') ?></span>
       </a>
       <nav class="hidden items-center gap-6 text-sm font-medium text-[var(--text-dim)] lg:flex">
@@ -90,7 +94,7 @@ document.getElementById('back-btn').addEventListener('click', function () {
 <div id="mobile-menu" class="menu-overlay drawer-overlay fixed inset-0 z-50 bg-black/40" onclick="if(event.target===this)toggleMenu(false)">
   <div class="menu-panel absolute inset-y-0 left-0 w-80 max-w-[85vw] bg-[var(--surface)] p-6 shadow-2xl backdrop-blur-xl">
     <div class="mb-8 flex items-center justify-between">
-      <span class="text-lg font-extrabold text-white"><?= e($s['store_name'] ?? 'آي ستور') ?></span>
+      <span class="flex items-center gap-2 text-lg font-extrabold text-white"><?php if (($s['intro_logo'] ?? '') !== ''): ?><span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[var(--border)] bg-[var(--chip)] p-1"><img src="<?= e(img_url($s['intro_logo'])) ?>" alt="" class="h-full w-full object-contain"></span><?php endif; ?><?= e($s['store_name'] ?? 'آي ستور') ?></span>
       <button onclick="toggleMenu(false)" aria-label="إغلاق" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text-dim)] hover:bg-[var(--chip)]"><?= icon('x', 18) ?></button>
     </div>
     <nav class="flex flex-col gap-1 text-base font-medium">

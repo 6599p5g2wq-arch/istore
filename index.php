@@ -88,7 +88,7 @@ require APP_ROOT . '/includes/store-header.php';
         ['truck', 'توصيل لكل المدن الليبية'], ['banknote', 'الدفع عند الاستلام'], ['badge-check', 'منتجات أصلية 100%'],
         ['settings', 'استبدال خلال 7 أيام'], ['shield', 'ضمان على الأجهزة'], ['bell', 'دعم على مدار الساعة'],
     ];
-    for ($h = 0; $h < 2; $h++): ?>
+    for ($h = 0; $h < 4; $h++): ?>
     <div class="flex gap-12">
       <?php foreach ($marquee as $m): ?>
       <span class="flex items-center gap-2.5 whitespace-nowrap text-sm font-bold text-[var(--text-dim)]" dir="rtl"><span class="text-[var(--accent)]"><?= icon($m[0], 18) ?></span><?= $m[1] ?></span>
