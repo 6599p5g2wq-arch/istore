@@ -13,6 +13,7 @@ export default function ThemeToggle() {
     const next = !light;
     setLight(next);
     document.documentElement.classList.toggle("light", next);
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", next ? "#eef1fb" : "#12082e"));
     try { localStorage.setItem("theme", next ? "light" : "dark"); } catch { /* private mode */ }
   };
 
