@@ -93,6 +93,13 @@ export default function Header({ storeName, categories, logo = "" }: { storeName
                 <button onClick={() => setMenu(false)} aria-label="إغلاق" className="grid h-9 w-9 place-items-center rounded-full text-[var(--text-dim)] hover:bg-[var(--chip)]"><X size={18} /></button>
               </div>
               <nav className="flex flex-col gap-1 text-base font-medium">
+                <Link onClick={() => setMenu(false)} href="/account" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]"><UserRound size={18} /> حسابي</Link>
+                <Link onClick={() => setMenu(false)} href="/track" className="rounded-lg px-3 py-2.5 hover:bg-[var(--chip)] text-[var(--text-dim)]">تتبع طلبك</Link>
+                <div className="flex items-center justify-between rounded-lg px-3 py-2.5 text-[var(--text-dim)]">
+                  <span>المظهر</span>
+                  <ThemeToggle />
+                </div>
+                <div className="my-2 border-t border-[var(--border)]" />
                 <Link onClick={() => setMenu(false)} href="/" className="rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]">الرئيسية</Link>
                 <Link onClick={() => setMenu(false)} href="/products" className="rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]">كل المنتجات</Link>
                 <Link onClick={() => setMenu(false)} href="/brands" className="rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]">الماركات</Link>
@@ -100,13 +107,6 @@ export default function Header({ storeName, categories, logo = "" }: { storeName
                 {categories.map((c) => (
                   <Link key={c.slug} onClick={() => setMenu(false)} href={`/products?category=${c.slug}`} className="rounded-lg px-3 py-2.5 hover:bg-[var(--chip)] text-[var(--text-dim)]">{c.name}</Link>
                 ))}
-                <div className="my-2 border-t border-[var(--border)]" />
-                <Link onClick={() => setMenu(false)} href="/account" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]"><UserRound size={18} /> حسابي</Link>
-                <Link onClick={() => setMenu(false)} href="/track" className="rounded-lg px-3 py-2.5 hover:bg-[var(--chip)] text-[var(--text-dim)]">تتبع طلبك</Link>
-                <div className="mt-2 flex items-center justify-between rounded-lg px-3 py-2.5 text-[var(--text-dim)]">
-                  <span>المظهر</span>
-                  <ThemeToggle />
-                </div>
               </nav>
             </motion.div>
           </motion.div>
