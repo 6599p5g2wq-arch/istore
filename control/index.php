@@ -5,8 +5,8 @@ require_control();
 
 $SECTIONS = [
     ['title' => 'هوية المتجر', 'fields' => [
-        ['store_name', 'اسم المتجر'], ['store_tagline', 'الوصف المختصر', true], ['announcement', 'شريط الإعلانات (أعلى الصفحة)'],
-        ['currency', 'العملة'], ['footer_text', 'نص الحقوق أسفل الصفحة'],
+        ['store_name', 'اسم المتجر'], ['store_tagline', 'الوصف المختصر', true],
+        ['footer_text', 'نص الحقوق أسفل الصفحة'],
     ]],
     ['title' => 'التواصل', 'fields' => [
         ['phone', 'رقم الهاتف', false, true], ['whatsapp', 'رقم واتساب (بالصيغة الدولية بدون +)', false, true],

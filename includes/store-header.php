@@ -29,14 +29,7 @@ tailwind.config = { future: { hoverOnlyWhenSupported: true }, corePlugins: { pre
 </head>
 <body class="page-in min-h-screen">
 
-<?php if (!empty($s['announcement'])): ?>
-<div class="on-dark relative z-40 overflow-hidden bg-gradient-to-l from-[#7b2ff7] to-[#00c6ff] py-2 text-center text-xs font-bold text-white sm:text-sm">
-  <div class="animate-marquee inline-block whitespace-nowrap" style="direction:ltr">
-    <span class="mx-8 inline-block"><?= e($s['announcement']) ?></span>
-    <span class="mx-8 inline-block"><?= e($s['announcement']) ?></span>
-  </div>
-</div>
-<?php endif; ?>
+<?php require_once APP_ROOT . '/includes/announcement.php'; announce_render(); ?>
 
 <header id="site-header" class="sticky top-0 z-40 bg-transparent">
   <div class="mx-auto max-w-7xl px-4 sm:px-6">

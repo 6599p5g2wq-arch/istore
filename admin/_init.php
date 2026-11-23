@@ -22,6 +22,7 @@ function admin_header(string $title, string $active = ''): void {
         ['hero.php', 'شرائح الرئيسية', 'image'],
         ['banners.php', 'البنرات الترويجية', 'image'],
         ['shipping.php', 'التوصيل والمدن', 'truck'],
+        ['settings.php', 'الإعدادات', 'settings'],
         ['admins.php', 'المشرفون', 'users'],
     ];
     $storeName = setting('store_name', 'آي ستور');
