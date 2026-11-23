@@ -5,6 +5,7 @@
   // ---------- الثيم (ليلي/نهاري) ----------
   window.applyTheme = function (t) {
     document.documentElement.classList.toggle('light', t === 'light');
+    var m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', t === 'light' ? '#eef1fb' : '#12082e');
     try { localStorage.setItem('theme', t); } catch (e) {}
     document.querySelectorAll('[data-theme-icon]').forEach(function (el) {
       el.textContent = t === 'light' ? '🌙' : '☀️';

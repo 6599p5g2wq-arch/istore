@@ -22,10 +22,11 @@ if (maintenance_on()) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($title) ?></title>
 <meta name="description" content="<?= e($desc) ?>">
+<meta name="theme-color" content="#12082e">
 <?php $favLogo = (string)setting('intro_logo', ''); if ($favLogo !== ''): ?><link rel="icon" href="<?= e(img_url($favLogo)) ?>"><link rel="apple-touch-icon" href="<?= e(img_url($favLogo)) ?>"><?php endif; ?>
 <script>
 // تطبيق الثيم قبل الرسم لتفادي الوميض
-try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.classList.toggle('light',t==='light')}catch(e){}
+try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.classList.toggle('light',t==='light');var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',t==='light'?'#eef1fb':'#12082e');}catch(e){}
 </script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
