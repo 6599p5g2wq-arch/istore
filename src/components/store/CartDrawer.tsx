@@ -14,7 +14,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/40" onClick={onClose}>
           <motion.aside
             initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", damping: 28, stiffness: 260 }}
-            className="absolute inset-y-0 left-0 flex w-96 max-w-[92vw] flex-col bg-[var(--surface)] shadow-2xl" onClick={(e) => e.stopPropagation()}
+            className="sheet-h absolute left-0 top-0 flex w-96 max-w-[92vw] flex-col bg-[var(--surface)] shadow-2xl" onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[var(--border)] p-5">
               <h2 className="text-lg font-bold text-white">سلة التسوق</h2>
@@ -56,7 +56,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
               )}
             </div>
             {items.length > 0 && (
-              <div className="border-t border-[var(--border)] p-5">
+              <div className="sheet-pad-b border-t border-[var(--border)] p-5">
                 <div className="mb-4 flex items-center justify-between text-base">
                   <span className="text-[var(--text-dim)]">المجموع الفرعي</span>
                   <span className="text-xl font-extrabold text-white">{formatPrice(total)}</span>

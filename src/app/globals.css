@@ -113,3 +113,9 @@ html.light .intro-title { background-image: linear-gradient(90deg, #171b33, #5b2
 @keyframes intro-up { to { opacity: 1; transform: none; } }
 @keyframes intro-dot { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(14px); } }
 @media (prefers-reduced-motion: reduce) { .intro-chip { animation: none; opacity: 1; transform: none; } .intro-mouse::after { animation: none; opacity: 1; } }
+
+/* لوحات جانبية: ارتفاع الشاشة المتغير (شريط سفاري السفلي) + تمرير + مسافة سفلية كي لا يغطي الشريط آخر العناصر */
+.sheet-h { height: 100vh; height: 100dvh; }
+.sheet-scroll { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.sheet-pad-b { padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)) !important; }
+@media (hover: none) and (pointer: coarse) { .sheet-pad-b { padding-bottom: calc(6rem + env(safe-area-inset-bottom)) !important; } }

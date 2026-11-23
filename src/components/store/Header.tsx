@@ -78,7 +78,7 @@ export default function Header({ storeName, categories, logo = "" }: { storeName
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/40" onClick={() => setMenu(false)}>
             <motion.div
               initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }} transition={{ type: "spring", damping: 28, stiffness: 260 }}
-              className="absolute inset-y-0 left-0 w-80 max-w-[85vw] bg-[var(--surface)] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}
+              className="sheet-h sheet-scroll sheet-pad-b absolute left-0 top-0 w-80 max-w-[85vw] bg-[var(--surface)] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-8">
                 <span className="flex items-center gap-2 font-extrabold text-lg text-white">
