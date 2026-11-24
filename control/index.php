@@ -100,7 +100,7 @@ $storeName = setting('store_name', 'آي ستور');
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   body{font-family:'Cairo',sans-serif;background:#f5f5f7;color:#18181b}
-  .c-input{width:100%;border-radius:.9rem;border:1px solid #d4d4d8;background:#fff;padding:.65rem 1rem;font-size:.875rem;outline:none;transition:.15s;color:#18181b}
+  .c-input{width:100%;border-radius:1rem;border:1px solid #e5e5e5;background:#fff;padding:.75rem 1rem;font-size:.875rem;outline:none;transition:.15s;color:#18181b}
   .c-input:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.15)}
 </style>
 </head>
@@ -134,7 +134,7 @@ $storeName = setting('store_name', 'آي ستور');
               <?php if ($toggle): ?>
                 <input type="checkbox" name="<?= e($key) ?>" value="1" <?= setting($key, '0') === '1' ? 'checked' : '' ?> class="mt-1.5 h-4 w-4">
               <?php elseif ($area): ?>
-                <textarea name="<?= e($key) ?>" rows="3" class="c-input mt-1.5 resize-none" <?= $ltr ? 'dir="ltr" style="text-align:left"' : '' ?>><?= e(setting($key, '')) ?></textarea>
+                <textarea name="<?= e($key) ?>" rows="3" class="c-input mt-1.5 resize-y" <?= $ltr ? 'dir="ltr" style="text-align:left"' : '' ?>><?= e(setting($key, '')) ?></textarea>
               <?php elseif ($key === 'telegram_bot_token'): ?>
                 <input type="password" name="telegram_bot_token" value="" autocomplete="off" placeholder="<?= $tgTokenSaved ? 'محفوظ — اتركه فارغاً للإبقاء عليه' : 'من @BotFather' ?>" class="c-input mt-1.5" dir="ltr" style="text-align:left">
               <?php elseif ($key === 'resend_api_key'): ?>
@@ -154,7 +154,7 @@ $storeName = setting('store_name', 'آي ستور');
       <div class="grid gap-4 sm:grid-cols-2">
         <label class="block text-sm font-bold">العنوان الكبير<input name="intro_title" value="<?= e($icRaw['intro_title'] ?? '') ?>" maxlength="60" placeholder="<?= e($storeName) ?>" class="c-input mt-1.5"></label>
         <label class="block text-sm font-bold">الشارة الصغيرة (فارغة = إخفاء)<input name="intro_pill" value="<?= e($ic['pill']) ?>" maxlength="40" class="c-input mt-1.5"></label>
-        <label class="block text-sm font-bold sm:col-span-2">الوصف المختصر<textarea name="intro_tagline" rows="2" maxlength="160" class="c-input mt-1.5 resize-none"><?= e($icRaw['intro_tagline'] ?? '') ?></textarea></label>
+        <label class="block text-sm font-bold sm:col-span-2">الوصف المختصر<textarea name="intro_tagline" rows="2" maxlength="160" class="c-input mt-1.5 resize-y"><?= e($icRaw['intro_tagline'] ?? '') ?></textarea></label>
       </div>
       <div class="mt-5 text-sm font-bold">شعار الخلفية (PNG / JPG / WebP، الشفافية مدعومة)
         <div class="mt-2 flex flex-wrap items-center gap-3"><div class="grid h-16 w-16 place-items-center overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100"><img id="intro-logo-preview" src="<?=$ic['logo']!==''?e(img_url($ic['logo'])):''?>" alt="" class="h-full w-full object-contain <?=$ic['logo']!==''?'':'hidden'?>"><span id="intro-no-logo" class="text-[10px] text-neutral-400 <?=$ic['logo']!==''?'hidden':''?>">لا شعار</span></div><input id="intro-logo-file" type="file" accept="image/png,image/jpeg,image/webp" class="hidden"><button id="intro-logo-upload" type="button" class="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-sm font-bold hover:bg-neutral-100"><?=icon('upload',16)?> رفع شعار</button><button id="intro-logo-delete" type="button" class="text-sm font-bold text-red-600 <?=$ic['logo']!==''?'':'hidden'?>">حذف</button></div><p id="intro-logo-message" role="status" class="mt-2 text-xs font-bold"></p>
@@ -166,13 +166,8 @@ $storeName = setting('store_name', 'آي ستور');
         <label class="block text-sm font-bold">رابط الزر<input name="intro_cta_link" value="<?= e($icRaw['intro_cta_link'] ?? '/products.php') ?>" class="c-input mt-1.5" dir="ltr" style="text-align:left"></label>
       </div>
     </div>
-    <div class="flex">
-      <button class="rounded-full bg-neutral-900 px-10 py-3.5 font-bold text-white shadow-lg transition hover:bg-neutral-700">حفظ الإعدادات</button>
-    </div>
-  </form>
-  <form method="post" class="mt-4 flex justify-center">
-    <input type="hidden" name="tg_test" value="1">
-    <button class="rounded-full border border-neutral-300 bg-white px-6 py-2.5 text-sm font-bold text-neutral-600 transition hover:bg-neutral-100">إرسال رسالة تجريبية عبر تيليجرام</button>
+    <div class="flex flex-wrap items-center gap-3"><button type="submit" name="tg_test" value="1" class="rounded-full border border-neutral-300 bg-white px-6 py-3 text-sm font-bold text-neutral-600 transition hover:bg-neutral-100">إرسال رسالة تجريبية عبر تيليجرام</button></div>
+    <button class="flex items-center gap-2 rounded-full bg-black px-10 py-4 font-bold text-white shadow-lg transition hover:bg-neutral-800"><?=icon('save',18)?> حفظ الإعدادات</button>
   </form>
 </main>
 

@@ -190,7 +190,7 @@ admin_header('الإعدادات', 'settings.php');
       </label>
     </div>
 
-    <div class="fixed bottom-4 left-4 right-4 lg:right-72 z-20 flex flex-wrap items-center justify-start gap-3 rounded-2xl border bg-white p-3 shadow-lg"><button class="admin-btn"><?=icon('save',16)?> حفظ الإعدادات</button><span id="save-state" class="text-xs font-bold">كل التعديلات محفوظة</span></div>
+    <div class="fixed bottom-3 left-4 right-4 lg:right-72 z-20 flex flex-wrap items-center justify-start gap-3 rounded-2xl border bg-white p-3 shadow-lg"><span id="save-state" class="text-xs font-bold">كل التعديلات محفوظة</span><button class="flex items-center gap-2 rounded-full bg-black px-10 py-4 font-bold text-white shadow-lg transition hover:bg-neutral-800"><?=icon('save',16)?> حفظ الإعدادات</button></div>
   </form>
 </div>
 <style>

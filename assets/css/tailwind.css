@@ -741,8 +741,6 @@ video {
   height: 0.625rem;
 }.h-20 {
   height: 5rem;
-}.h-24 {
-  height: 6rem;
 }.h-28 {
   height: 7rem;
 }.h-3 {
@@ -2168,10 +2166,6 @@ video {
 
   .sm\:grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .sm\:grid-cols-\[1fr_2fr_auto\] {
-    grid-template-columns: 1fr 2fr auto;
   }
 
   .sm\:flex-row {
