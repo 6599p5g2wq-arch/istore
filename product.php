@@ -53,8 +53,8 @@ require APP_ROOT . '/includes/store-header.php';
       </div>
       <?php if (count($gallery) > 1): ?>
       <div class="mt-3 grid grid-cols-4 gap-3">
-        <?php foreach (array_slice($gallery, 1, 4) as $g): ?>
-        <button onclick="document.getElementById('main-img').src='<?= e(img_url($g)) ?>'" class="overflow-hidden rounded-2xl bg-[var(--surface-2)] ring-1 ring-white/10 transition hover:ring-[var(--accent)]">
+        <?php foreach (array_slice($gallery, 1, 4) as $gi => $g): ?>
+        <button type="button" aria-label="عرض صورة المنتج <?= $gi + 2 ?>" onclick="document.getElementById('main-img').src='<?= e(img_url($g)) ?>'" class="overflow-hidden rounded-2xl bg-[var(--surface-2)] ring-1 ring-white/10 focus:ring-2 focus:ring-[var(--accent)]">
           <img src="<?= e(img_url($g)) ?>" alt="" class="aspect-square w-full object-cover">
         </button>
         <?php endforeach; ?>

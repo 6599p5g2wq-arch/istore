@@ -13,6 +13,7 @@ function db(): PDO {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
+    $pdo->exec("SET time_zone = '+02:00'");
     try{$pdo->exec('ALTER TABLE control_users MODIFY username VARCHAR(255) NOT NULL');}catch(PDOException $e){}
     migrate_variants($pdo);
     migrate_customers($pdo);

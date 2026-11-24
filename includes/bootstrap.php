@@ -2,6 +2,7 @@
 // النواة المشتركة: تُضمَّن في أعلى كل صفحة
 define('APP_ROOT', dirname(__DIR__));
 require APP_ROOT . '/config.php';
+date_default_timezone_set('Africa/Tripoli');
 require APP_ROOT . '/includes/db.php';
 require APP_ROOT . '/includes/helpers.php';
 require APP_ROOT . '/includes/variants.php';
