@@ -1,0 +1,33 @@
+(()=>{
+const f=document.getElementById('site-settings-form');if(!f)return;
+let dirty=!!document.getElementById('settings-error'),submitting=false;
+const state=document.getElementById('save-state');const mark=()=>{dirty=true;state.textContent='تعديلات غير محفوظة';};
+window.addEventListener('beforeunload',e=>{if(dirty&&!submitting){e.preventDefault();e.returnValue='';}});
+document.addEventListener('click',e=>{const a=e.target.closest('a');if(a&&dirty&&!a.getAttribute('href')?.startsWith('#')&&!confirm('توجد تعديلات غير محفوظة. مغادرة الصفحة؟'))e.preventDefault();},true);
+f.addEventListener('submit',()=>{submitting=true;});
+const cards=[...f.children].filter(x=>x.classList.contains('admin-card'));cards.forEach((c,i)=>{c.id='settings-'+i;c.style.scrollMarginTop='24px';});
+const get=n=>f.querySelector('[name="'+n+'"]');const value=n=>get(n)?.value||'';
+const block=(parent,id)=>{let d=document.createElement('div');d.id=id;d.className='mt-4 rounded-2xl border bg-neutral-50 p-4 text-sm';parent.appendChild(d);return d;};
+const ann=block(cards[0],'announcement-preview');ann.setAttribute('aria-label','معاينة الإعلان');
+const status=block(cards[0],'schedule-status');
+const prices=block(cards[1],'price-preview');prices.setAttribute('aria-label','معاينة الأسعار');
+const warnings=block(cards[0],'settings-warnings');warnings.classList.add('text-amber-700');
+let annIndex=0;
+function chipPreview(box,id){let prev=document.getElementById(id)||block(box.parentElement,id);prev.replaceChildren();let title=document.createElement('b');title.textContent='معاينة';prev.appendChild(title);let line=document.createElement('div');line.className='mt-2 flex flex-wrap gap-2';box.querySelectorAll('input').forEach(inp=>{if(!inp.value.trim())return;let tag=document.createElement('span');tag.className='rounded-full bg-black px-3 py-1 text-xs text-white';let sel=inp.parentElement.querySelector('select');tag.textContent=(sel?.selectedOptions[0]?.textContent||'')+' · '+inp.value;line.appendChild(tag);});prev.appendChild(line);}
+function render(){
+ state.textContent=dirty?'تعديلات غير محفوظة':'كل التعديلات محفوظة';
+ let msgs=[...f.querySelectorAll('[name="msg_text[]"]')].map(x=>x.value.trim()).filter(Boolean);
+ ann.textContent=msgs.length?msgs[annIndex%msgs.length]:'نص الإعلان يظهر هنا';ann.style.background=value('bg');ann.style.color=value('color');ann.style.textAlign='center';
+ let now=Date.now(),start=value('start')?Date.parse(value('start')+':00+02:00'):0,end=value('end')?Date.parse(value('end')+':00+02:00'):0;
+ let mode=!get('enabled').checked?'متوقف':!msgs.length?'بلا رسائل':start&&now<start?'مجدول':end&&now>=end?'منتهي':'نشط';status.textContent='حالة الجدولة: '+mode+' · توقيت ليبيا';
+ let warns=[];if(!!value('currency2_symbol').trim()!==!!value('currency2_rate').trim())warns.push('أكمل رمز العملة الثانية وسعر الصرف معاً');if(get('enabled').checked&&!msgs.length)warns.push('الإعلان مفعّل بلا رسالة، لن يظهر للزبائن');warnings.textContent=warns.join(' · ');warnings.hidden=!warns.length;
+ prices.replaceChildren();let t=document.createElement('b');t.textContent='معاينة الأسعار';prices.appendChild(t);[150,150.75].forEach(n=>{let dec=value('currency_decimals'),num=new Intl.NumberFormat('ar-LY',dec==='2'?{minimumFractionDigits:2,maximumFractionDigits:2}:dec==='0'?{maximumFractionDigits:0}:{maximumFractionDigits:2}).format(n);let s=value('currency_pos')==='before'?value('currency')+' '+num:num+' '+value('currency');let rate=Number(value('currency2_rate'));if(value('currency2_symbol')&&rate>0&&Number.isFinite(rate))s+=' ≈ '+(n/rate).toFixed(2)+' '+value('currency2_symbol');let p=document.createElement('p');p.className='mt-2';p.textContent=s;prices.appendChild(p);});
+ for(let [id,pid] of [['intro-rows','intro-preview'],['mq-rows','mq-preview']])chipPreview(document.getElementById(id),pid);
+}
+function arrow(row,box,dir,label){let btn=document.createElement('button');btn.type='button';btn.className='rounded-lg border bg-white px-2 py-1 text-xs';btn.textContent=dir<0?'↑':'↓';btn.setAttribute('aria-label',label);btn.onclick=()=>{let other=dir<0?row.previousElementSibling:row.nextElementSibling;if(!other)return;if(dir<0)box.insertBefore(row,other);else box.insertBefore(other,row);mark();render();};return btn;}
+function bindRow(row,box,isMessage){if(row.dataset.enhanced)return;row.dataset.enhanced='1';row.classList.add('flex-wrap','min-w-0');row.querySelectorAll('input').forEach(x=>{x.style.minWidth='0';});let controls=document.createElement('div');controls.className='settings-row-controls flex w-full gap-2';controls.append(arrow(row,box,-1,'أعلى'),arrow(row,box,1,'أسفل'));if(!isMessage){let del=document.createElement('button');del.type='button';del.textContent='حذف';del.className='rounded-lg px-2 py-1 text-xs text-red-600';del.onclick=()=>{if(box.children.length>1)row.remove();else row.querySelector('input').value='';mark();render();};controls.appendChild(del);}row.prepend(controls);}
+const messages=document.getElementById('msgs');[...messages.children].forEach(r=>bindRow(r,messages,true));new MutationObserver(()=>{[...messages.children].forEach(r=>bindRow(r,messages,true));mark();render();}).observe(messages,{childList:true});
+for(let id of ['intro-rows','mq-rows']){let box=document.getElementById(id);[...box.children].forEach(r=>bindRow(r,box,false));let add=document.createElement('button');add.type='button';add.textContent='+ إضافة عنصر';add.className='admin-btn-ghost mt-3';box.after(add);add.onclick=()=>{if(box.children.length>=6)return;let row=box.children[0].cloneNode(true);row.querySelector('.settings-row-controls')?.remove();delete row.dataset.enhanced;row.querySelector('input').value='';box.appendChild(row);bindRow(row,box,false);mark();render();};}
+f.addEventListener('input',()=>{mark();render();});f.addEventListener('change',()=>{mark();render();});setInterval(()=>{annIndex++;render();},Math.max(2,Number(value('interval'))||5)*1000);render();
+const error=document.getElementById('settings-error');if(error){let d=JSON.parse(error.textContent),input=get(d.field);if(input){input.setAttribute('aria-invalid','true');input.style.borderColor='#dc2626';input.style.backgroundColor='#fef2f2';let msg=document.createElement('p');msg.className='mt-2 text-xs font-bold text-red-700';msg.textContent=d.message;msg.id='field-error';input.setAttribute('aria-describedby',msg.id);input.after(msg);input.scrollIntoView({block:'center'});}}
+})();

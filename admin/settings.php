@@ -4,6 +4,7 @@ require_once APP_ROOT . '/includes/announcement.php';
 require_once APP_ROOT . '/includes/intro.php';
 require_once APP_ROOT . '/includes/marquee.php';
 require_admin();
+$err=''; $errorField=''; $posted=false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $msgs = [];
@@ -28,7 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif ($rate !== '' && !(is_numeric($rate) && (float)$rate > 0)) $err = 'سعر الصرف يجب أن يكون رقماً أكبر من صفر';
     elseif ($thr === '' || !is_numeric($thr) || (float)$thr < 0) $err = 'حد الشحن المجاني يجب أن يكون رقماً (0 لتعطيله)';
     if ($err !== '') {
-        flash($err, true);
+        $posted=true;
+        $errorField = str_contains($err,'بداية') ? 'end' : (str_contains($err,'رمز') ? 'currency' : (str_contains($err,'الصرف') ? 'currency2_rate' : 'free_shipping_threshold'));
+        http_response_code(422);
     } else {
         set_setting('currency2_symbol', $t('currency2_symbol', 10));
         set_setting('currency', $currency);
@@ -45,20 +48,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // للتوافق مع القراءة القديمة (التطبيق/الـ API): أول رسالة فعّالة
         set_setting('announcement', announce_active($cfg) ? $cfg['messages'][0]['text'] : '');
         flash('تم حفظ الإعدادات');
+        redirect_admin('settings.php');
     }
-    redirect_admin('settings.php');
 }
+function settings_value($key,$fallback='') { global $posted; return $posted ? (string)($_POST[$key]??'') : setting($key,$fallback); }
 
-$c = announce_read();
+$c = $posted ? $cfg : announce_read();
+if($posted) { $c['messages']=$msgs; foreach(['start','end'] as $k) $c[$k]=(string)($_POST[$k]??''); }
 if (!$c['messages']) $c['messages'] = [['text' => '', 'link' => '']];
-$chipRows = intro_cfg()['chips']; while (count($chipRows) < 6) $chipRows[] = ['icon' => 'star', 'text' => ''];
-$mq = marquee_cfg(); $mqRows = $mq['items']; while (count($mqRows) < 6) $mqRows[] = ['icon' => 'star', 'text' => ''];
+$chipRows = intro_cfg()['chips'];
+if($posted) { $chipRows=[];foreach((array)($_POST['intro_text']??[]) as $i=>$text) $chipRows[]=['icon'=>$_POST['intro_icon'][$i]??'star','text'=>$text]; }
+if(!$chipRows) $chipRows=[['icon'=>'star','text'=>'']];
+$mq = marquee_cfg(); $mqRows = $mq['items'];
+if($posted) { $mqRows=[];foreach((array)($_POST['mq_text']??[]) as $i=>$text) $mqRows[]=['icon'=>$_POST['mq_icon'][$i]??'star','text'=>$text]; }
+if(!$mqRows) $mqRows=[['icon'=>'star','text'=>'']];
 admin_header('الإعدادات', 'settings.php');
 ?>
 <div class="max-w-3xl">
   <h1 class="text-2xl font-black sm:text-3xl">الإعدادات</h1>
   <?php admin_msg(); ?>
-  <form method="post" class="mt-6 space-y-5">
+  <nav id="settings-nav" class="mt-4 flex flex-wrap gap-2"><?php foreach(['الإعلانات','العملة','شرائح المقدمة','المميزات','الشحن'] as $i=>$lbl): ?><a class="admin-btn-ghost !text-xs" href="#settings-<?= $i ?>"><?= $lbl ?></a><?php endforeach; ?></nav>
+  <?php if($err): ?><p role="alert" class="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700"><?= e($err) ?>، احتفظنا بكل القيم التي أدخلتها.</p><?php endif; ?>
+  <form id="site-settings-form" method="post" class="mt-6 space-y-5 pb-28">
     <div class="admin-card p-6">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -109,10 +120,10 @@ admin_header('الإعدادات', 'settings.php');
     <div class="admin-card p-6">
       <h2 class="font-extrabold">العملة وعرض الأسعار</h2>
       <p class="mt-1 text-xs text-neutral-500">تنطبق على صفحات المتجر.</p>
-      <?php $po = price_opts(); ?>
+      <?php $po = price_opts(); if($posted) { $po['pos']=$_POST['currency_pos']??'after';$po['dec']=$_POST['currency_decimals']??'auto'; } ?>
       <div class="mt-4 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
         <label class="block text-sm font-bold">رمز العملة
-          <input name="currency" required maxlength="12" value="<?= e(setting('currency', 'د.ل')) ?>" class="admin-input mt-1">
+          <input name="currency" required maxlength="12" value="<?= e(settings_value('currency', 'د.ل')) ?>" class="admin-input mt-1">
         </label>
         <label class="block text-sm font-bold">موضع الرمز
           <select name="currency_pos" class="admin-input mt-1">
@@ -132,8 +143,8 @@ admin_header('الإعدادات', 'settings.php');
         <p class="text-sm font-bold">عملة ثانية للعرض (اختياري)</p>
         <p class="mt-1 text-xs text-neutral-500">تظهر بجانب السعر كقيمة تقريبية، مثل ≈ 28.85 $. للعرض فقط: الدفع والطلبات تبقى بالعملة الأساسية. اترك الحقلين فارغين لإيقافها.</p>
         <div class="mt-3 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-          <label class="block text-sm font-bold">رمز العملة الثانية<input name="currency2_symbol" maxlength="10" placeholder="$" value="<?= e(setting('currency2_symbol', '')) ?>" class="admin-input mt-1"></label>
-          <label class="block text-sm font-bold">سعر الصرف (كم وحدة من عملتك الأساسية تساوي 1 من الثانية)<input name="currency2_rate" dir="ltr" inputmode="decimal" placeholder="5.2" value="<?= e(setting('currency2_rate', '')) ?>" class="admin-input mt-1 text-left"></label>
+          <label class="block text-sm font-bold">رمز العملة الثانية<input name="currency2_symbol" maxlength="10" placeholder="$" value="<?= e(settings_value('currency2_symbol', '')) ?>" class="admin-input mt-1"></label>
+          <label class="block text-sm font-bold">سعر الصرف (كم وحدة من عملتك الأساسية تساوي 1 من الثانية)<input name="currency2_rate" dir="ltr" inputmode="decimal" placeholder="5.2" value="<?= e(settings_value('currency2_rate', '')) ?>" class="admin-input mt-1 text-left"></label>
         </div>
       </div>
     </div>
@@ -141,11 +152,11 @@ admin_header('الإعدادات', 'settings.php');
     <div class="admin-card p-6">
       <h2 class="font-extrabold">شرائح العروض (المقدمة الافتتاحية)</h2>
       <p class="mt-1 text-xs text-neutral-500">الشرائح الصغيرة تحت الوصف في أول شاشة من الصفحة الرئيسية، حتى 6. اترك النص فارغاً لحذف الشريحة. باقي نصوص المقدمة والشعار من /control.</p>
-      <div class="mt-4 space-y-2">
-        <?php foreach ($chipRows as $c): ?>
+      <div id="intro-rows" class="mt-4 space-y-2">
+        <?php foreach ($chipRows as $chip): ?>
         <div class="flex gap-2">
-          <select name="intro_icon[]" class="admin-input !w-32 shrink-0"><?php foreach (INTRO_ICON_LABELS as $k => $lb): ?><option value="<?= e($k) ?>" <?= $c['icon'] === $k ? 'selected' : '' ?>><?= e($lb) ?></option><?php endforeach; ?></select>
-          <input name="intro_text[]" value="<?= e($c['text']) ?>" maxlength="40" class="admin-input">
+          <select name="intro_icon[]" class="admin-input !w-32 shrink-0"><?php foreach (INTRO_ICON_LABELS as $k => $lb): ?><option value="<?= e($k) ?>" <?= $chip['icon'] === $k ? 'selected' : '' ?>><?= e($lb) ?></option><?php endforeach; ?></select>
+          <input name="intro_text[]" value="<?= e($chip['text']) ?>" maxlength="40" class="admin-input">
         </div>
         <?php endforeach; ?>
       </div>
@@ -157,13 +168,13 @@ admin_header('الإعدادات', 'settings.php');
           <h2 class="font-extrabold">شريط المميزات المتحرك</h2>
           <p class="mt-1 text-xs text-neutral-500">الشريط الذي يمر أفقياً تحت السلايدر. حتى 6 عناصر، كل عنصر أيقونة ونص. اترك النص فارغاً لحذف العنصر.</p>
         </div>
-        <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="marquee_enabled" value="1" <?= setting('marquee_enabled', '1') !== '0' ? 'checked' : '' ?> class="h-4 w-4"> ظاهر</label>
+        <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="marquee_enabled" value="1" <?= ($posted ? !empty($_POST['marquee_enabled']) : setting('marquee_enabled','1')!=='0') ? 'checked' : '' ?> class="h-4 w-4"> ظاهر</label>
       </div>
-      <div class="mt-4 space-y-2">
-        <?php foreach ($mqRows as $c): ?>
+      <div id="mq-rows" class="mt-4 space-y-2">
+        <?php foreach ($mqRows as $chip): ?>
         <div class="flex gap-2">
-          <select name="mq_icon[]" class="admin-input !w-32 shrink-0"><?php foreach (MARQUEE_ICON_LABELS as $k => $lb): ?><option value="<?= e($k) ?>" <?= $c['icon'] === $k ? 'selected' : '' ?>><?= e($lb) ?></option><?php endforeach; ?></select>
-          <input name="mq_text[]" value="<?= e($c['text']) ?>" maxlength="40" class="admin-input">
+          <select name="mq_icon[]" class="admin-input !w-32 shrink-0"><?php foreach (MARQUEE_ICON_LABELS as $k => $lb): ?><option value="<?= e($k) ?>" <?= $chip['icon'] === $k ? 'selected' : '' ?>><?= e($lb) ?></option><?php endforeach; ?></select>
+          <input name="mq_text[]" value="<?= e($chip['text']) ?>" maxlength="40" class="admin-input">
         </div>
         <?php endforeach; ?>
       </div>
@@ -172,12 +183,12 @@ admin_header('الإعدادات', 'settings.php');
     <div class="admin-card p-6">
       <h2 class="font-extrabold">الشحن</h2>
       <p class="mt-1 text-xs text-neutral-500">الطلبات التي يتجاوز مجموعها هذا الحد يصير توصيلها مجاناً.</p>
-      <label class="mt-4 block max-w-xs text-sm font-bold">حد الشحن المجاني (<?= e(setting('currency', 'د.ل')) ?>) — 0 لتعطيله
-        <input name="free_shipping_threshold" dir="ltr" inputmode="decimal" value="<?= e(setting('free_shipping_threshold', '0')) ?>" class="admin-input mt-1 text-left">
+      <label class="mt-4 block max-w-xs text-sm font-bold">حد الشحن المجاني (<?= e(settings_value('currency', 'د.ل')) ?>) — 0 لتعطيله
+        <input name="free_shipping_threshold" dir="ltr" inputmode="decimal" value="<?= e(settings_value('free_shipping_threshold', '0')) ?>" class="admin-input mt-1 text-left">
       </label>
     </div>
 
-    <button class="admin-btn">حفظ الإعدادات</button>
+    <div class="fixed bottom-3 left-4 right-4 lg:right-72 z-20 flex flex-wrap items-center gap-3 rounded-2xl border bg-white p-3 shadow-lg"><span id="save-state" class="text-xs font-bold">كل التعديلات محفوظة</span><button class="admin-btn">حفظ الإعدادات</button></div>
   </form>
 </div>
 <style>
@@ -212,9 +223,12 @@ admin_header('الإعدادات', 'settings.php');
   document.getElementById('add').onclick = function(){
     if (box.children.length >= 10) return;
     var n = box.children[0].cloneNode(true);
+    n.querySelector('.settings-row-controls')?.remove(); delete n.dataset.enhanced;
     n.querySelectorAll('input').forEach(function(i){ i.value = ''; });
     box.appendChild(n); bind(n);
   };
 })();
 </script>
+<?php if($err): ?><script type="application/json" id="settings-error"><?= json_encode(['field'=>$errorField,'message'=>$err],JSON_HEX_TAG|JSON_HEX_AMP) ?></script><?php endif; ?>
+<script src="<?= e(url('assets/settings-admin.js')) ?>" defer></script>
 <?php admin_footer(); ?>
