@@ -31,13 +31,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem("istore_cart");
-      if (raw) setItems(JSON.parse(raw));
+      if (raw) {const parsed=JSON.parse(raw);if(Array.isArray(parsed))setItems(parsed.filter(i=>i&&Number.isSafeInteger(i.id)&&i.id>0).map(i=>({...i,name:String(i.name||""),slug:String(i.slug||""),image: /^(https?:\/\/|\/(?!\/))/.test(String(i.image||""))?String(i.image):"",price:Math.max(0,Number(i.price)||0),qty:Math.max(1,Math.min(99,Math.floor(Number(i.qty)||1))),stock:Math.max(0,Math.floor(Number(i.stock)||0)),variant_id:Math.max(0,Math.floor(Number(i.variant_id)||0)),variant_label:String(i.variant_label||"")})));}
     } catch {}
     setLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (loaded) localStorage.setItem("istore_cart", JSON.stringify(items));
+    if (loaded) {try {localStorage.setItem("istore_cart", JSON.stringify(items));} catch {}}
   }, [items, loaded]);
 
   const api = useMemo<CartCtx>(() => ({

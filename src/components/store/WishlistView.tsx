@@ -8,8 +8,10 @@ import type { Product } from "@/lib/types";
 
 export default function WishlistView({ currency }: { currency: string }) {
   const { items } = useWishlist();
+  const [fresh,setFresh]=useState<Product[]>([]);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  useEffect(()=>{const c=new AbortController();if(!items.length){setFresh([]);return;}fetch("/api/wishlist-products?ids="+items.map(i=>i.id).join(","),{signal:c.signal}).then(r=>{if(!r.ok)throw Error();return r.json()}).then(d=>setFresh(d.products||[])).catch(()=>{});return()=>c.abort();},[items]);
 
   if (!mounted) return <div className="mt-10 h-40 animate-pulse rounded-3xl bg-[var(--card)]" />;
 
@@ -30,7 +32,7 @@ export default function WishlistView({ currency }: { currency: string }) {
         <ProductCard
           key={p.id}
           currency={currency}
-          product={{ ...p, description: "", category_id: null, images: "[]", featured: 0, active: 1, created_at: "" } as Product}
+          product={{ ...p,options:p.options??"[{}]",...fresh.find(f=>f.id===p.id), description: "", category_id: null, images: "[]", featured: 0, active: 1, created_at: "" } as Product}
         />
       ))}
     </div>

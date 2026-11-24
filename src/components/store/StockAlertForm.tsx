@@ -11,6 +11,7 @@ export default function StockAlertForm({ productId }: { productId: number }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setState("loading"); setError("");
+    try {
     const r = await fetch("/api/stock-alerts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -20,6 +21,7 @@ export default function StockAlertForm({ productId }: { productId: number }) {
     const d = await r.json().catch(() => ({}));
     setError(d.error || "حدث خطأ، حاول مرة أخرى");
     setState("error");
+    }catch{setError("تعذر الاتصال بالخادم");setState("error");}
   };
 
   if (state === "done") {

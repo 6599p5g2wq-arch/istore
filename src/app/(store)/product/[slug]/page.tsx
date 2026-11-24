@@ -9,6 +9,7 @@ import Reveal from "@/components/store/Reveal";
 import AddToCartPanel from "@/components/store/AddToCartPanel";
 import PurchasePanel from "@/components/store/PurchasePanel";
 import { parseOptions, getVariants } from "@/lib/variants";
+import ProductThumbnails from "@/components/store/ProductThumbnails";
 import ProductViewer from "@/components/store/ProductViewer";
 import StockAlertForm from "@/components/store/StockAlertForm";
 import ReviewForm from "@/components/store/ReviewForm";
@@ -68,16 +69,7 @@ export default async function ProductPage(props: { params: Promise<{ slug: strin
             <ProductViewer src={gallery[0]} alt={product.name} badge={product.badge} discount={discount} />
             <WishlistButton product={product} className="absolute bottom-4 left-4 z-10" />
           </div>
-          {gallery.length > 1 && (
-            <div className="mt-3 grid grid-cols-4 gap-3">
-              {gallery.slice(1, 5).map((g, i) => (
-                <div key={i} className="overflow-hidden rounded-2xl bg-[var(--surface-2)] ring-1 ring-white/10">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={g} alt="" className="aspect-square w-full object-cover" />
-                </div>
-              ))}
-            </div>
-          )}
+          {gallery.length > 1 && <ProductThumbnails images={gallery} />}
         </Reveal>
 
         <Reveal delay={0.1}>

@@ -36,7 +36,7 @@ export function formatSecondary(value: number): string {
 }
 export function formatDate(iso: string): string {
   try {
-    return new Intl.DateTimeFormat("ar-LY", { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso.includes("T") ? iso : iso.replace(" ", "T") + "Z"));
+    return new Intl.DateTimeFormat("ar-LY", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Tripoli" }).format(new Date(iso.includes("T") ? iso : iso.replace(" ", "T") + "Z"));
   } catch {
     return iso;
   }

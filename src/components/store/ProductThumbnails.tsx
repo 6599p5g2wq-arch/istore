@@ -1,0 +1,2 @@
+"use client";
+export default function ProductThumbnails({images}:{images:string[]}){return <div className="mt-3 grid grid-cols-4 gap-3">{images.slice(1,5).map((g,i)=><button type="button" key={i} aria-label={`عرض صورة المنتج ${i+2}`} onClick={()=>window.dispatchEvent(new CustomEvent("variant-image",{detail:g}))} className="overflow-hidden rounded-2xl bg-[var(--surface-2)] ring-1 ring-white/10 focus:ring-2 focus:ring-[var(--accent)]"><img src={g} alt="" className="aspect-square w-full object-cover"/></button>)}</div>}

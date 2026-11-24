@@ -33,13 +33,13 @@ export default function CartView() {
                 <Link href={`/product/${it.slug}`} className="line-clamp-2 font-bold leading-snug text-[var(--text)] hover:text-[var(--accent)]">{it.name}</Link>
                 {it.variant_label && <span className="mt-0.5 text-xs font-bold text-[var(--text-faint)]">{it.variant_label}</span>}
                 <span className="mt-1 text-sm text-[var(--text-faint)]">{formatPrice(it.price)} للقطعة</span>
-                <div className="mt-auto flex items-center justify-between pt-3">
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3">
                   <div className="flex items-center gap-3 rounded-full border border-[var(--border-strong)] px-2 py-1">
                     <button onClick={() => setQty(cartKey(it), it.qty + 1)} className="grid h-7 w-7 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)]" aria-label="زيادة"><Plus size={14} /></button>
                     <span className="w-6 text-center font-extrabold text-white">{it.qty}</span>
                     <button onClick={() => setQty(cartKey(it), it.qty - 1)} className="grid h-7 w-7 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)]" aria-label="نقصان"><Minus size={14} /></button>
                   </div>
-                  <span className="text-lg font-extrabold text-white">{formatPrice(it.price * it.qty)}</span>
+                  <span className="whitespace-nowrap text-lg font-extrabold text-white">{formatPrice(it.price * it.qty)}</span>
                 </div>
               </div>
               <button onClick={() => remove(cartKey(it))} aria-label="حذف" className="self-start text-neutral-600 transition hover:text-red-400"><Trash2 size={18} /></button>
@@ -48,7 +48,7 @@ export default function CartView() {
         </AnimatePresence>
       </ul>
       <div className="h-fit rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 lg:sticky lg:top-24">
-        <h2 className="text-lg font-extrabold text-white">ملخص الطلب</h2>
+        <h2 className="whitespace-nowrap text-lg font-extrabold text-white">ملخص الطلب</h2>
         <div className="mt-4 space-y-2.5 text-sm">
           <div className="flex justify-between text-[var(--text-dim)]"><span>المجموع الفرعي</span><span className="font-bold text-white">{formatPrice(total)}</span></div>
           <div className="flex justify-between text-[var(--text-dim)]"><span>التوصيل</span><span className="font-bold text-white">يُحسب عند إتمام الطلب</span></div>

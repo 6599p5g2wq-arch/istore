@@ -104,7 +104,7 @@ export default async function AdminDashboard(props: { searchParams: Promise<{ ra
   const periodTotal = days.reduce((a, d) => a + d.total, 0);
   const BAR_MAX = 110;
 
-  const todayStr = new Date().toLocaleDateString("ar-LY", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const todayStr = new Date().toLocaleDateString("ar-LY", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Tripoli" });
 
   return (
     <div>

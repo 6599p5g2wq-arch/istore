@@ -67,7 +67,7 @@ export function readIntro(s: Record<string, string>): IntroConfig {
     logo: s.intro_logo || "",
     opacity: Number.isFinite(op) && s.intro_logo_opacity !== undefined && s.intro_logo_opacity !== "" ? Math.min(60, Math.max(0, op)) : 18,
     chips,
-    ctaText: (s.intro_cta_text || "").trim() || "تسوق الآن",
+    ctaText: Object.prototype.hasOwnProperty.call(s,"intro_cta_text") ? (s.intro_cta_text || "").trim() : "تسوق الآن",
     ctaLink: safeLink(s.intro_cta_link || "/products"),
   };
 }

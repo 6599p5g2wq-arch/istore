@@ -14,6 +14,7 @@ export default function AccountForms({ whatsapp = "" }: { whatsapp?: string }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
+    try {
     const r = await fetch(`/api/account/${mode}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -23,6 +24,7 @@ export default function AccountForms({ whatsapp = "" }: { whatsapp?: string }) {
     const d = await r.json().catch(() => ({}));
     setError(d.error || "حدث خطأ، حاول مرة أخرى");
     setLoading(false);
+    }catch{setError("تعذر الاتصال بالخادم");setLoading(false);}
   };
 
   const inputCls = "w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-white outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20";
