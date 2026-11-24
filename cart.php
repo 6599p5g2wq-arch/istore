@@ -3,7 +3,7 @@ require __DIR__ . '/includes/bootstrap.php';
 require APP_ROOT . '/includes/auth.php';
 $page_title='سلة التسوق';require APP_ROOT.'/includes/store-header.php';
 ?>
-<div class="mx-auto max-w-7xl px-4 pt-10 sm:px-6"><h1 class="text-3xl font-black sm:text-4xl">سلة التسوق</h1><div id="cart-page-root"></div></div>
+<div class="mx-auto max-w-5xl px-4 pt-10 sm:px-6"><h1 class="text-3xl font-black sm:text-4xl">سلة التسوق</h1><div id="cart-page-root"></div></div>
 <script>
 const CART_ICONS=<?=json_encode(array_combine(['bag','plus','minus','trash','arrow'],[icon('shopping-bag',56,'text-neutral-600'),icon('plus',14),icon('minus',14),icon('trash',18),icon('arrow-left',17)]),JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?>;
 window.renderCartPage=function(){const root=document.getElementById('cart-page-root'),items=Cart.items,fmt=window.fmtPrice,E=window.escapeHtml;

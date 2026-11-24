@@ -25,7 +25,7 @@ $statusMeta=['new'=>['قيد المراجعة','clock','text-amber-400 bg-amber-
 $page_title = 'تتبع طلبك';
 require APP_ROOT . '/includes/store-header.php';
 ?>
-<div class="mx-auto max-w-2xl px-4 pt-14 sm:px-6">
+<div class="mx-auto max-w-2xl px-4 pt-16 sm:px-6">
   <h1 class="text-center text-3xl font-black sm:text-4xl">تتبع طلبك</h1>
   <p class="mt-3 text-center text-[var(--text-faint)]">أدخل رقم الطلب ورقم هاتفك لمعرفة حالة طلبك</p>
 
@@ -33,18 +33,18 @@ require APP_ROOT . '/includes/store-header.php';
     <label class="block text-sm font-bold">رقم الطلب
       <input name="code" required dir="ltr" value="<?= e($code) ?>" placeholder="IST-XXXXXX" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20">
     </label>
-    <label class="block text-sm font-bold">رقم الهاتف
+    <label class="block text-sm font-bold">رقم الهاتف المستخدم في الطلب
       <input name="phone" required dir="ltr" inputmode="tel" value="<?= e($phone) ?>" placeholder="09XXXXXXXX" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20">
     </label>
     <button class="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3.5 font-bold text-black transition hover:bg-neutral-200"><?=icon('search',18)?> تتبع</button>
   </form>
 
   <?php if ($error): ?>
-    <p class="mt-4 rounded-2xl bg-red-500/10 p-4 text-center text-sm font-bold text-red-400"><?= e($error) ?></p>
+    <p class="mt-4 rounded-2xl bg-red-500/10 px-4 py-3 text-center text-sm font-bold text-red-400"><?= e($error) ?></p>
   <?php endif; ?>
 
   <?php if ($order): ?>
-    <div class="reveal mt-8 rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
+    <div class="reveal mt-6 rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
       <?php $st=$statusMeta[$order['status']]??$statusMeta['new']; ?><div class="flex items-center gap-3 rounded-2xl p-4 <?=$st[2]?>"><?=icon($st[1],26)?><div><p class="font-extrabold"><?=e($st[0])?></p><p class="text-xs opacity-70">آخر تحديث لحالة طلبك</p></div><span class="mr-auto font-extrabold" dir="ltr"><?=e($order['code'])?></span></div>
       <ul class="mt-4 space-y-2 text-sm text-[var(--text)]"><?php foreach($items as $it):?><li class="flex items-center gap-2"><?=icon('package',14,'text-[var(--text-faint)]')?><?=e($it['name'])?><?=!empty($it['variant_label'])?' · '.e($it['variant_label']):''?><span class="text-[var(--text-faint)]">× <?=(int)$it['qty']?></span></li><?php endforeach;?></ul><div class="mt-4 flex justify-between border-t border-[var(--border)] pt-4 text-sm"><span class="text-[var(--text-dim)]"><?=e($order['city'])?> · <?=e(format_date($order['created_at']))?></span><span class="font-extrabold text-white"><?=e(format_price($order['total']))?></span></div>
     </div>
