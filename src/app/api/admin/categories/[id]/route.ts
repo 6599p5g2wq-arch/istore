@@ -4,17 +4,23 @@ import { requireAdmin, bad } from "@/lib/admin-api";
 
 export const dynamic = "force-dynamic";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   const db = getDb();
+  if (typeof b.name!=="string" || !b.name.trim() || typeof b.slug!=="string" || !b.slug.trim()) return bad("الاسم والرابط مطلوبان");
+  if (!db.prepare("SELECT id FROM categories WHERE id=?").get(params.id)) return bad("العنصر غير موجود",404);
+  if (db.prepare("SELECT id FROM categories WHERE slug=? AND id!=?").get(b.slug.trim(),params.id)) return bad("هذا الرابط مستخدم مسبقاً");
+
   db.prepare("UPDATE categories SET name=?, slug=?, description=?, image=?, sort_order=?, active=? WHERE id=?")
     .run(b.name?.trim() || "", b.slug?.trim() || "", b.description || "", b.image || "", Number(b.sort_order) || 0, b.active ? 1 : 0, params.id);
   return NextResponse.json({ ok: true });
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   const db = getDb();
   if (typeof b.active === "boolean") {
@@ -38,8 +44,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return bad("عملية غير معروفة");
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const db = getDb();
   const used = (db.prepare("SELECT COUNT(*) c FROM products WHERE category_id = ?").get(params.id) as { c: number }).c;
   if (used > 0) {

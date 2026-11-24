@@ -9,8 +9,8 @@ import { getDb } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export default function PanelLayout({ children }: { children: React.ReactNode }) {
-  const admin = getSessionAdmin();
+export default async function PanelLayout({ children }: { children: React.ReactNode }) {
+  const admin = (await getSessionAdmin());
   if (!admin) redirect("/admin/login");
   const s = getSettings();
   const db = getDb();

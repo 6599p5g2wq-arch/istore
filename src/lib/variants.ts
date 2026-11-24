@@ -47,8 +47,9 @@ type VariantInput = { options?: Record<string, string>; price?: number | null; s
  */
 export function replaceVariants(db: Database.Database, productId: number, optionsJson: string, inputs: VariantInput[]) {
   const options = parseOptions(optionsJson);
-  db.prepare("DELETE FROM product_variants WHERE product_id = ?").run(productId);
-  if (options.length === 0) return;
+  const existing = db.prepare("SELECT id,label FROM product_variants WHERE product_id=?").all(productId) as {id:number;label:string}[];
+  if (options.length === 0) {db.prepare("DELETE FROM product_variants WHERE product_id=?").run(productId);return;}
+  const kept = new Set<number>();
   const byLabel = new Map<string, VariantInput>();
   for (const inp of Array.isArray(inputs) ? inputs : []) {
     if (!inp || typeof inp !== "object") continue;
@@ -67,8 +68,11 @@ export function replaceVariants(db: Database.Database, productId: number, option
     const price = inp?.price != null && Number(inp.price) > 0 ? Number(inp.price) : null;
     const stock = Math.max(0, Math.floor(Number(inp?.stock) || 0));
     const image = String(inp?.image || "").slice(0, 500);
-    ins.run(productId, label, JSON.stringify(combo), price, stock, image, sort++);
+    const old = existing.find(v=>v.label===label);
+    if(old){db.prepare("UPDATE product_variants SET options=?,price=?,stock=?,image=?,sort_order=? WHERE id=?").run(JSON.stringify(combo),price,stock,image,sort++,old.id);kept.add(old.id);}
+    else {const r=ins.run(productId,label,JSON.stringify(combo),price,stock,image,sort++);kept.add(Number(r.lastInsertRowid));}
   }
+  for(const old of existing)if(!kept.has(old.id))db.prepare("DELETE FROM product_variants WHERE id=?").run(old.id);
   syncProductStock(db, productId);
 }
 

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const TEXT_KEYS = ["currency", "currency2_symbol"];
 
 export async function PUT(req: NextRequest) {
-  const auth = requireAdmin(); if (auth) return auth;
+  const auth = (await requireAdmin()); if (auth) return auth;
   const b = await req.json().catch(() => null);
   if (!b || typeof b !== "object") return bad("بيانات غير صالحة");
   if (typeof b.currency === "string" && !b.currency.trim()) return bad("العملة مطلوبة");

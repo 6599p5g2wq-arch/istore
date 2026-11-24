@@ -6,8 +6,9 @@ import { addPoints } from "@/lib/loyalty";
 export const dynamic = "force-dynamic";
 
 // تعديل رصيد النقاط يدوياً (delta موجب أو سالب) أو ضبط وضع VIP (vip: "auto" | "on" | "off")
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   const db = getDb();
   const c = db.prepare("SELECT id FROM customers WHERE id = ?").get(params.id);

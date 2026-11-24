@@ -12,7 +12,7 @@ const ACTIONS: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
-  const auth = requireAdmin(); if (auth) return auth;
+  const auth = (await requireAdmin()); if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   const sql = ACTIONS[String(b.action || "")];
   if (!sql) return bad("إجراء غير معروف");

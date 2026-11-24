@@ -10,8 +10,8 @@ import { SlidersHorizontal, ExternalLink } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default function ControlPanelLayout({ children }: { children: React.ReactNode }) {
-  if (!getControlSession()) redirect("/control/login");
+export default async function ControlPanelLayout({ children }: { children: React.ReactNode }) {
+  if (!(await getControlSession())) redirect("/control/login");
   const s = getSettings();
   return (
     <div className="light-scope min-h-screen bg-[#f5f5f7]"><SessionGuard panel="control" idleMinutes={authConfig().idleMinutes}/>

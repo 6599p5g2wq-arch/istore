@@ -5,7 +5,7 @@ import { requireAdmin, bad } from "@/lib/admin-api";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  const auth = requireAdmin(); if (auth) return auth;
+  const auth = (await requireAdmin()); if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   if (!b.title?.trim()) return bad("العنوان مطلوب");
   const r = getDb().prepare("INSERT INTO hero_slides (title, subtitle, cta_text, cta_link, image, theme, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)")

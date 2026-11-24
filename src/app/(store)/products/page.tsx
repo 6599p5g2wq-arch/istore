@@ -16,7 +16,8 @@ const SORTS: Record<string, string> = {
   name: "p.name ASC",
 };
 
-export default function ProductsPage({ searchParams }: { searchParams: Record<string, string | undefined> }) {
+export default async function ProductsPage(props: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const searchParams = await props.searchParams;
   const db = getDb();
   const s = getSettings();
   const cats = db.prepare("SELECT * FROM categories WHERE active = 1 ORDER BY sort_order").all() as Category[];

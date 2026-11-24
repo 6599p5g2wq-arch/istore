@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: NextRequest) {
   const b = await req.json().catch(() => ({}));
+  if (!b || typeof b!=="object" || ["name", "comment", "phone", "order_code"].some(k=>b[k]!==undefined && typeof b[k]!=="string")) return bad("بيانات غير صالحة");
   const productId = Number(b.product_id) || 0;
   const name = (b.name || "").trim().slice(0, 80);
   const rating = Math.min(5, Math.max(1, Math.floor(Number(b.rating) || 0)));

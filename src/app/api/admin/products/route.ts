@@ -6,8 +6,11 @@ import { replaceVariants, parseOptions } from "@/lib/variants";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  const auth = requireAdmin(); if (auth) return auth;
+  const auth = (await requireAdmin()); if (auth) return auth;
   const b = await req.json().catch(() => ({}));
+  if (!b || typeof b.name!=="string" || !b.name.trim() || typeof b.slug!=="string" || !b.slug.trim()) return bad("الاسم والرابط مطلوبان");
+  if (!Number.isFinite(Number(b.price)) || Number(b.price)<0 || !Number.isSafeInteger(Number(b.stock)) || Number(b.stock)<0 || (b.old_price!=null && b.old_price!=="" && (!Number.isFinite(Number(b.old_price)) || Number(b.old_price)<=Number(b.price)))) return bad("السعر أو المخزون غير صالح");
+
   if (!b.name?.trim() || !b.slug?.trim()) return bad("الاسم والرابط (slug) مطلوبان");
   const db = getDb();
   const dup = db.prepare("SELECT id FROM products WHERE slug = ?").get(b.slug.trim());

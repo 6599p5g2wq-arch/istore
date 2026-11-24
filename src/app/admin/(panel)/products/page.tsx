@@ -26,7 +26,8 @@ function chipLink(params: Record<string, string>, patch: Record<string, string>)
   return `/admin/products${s ? `?${s}` : ""}`;
 }
 
-export default function AdminProducts({ searchParams }: { searchParams: Record<string, string | undefined> }) {
+export default async function AdminProducts(props: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const searchParams = await props.searchParams;
   const db = getDb();
   const s = getSettings();
   const q = (searchParams.q || "").trim();

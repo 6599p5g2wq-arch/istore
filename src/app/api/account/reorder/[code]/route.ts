@@ -6,8 +6,9 @@ import { getSessionCustomer } from "@/lib/customer-auth";
 export const dynamic = "force-dynamic";
 
 // يعيد بنود طلب سابق بأسعار ومخزون اليوم لإضافتها للسلة
-export async function GET(_req: Request, { params }: { params: { code: string } }) {
-  const c = getSessionCustomer();
+export async function GET(_req: Request, props: { params: Promise<{ code: string }> }) {
+  const params = await props.params;
+  const c = (await getSessionCustomer());
   if (!c) return bad("سجل دخولك أولاً", 401);
   const db = getDb();
   const order = db.prepare("SELECT id FROM orders WHERE code = ? AND customer_id = ?").get(params.code, c.id) as { id: number } | undefined;

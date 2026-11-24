@@ -1,4 +1,6 @@
 import React from "react";
+import { canViewOrder } from "@/lib/order-access";
+import OrderPrivacyGate from "@/components/store/OrderPrivacyGate";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, Phone, Package } from "lucide-react";
@@ -10,11 +12,13 @@ import type { Order, OrderItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default function OrderSuccessPage({ params }: { params: { code: string } }) {
+export default async function OrderSuccessPage(props: { params: Promise<{ code: string }> }) {
+  const params = await props.params;
   const db = getDb();
   const s = getSettings();
   const order = db.prepare("SELECT * FROM orders WHERE code = ?").get(params.code) as Order | undefined;
   if (!order) notFound();
+  if (!(await canViewOrder(order.code))) return <OrderPrivacyGate code={order.code} />;
   const items = db.prepare("SELECT * FROM order_items WHERE order_id = ?").all(order.id) as OrderItem[];
 
   return (

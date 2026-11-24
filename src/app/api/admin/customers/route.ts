@@ -13,7 +13,7 @@ function tempPassword() {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = requireAdmin(); if (auth) return auth;
+  const auth = (await requireAdmin()); if (auth) return auth;
   const db = getDb();
   const b = await req.json().catch(() => ({}));
   const name = String(b.name || "").trim().slice(0, 100);
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const auth = requireAdmin(); if (auth) return auth;
+  const auth = (await requireAdmin()); if (auth) return auth;
   const db = getDb();
   const customers = db.prepare("SELECT id, name, phone FROM customers ORDER BY name COLLATE NOCASE LIMIT 1000").all();
   return NextResponse.json({ customers });

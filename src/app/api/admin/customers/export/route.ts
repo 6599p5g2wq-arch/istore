@@ -8,7 +8,7 @@ const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 
 // تصدير CSV بترميز UTF-8 مع BOM ليفتح بالعربية صحيحاً في Excel
 export async function GET(req: NextRequest) {
-  const auth = requireAdmin(); if (auth) return auth;
+  const auth = (await requireAdmin()); if (auth) return auth;
   const db = getDb();
   const guests = req.nextUrl.searchParams.get("tab") === "guests";
   let rows: unknown[][];

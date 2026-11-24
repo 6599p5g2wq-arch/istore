@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 const ALLOWED: Record<string, string> = { "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/avif": ".avif" };
 
 export async function POST(req: NextRequest) {
-  const auth = requireAdmin(); if (auth) return auth;
+  const auth = (await requireAdmin()); if (auth) return auth;
   const form = await req.formData().catch(() => null);
   const file = form?.get("file") as File | null;
   if (!file || typeof file === "string") return bad("لم يتم إرفاق ملف");

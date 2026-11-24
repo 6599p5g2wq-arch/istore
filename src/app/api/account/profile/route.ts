@@ -7,7 +7,7 @@ import { normalizeLibyanPhone } from "@/lib/phone";
 export const dynamic = "force-dynamic";
 
 export async function PUT(req: NextRequest) {
-  const c = getSessionCustomer();
+  const c = (await getSessionCustomer());
   if (!c) return bad("سجل دخولك أولاً", 401);
   const b = await req.json().catch(() => ({}));
   const name = String(b.name || "").trim().slice(0, 100);

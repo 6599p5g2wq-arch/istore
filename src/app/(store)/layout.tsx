@@ -23,11 +23,11 @@ import type { Category } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default function StoreLayout({ children }: { children: React.ReactNode }) {
+export default async function StoreLayout({ children }: { children: React.ReactNode }) {
   const s = getSettings();
   const db = getDb();
   // وضع الصيانة: الزوار يرون رسالة الإغلاق، والمشرف المسجّل يتصفح المتجر عادياً
-  if (s.maintenance_enabled === "1" && !getSessionAdmin()) {
+  if (s.maintenance_enabled === "1" && !(await getSessionAdmin())) {
     return <Maintenance name={s.store_name || "آي ستور"} message={s.maintenance_message || "المتجر مغلق مؤقتاً للصيانة، نعود قريباً."} />;
   }
   const priceOpts = priceOptsFrom(s);

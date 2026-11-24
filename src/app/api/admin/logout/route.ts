@@ -5,8 +5,8 @@ import { destroySession } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export async function POST() {
-  const token = cookies().get("admin_session")?.value;
+  const token = (await cookies()).get("admin_session")?.value;
   if (token) destroySession(token);
-  cookies().delete("admin_session");
+  (await cookies()).delete("admin_session");
   return NextResponse.json({ ok: true });
 }

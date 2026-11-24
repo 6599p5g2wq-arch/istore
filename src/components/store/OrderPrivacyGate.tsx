@@ -1,0 +1,11 @@
+"use client";
+import React,{useState} from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { CheckCircle2 } from "lucide-react";
+export default function OrderPrivacyGate({code}:{code:string}){
+ const [phone,setPhone]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);const router=useRouter();
+ async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{const r=await fetch("/api/orders/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,phone})});const d=await r.json();if(!r.ok)setError(d.error||"تعذر التحقق");else router.refresh();}catch{setError("تعذر الاتصال بالخادم");}finally{setBusy(false);}}
+ return <div className="mx-auto max-w-xl px-4 pt-16 sm:px-6"><div className="text-center"><span className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-500/15 text-emerald-400"><CheckCircle2 size={44}/></span><h1 className="mt-6 text-3xl font-black">تم استلام طلبك بنجاح!</h1><p className="mt-3 text-[var(--text-dim)]">لحماية خصوصيتك، أدخل رقم الهاتف المستخدم في الطلب لعرض التفاصيل.</p></div>
+ <form onSubmit={submit} className="mt-8 space-y-5 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6"><div className="flex justify-between text-sm"><span>رقم الطلب</span><b dir="ltr">{code}</b></div><label className="block text-sm font-bold">رقم الهاتف المستخدم في الطلب<input required type="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} dir="ltr" placeholder="09XXXXXXXX" className="mt-2 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3.5 text-left outline-none focus:border-[var(--accent)]"/></label>{error&&<p role="alert" className="text-sm text-red-500">{error}</p>}<button disabled={busy} className="glow-btn w-full rounded-full py-3.5 font-bold disabled:opacity-60">{busy?"جارٍ التحقق…":"عرض تفاصيل الطلب"}</button><p className="text-center text-xs text-[var(--text-dim)]">لن تظهر بياناتك أو تفاصيل مشترياتك قبل التحقق.</p></form><div className="mt-6 text-center"><Link href="/products" className="text-sm font-bold text-[var(--text-dim)]">متابعة التسوق</Link></div></div>;
+}

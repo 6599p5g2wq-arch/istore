@@ -28,5 +28,5 @@ export function verifyAdmin(username: string, password: string): number | null {
 }
 
 export function createSession(adminId:number,remember=false):string {const row=getDb().prepare('SELECT username FROM admin_users WHERE id=?').get(adminId) as {username:string};return makeAuthSession('admin',String(adminId),row.username,remember);}
-export function getSessionAdmin():{id:number;username:string}|null {const token=cookies().get('admin_session')?.value;if(!token)return null;const session=readAuthSession('admin',token);if(!session)return null;return (getDb().prepare('SELECT id,username FROM admin_users WHERE id=?').get(session.principal) as {id:number;username:string}|undefined)||null;}
+export async function getSessionAdmin():Promise<{id:number;username:string}|null> {const token=(await cookies()).get('admin_session')?.value;if(!token)return null;const session=readAuthSession('admin',token);if(!session)return null;return (getDb().prepare('SELECT id,username FROM admin_users WHERE id=?').get(session.principal) as {id:number;username:string}|undefined)||null;}
 export function destroySession(token:string){revokeAuthSession(token);getDb().prepare('DELETE FROM sessions WHERE token=?').run(token);}

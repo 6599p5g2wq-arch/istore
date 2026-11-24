@@ -4,8 +4,9 @@ import { requireAdmin, bad } from "@/lib/admin-api";
 
 export const dynamic = "force-dynamic";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   const db = getDb();
   const existing = db.prepare("SELECT id FROM coupons WHERE id = ?").get(params.id);
@@ -35,8 +36,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const db = getDb();
   db.prepare("DELETE FROM coupons WHERE id = ?").run(params.id);
   return NextResponse.json({ ok: true });

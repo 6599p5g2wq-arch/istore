@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireAdmin, bad } from "@/lib/admin-api";
 export const dynamic = "force-dynamic";
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const b = await req.json().catch(() => ({}));
-  const db = getDb(); const id = Number(params.id);
+  const db = getDb();const id = Number(params.id);
   try {
     db.transaction(() => {
       const current = db.prepare("SELECT * FROM cities WHERE id=?").get(id) as {active:number} | undefined;
@@ -25,8 +26,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ok:true});
   } catch(e) {return bad(e instanceof Error ? e.message : "تعذر الحفظ");}
 }
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const auth=requireAdmin(); if(auth)return auth; const db=getDb();
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth=(await requireAdmin());if(auth)return auth;const db=getDb();
   try {db.transaction(()=>{
     const c=db.prepare("SELECT active FROM cities WHERE id=?").get(params.id) as {active:number}|undefined;
     if(c?.active && (db.prepare("SELECT COUNT(*) n FROM cities WHERE active=1").get() as {n:number}).n<=1) throw new Error("لا يمكن حذف آخر مدينة متاحة. أضف أو فعّل مدينة أخرى أولاً");

@@ -19,13 +19,14 @@ const STATUS_DOT: Record<string, string> = {
   new: "bg-amber-400", confirmed: "bg-blue-500", shipped: "bg-purple-500", delivered: "bg-emerald-500", cancelled: "bg-red-500",
 };
 
-export default function OrderDetail({ params }: { params: { id: string } }) {
+export default async function OrderDetail(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const db = getDb();
   const s = getSettings();
   // الرجوع يحافظ على حالة القائمة (فلتر الحالة) إن جاء المستخدم منها
   let backHref = "/admin/orders";
   try {
-    const ref = headers().get("referer") || "";
+    const ref = (await headers()).get("referer") || "";
     const u = new URL(ref);
     if (u.pathname === "/admin/orders") backHref = u.pathname + u.search;
   } catch { /* لا مُحيل صالح */ }

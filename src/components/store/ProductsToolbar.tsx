@@ -21,7 +21,7 @@ export default function ProductsToolbar({ categories, brands }: { categories: { 
         {categories.map((c) => (
           <button key={c.slug} onClick={() => set("category", c.slug)} className={`rounded-full px-4 py-2 text-sm font-bold transition ${sp.get("category") === c.slug ? "bg-white text-black" : "bg-[var(--chip)] text-[var(--text)] hover:bg-[var(--chip-hover)]"}`}>{c.name}</button>
         ))}
-        <div className="mr-auto flex items-center gap-2">
+        <div className="mr-auto flex max-w-full flex-wrap items-center gap-2">
           <button onClick={() => setShowFilters(!showFilters)} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${showFilters ? "bg-[var(--accent)] text-white" : "bg-[var(--chip)] text-[var(--text)] hover:bg-[var(--chip-hover)]"}`}>
             <SlidersHorizontal size={15} /> فلاتر
           </button>
@@ -29,7 +29,7 @@ export default function ProductsToolbar({ categories, brands }: { categories: { 
             <select
               value={sp.get("brand") || ""}
               onChange={(e) => set("brand", e.target.value)}
-              className="rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--text)] outline-none"
+              className="min-w-0 max-w-full rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--text)] outline-none"
             >
               <option value="">كل الماركات</option>
               {brands.map((b) => <option key={b.slug} value={b.slug}>{b.name}</option>)}
@@ -38,7 +38,7 @@ export default function ProductsToolbar({ categories, brands }: { categories: { 
           <select
             value={sp.get("sort") || "newest"}
             onChange={(e) => set("sort", e.target.value)}
-            className="rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--text)] outline-none"
+            className="min-w-0 max-w-full rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--text)] outline-none"
           >
             <option value="newest">الأحدث</option>
             <option value="price-asc">السعر: من الأقل</option>

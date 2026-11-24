@@ -4,7 +4,7 @@ import {getDb} from '@/lib/db';
 import {ordersCsv,STATUS_LABELS,validDate,EXPORT_COLUMNS} from '@/lib/orders-export';
 export const dynamic='force-dynamic';
 export async function GET(req:NextRequest){
- const auth=requireAdmin();if(auth)return auth;
+ const auth=(await requireAdmin());if(auth)return auth;
  const p=req.nextUrl.searchParams,from=p.get('from')||'',to=p.get('to')||'',status=p.get('status')||'';
  if((from&&!validDate(from))||(to&&!validDate(to)))return bad('تاريخ غير صالح');
  if(from&&to&&from>to)return bad('تاريخ البداية يجب ألا يتجاوز النهاية');

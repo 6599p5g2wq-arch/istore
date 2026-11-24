@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSessionAdmin } from "@/lib/auth";
 
-export function requireAdmin(): NextResponse | null {
-  const admin = getSessionAdmin();
+export async function requireAdmin(): Promise<NextResponse | null> {
+  const admin = (await getSessionAdmin());
   if (!admin) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   return null;
 }

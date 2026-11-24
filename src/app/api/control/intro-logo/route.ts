@@ -13,7 +13,7 @@ function removeOld() {
 }
 
 export async function POST(req: NextRequest) {
-  if (!getControlSession()) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
+  if (!(await getControlSession())) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   const form = await req.formData().catch(() => null);
   const file = form?.get("file") as File | null;
   if (!file || typeof file === "string") return NextResponse.json({ error: "لم يتم إرفاق ملف" }, { status: 400 });
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE() {
-  if (!getControlSession()) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
+  if (!(await getControlSession())) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   removeOld();
   setSetting("intro_logo", "");
   return NextResponse.json({ ok: true });

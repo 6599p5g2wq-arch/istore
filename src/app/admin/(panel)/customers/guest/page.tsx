@@ -12,7 +12,8 @@ export const dynamic = "force-dynamic";
 
 const STATUS_LABEL: Record<string, string> = { new: "جديد", confirmed: "مؤكد", shipped: "تم الشحن", delivered: "تم التوصيل", cancelled: "ملغي" };
 
-export default function GuestDetail({ searchParams }: { searchParams: { phone?: string } }) {
+export default async function GuestDetail(props: { searchParams: Promise<{ phone?: string }> }) {
+  const searchParams = await props.searchParams;
   const phone = (searchParams.phone || "").trim();
   if (!phone) notFound();
   const db = getDb();

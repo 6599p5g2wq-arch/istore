@@ -10,8 +10,9 @@ function recompute(db: ReturnType<typeof getDb>, productId: number) {
   ).run(productId, productId);
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   const db = getDb();
   const row = db.prepare("SELECT product_id FROM reviews WHERE id = ?").get(params.id) as { product_id: number } | undefined;
@@ -25,8 +26,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const db = getDb();
   const row = db.prepare("SELECT product_id FROM reviews WHERE id = ?").get(params.id) as { product_id: number } | undefined;
   db.prepare("DELETE FROM reviews WHERE id = ?").run(params.id);

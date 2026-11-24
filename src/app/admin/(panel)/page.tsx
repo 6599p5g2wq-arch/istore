@@ -49,7 +49,8 @@ function StatCard({ href, icon: Icon, color, value, label, delta, hint }: {
   return <div className={cls}>{inner}</div>;
 }
 
-export default function AdminDashboard({ searchParams }: { searchParams: { range?: string } }) {
+export default async function AdminDashboard(props: { searchParams: Promise<{ range?: string }> }) {
+  const searchParams = await props.searchParams;
   const db = getDb();
   const s = getSettings();
   const cur = s.currency;

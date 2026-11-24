@@ -20,13 +20,15 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const db = getDb();
   const p = db.prepare("SELECT name, description FROM products WHERE slug = ?").get(params.slug) as { name: string; description: string } | undefined;
   return p ? { title: p.name, description: p.description.slice(0, 150) } : { title: "منتج غير موجود" };
 }
 
-export default function ProductPage({ params }: { params: { slug: string } }) {
+export default async function ProductPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const db = getDb();
   const s = getSettings();
   const product = db.prepare(

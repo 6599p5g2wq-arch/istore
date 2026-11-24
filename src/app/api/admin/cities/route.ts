@@ -5,7 +5,7 @@ import { requireAdmin, bad } from "@/lib/admin-api";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  const auth = requireAdmin(); if (auth) return auth;
+  const auth = (await requireAdmin()); if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   if (!b.name?.trim()) return bad("اسم المدينة مطلوب");
   if (!Number.isFinite(Number(b.fee)) || Number(b.fee)<0) return bad("رسوم التوصيل يجب أن تكون رقماً غير سالب");

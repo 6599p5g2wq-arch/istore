@@ -17,12 +17,13 @@ export const dynamic = "force-dynamic";
 const STATUS_LABEL: Record<string, string> = { new: "جديد", confirmed: "مؤكد", shipped: "تم الشحن", delivered: "تم التوصيل", cancelled: "ملغي" };
 type C = { id: number; name: string; email: string; phone: string; created_at: string; last_login: string | null; blocked: number; city: string; address: string; points: number; vip_override: number | null };
 
-export default function CustomerDetail({ params }: { params: { id: string } }) {
+export default async function CustomerDetail(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const db = getDb();
   const s = getSettings();
   let backHref = "/admin/customers";
   try {
-    const u = new URL(headers().get("referer") || "");
+    const u = new URL((await headers()).get("referer") || "");
     if (u.pathname === "/admin/customers") backHref = u.pathname + u.search;
   } catch { /* لا مُحيل صالح */ }
   const c = db.prepare("SELECT * FROM customers WHERE id = ?").get(params.id) as C | undefined;

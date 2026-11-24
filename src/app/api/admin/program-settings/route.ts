@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 // group: welcome | loyalty | vip — يحفظ مفتاح التفعيل والقيم ضمن حدود مسموحة فقط
 export async function PUT(req: NextRequest) {
-  const auth = requireAdmin(); if (auth) return auth;
+  const auth = (await requireAdmin()); if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   const group = String(b.group || "");
   const fields = PROGRAM_FIELDS[group];

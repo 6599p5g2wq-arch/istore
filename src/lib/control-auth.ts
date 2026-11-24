@@ -23,6 +23,6 @@ export function verifyControl(username: string, password: string): boolean {
 }
 
 export function createControlSession(remember=false):string {const c=creds();return makeAuthSession('control',c.username,c.username,remember);}
-export function getControlSession():boolean {const token=cookies().get(COOKIE)?.value;if(!token)return false;const s=readAuthSession('control',token);return !!s&&s.principal===creds().username;}
-export function setControlCookie(remember=false){cookies().set(COOKIE,createControlSession(remember),cookieOptions(remember));}
-export function clearControlCookie(){const token=cookies().get(COOKIE)?.value;if(token)revokeAuthSession(token);cookies().delete(COOKIE);}
+export async function getControlSession():Promise<boolean> {const token=(await cookies()).get(COOKIE)?.value;if(!token)return false;const s=readAuthSession('control',token);return !!s&&s.principal===creds().username;}
+export async function setControlCookie(remember=false){(await cookies()).set(COOKIE,createControlSession(remember),cookieOptions(remember));}
+export async function clearControlCookie(){const token=(await cookies()).get(COOKIE)?.value;if(token)revokeAuthSession(token);(await cookies()).delete(COOKIE);}

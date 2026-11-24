@@ -5,7 +5,7 @@ import { setSetting } from "@/lib/settings";
 export const dynamic = "force-dynamic";
 
 export async function PUT(req: NextRequest) {
-  if (!getControlSession()) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
+  if (!(await getControlSession())) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   const b = await req.json().catch(() => ({}));
   if (typeof b !== "object" || !b) return NextResponse.json({ error: "بيانات غير صالحة" }, { status: 400 });
   const mu = (b as Record<string, unknown>).map_url;

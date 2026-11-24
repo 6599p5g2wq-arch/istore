@@ -6,7 +6,8 @@ import type { Brand, Category, Product, ProductVariant } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default function EditProduct({ params }: { params: { id: string } }) {
+export default async function EditProduct(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const db = getDb();
   const product = db.prepare("SELECT * FROM products WHERE id = ?").get(params.id) as Product | undefined;
   if (!product) notFound();

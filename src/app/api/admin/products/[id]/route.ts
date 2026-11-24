@@ -7,9 +7,13 @@ import { getSetting } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const b = await req.json().catch(() => ({}));
+  if (!b || typeof b.name!=="string" || !b.name.trim() || typeof b.slug!=="string" || !b.slug.trim()) return bad("الاسم والرابط مطلوبان");
+  if (!Number.isFinite(Number(b.price)) || Number(b.price)<0 || !Number.isSafeInteger(Number(b.stock)) || Number(b.stock)<0 || (b.old_price!=null && b.old_price!=="" && (!Number.isFinite(Number(b.old_price)) || Number(b.old_price)<=Number(b.price)))) return bad("السعر أو المخزون غير صالح");
+
   const db = getDb();
   const existing = db.prepare("SELECT id FROM products WHERE id = ?").get(params.id);
   if (!existing) return bad("المنتج غير موجود", 404);
@@ -43,15 +47,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const db = getDb();
   db.prepare("DELETE FROM products WHERE id = ?").run(params.id);
   return NextResponse.json({ ok: true });
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   const field = String(b.field || "");
   if (field !== "active" && field !== "featured") return bad("حقل غير مسموح");

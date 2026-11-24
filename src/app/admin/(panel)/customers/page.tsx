@@ -31,7 +31,10 @@ const FILTERS = [
   { key: "active", label: "نشط" },
 ];
 
-export default function AdminCustomers({ searchParams }: { searchParams: { tab?: string; sort?: string; f?: string } }) {
+export default async function AdminCustomers(
+  props: { searchParams: Promise<{ tab?: string; sort?: string; f?: string }> }
+) {
+  const searchParams = await props.searchParams;
   const db = getDb();
   const s = getSettings();
   const tab = searchParams.tab === "guests" ? "guests" : "accounts";

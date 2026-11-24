@@ -11,11 +11,11 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "إتمام الطلب" };
 
-export default function CheckoutPage() {
+export default async function CheckoutPage() {
   const db = getDb();
   const s = getSettings();
   const cities = db.prepare("SELECT * FROM cities WHERE active = 1 ORDER BY sort_order, name").all() as City[];
-  const c = getSessionCustomer();
+  const c = (await getSessionCustomer());
   const prog = getProgram(db);
   return (
     <div className="mx-auto max-w-6xl px-4 pt-10 sm:px-6">

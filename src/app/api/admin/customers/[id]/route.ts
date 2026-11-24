@@ -12,8 +12,9 @@ function tempPassword() {
   return Array.from(crypto.randomBytes(8)).map((b) => chars[b % chars.length]).join("");
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const db = getDb();
   const id = Number(params.id);
   if (!db.prepare("SELECT id FROM customers WHERE id = ?").get(id)) return bad("الزبون غير موجود", 404);
@@ -44,8 +45,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const db = getDb();
   db.prepare("UPDATE orders SET customer_id = NULL WHERE customer_id = ?").run(params.id);
   db.prepare("DELETE FROM customers WHERE id = ?").run(params.id);

@@ -5,7 +5,7 @@ import { requireAdmin, bad } from "@/lib/admin-api";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  const auth = requireAdmin(); if (auth) return auth;
+  const auth = (await requireAdmin()); if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   const code = (b.code || "").trim().toUpperCase();
   if (!code || code.length > 40) return bad("كود الخصم مطلوب");

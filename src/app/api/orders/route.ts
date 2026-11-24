@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { orderAccessCookie } from "@/lib/order-access";
 import { getDb } from "@/lib/db";
 import { notifyNewOrder, sendOrderConfirmation } from "@/lib/notify";
 import { sendTelegram } from "@/lib/telegram";
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 type Item = { id: number; qty: number; variant_id?: number | null };
 
 export async function POST(req: NextRequest) {
-  if (getSetting("maintenance_enabled") === "1" && !getSessionAdmin()) {
+  if (getSetting("maintenance_enabled") === "1" && !(await getSessionAdmin())) {
     return NextResponse.json({ error: getSetting("maintenance_message") || "المتجر مغلق مؤقتاً للصيانة" }, { status: 503 });
   }
   let body: { name?: string; phone?: string; city?: string; address?: string; notes?: string; email?: string; coupon?: string; use_points?: boolean; items?: Item[] };
@@ -25,19 +26,17 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "طلب غير صالح" }, { status: 400 });
   }
+  if (!body || typeof body !== "object" || ["name","phone","city","address","notes","email","coupon"].some(k => (body as Record<string, unknown>)[k] !== undefined && typeof (body as Record<string, unknown>)[k] !== "string")) return NextResponse.json({error:"بيانات غير صالحة"},{status:400});
   const name = (body.name || "").trim();
   const phone = (body.phone || "").trim();
   const city = (body.city || "").trim();
   const address = (body.address || "").trim();
   const notes = (body.notes || "").trim();
-  const items = Array.isArray(body.items) ? body.items.filter((i) => i && i.id > 0 && i.qty > 0) : [];
   const couponCode = (body.coupon || "").trim();
-
+  const items = body.items;
   if (!name || !phone || !city) return NextResponse.json({ error: "يرجى تعبئة الاسم ورقم الهاتف والمدينة" }, { status: 400 });
-  if (items.length === 0) return NextResponse.json({ error: "السلة فارغة" }, { status: 400 });
-  if (name.length > 120 || phone.length > 30 || address.length > 300 || notes.length > 500) {
-    return NextResponse.json({ error: "بيانات غير صالحة" }, { status: 400 });
-  }
+  if (!Array.isArray(items) || !items.length || items.length > 100 || items.some(i => !i || !Number.isSafeInteger(i.id) || i.id <= 0 || !Number.isSafeInteger(i.qty) || i.qty < 1 || i.qty > 99 || (i.variant_id != null && (!Number.isSafeInteger(i.variant_id) || i.variant_id < 1)))) return NextResponse.json({error:"كمية أو منتج غير صالح"},{status:400});
+  if (name.length > 120 || phone.length > 30 || city.length > 100 || address.length > 300 || notes.length > 500) return NextResponse.json({error:"بيانات غير صالحة"},{status:400});
 
   const db = getDb();
   const cityRow = db.prepare("SELECT fee FROM cities WHERE name = ? AND active = 1").get(city) as { fee: number } | undefined;
@@ -48,9 +47,11 @@ export async function POST(req: NextRequest) {
   const getProduct = db.prepare("SELECT id, name, price, stock, active, options FROM products WHERE id = ?");
   const getVariants = db.prepare("SELECT * FROM product_variants WHERE product_id = ?");
 
+  const customer = await getSessionCustomer();
   const tx = db.transaction(() => {
     let subtotal = 0;
     const lines: { id: number; variantId: number | null; name: string; label: string; price: number; qty: number }[] = [];
+    const reserved = new Map<string, number>();
     for (const it of items) {
       const p = getProduct.get(it.id) as { id: number; name: string; price: number; stock: number; active: number; options: string } | undefined;
       if (!p || !p.active) throw new Error(`منتج غير متوفر: #${it.id}`);
@@ -68,11 +69,12 @@ export async function POST(req: NextRequest) {
         price = v.price ?? p.price;
         stockAvail = v.stock;
       }
-      if (stockAvail < qty) throw new Error(`الكمية المطلوبة من «${p.name}${label ? " — " + label : ""}» غير متوفرة (المتوفر: ${stockAvail})`);
+      const key = variantId ? `v:${variantId}` : `p:${p.id}`;
+      const requested = qty + (reserved.get(key) || 0); reserved.set(key, requested);
+      if (stockAvail < requested) throw new Error(`الكمية المطلوبة من «${p.name}${label ? " — " + label : ""}» غير متوفرة (المتوفر: ${stockAvail})`);
       subtotal += price * qty;
       lines.push({ id: p.id, variantId, name: p.name, label, price, qty });
     }
-    const customer = getSessionCustomer();
     let discount = 0;
     if (couponCode) {
       const v = validateCoupon(db, couponCode, subtotal, customer?.id ?? null);
@@ -136,7 +138,9 @@ export async function POST(req: NextRequest) {
       orderUrl,
     ].join("\n");
     sendTelegram(tgText).catch(() => {});
-    return NextResponse.json({ ok: true, code });
+    const response=NextResponse.json({ ok: true, code });
+    response.cookies.set(orderAccessCookie(code));
+    return response;
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "حدث خطأ" }, { status: 400 });
   }

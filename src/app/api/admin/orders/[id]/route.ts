@@ -9,8 +9,9 @@ export const dynamic = "force-dynamic";
 
 const STATUSES = ["new", "confirmed", "shipped", "delivered", "cancelled"];
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const b = await req.json().catch(() => ({}));
   const db = getDb();
   const order = db.prepare("SELECT status FROM orders WHERE id = ?").get(params.id) as { status: string } | undefined;
@@ -23,16 +24,27 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   if (b.status !== undefined) {
     if (!STATUSES.includes(b.status)) return bad("حالة غير صالحة");
-    // restore stock when cancelling
-    if (b.status === "cancelled" && order.status !== "cancelled") {
-      const items = db.prepare("SELECT product_id, qty FROM order_items WHERE order_id = ?").all(params.id) as { product_id: number | null; qty: number }[];
-      const restore = db.prepare("UPDATE products SET stock = stock + ? WHERE id = ?");
-      for (const it of items) if (it.product_id) restore.run(it.qty, it.product_id);
-    }
     if (b.status !== order.status) {
-      db.prepare("UPDATE orders SET status = ? WHERE id = ?").run(b.status, params.id);
-      db.prepare("INSERT INTO order_status_log (order_id, status) VALUES (?, ?)").run(params.id, b.status);
-      applyOrderStatusEffects(db, Number(params.id), order.status, b.status);
+      try { db.transaction(() => {
+        const fresh = db.prepare("SELECT status FROM orders WHERE id=?").get(params.id) as {status:string};
+        if (fresh.status === b.status) return;
+        const items = db.prepare("SELECT product_id, variant_id, qty FROM order_items WHERE order_id=?").all(params.id) as {product_id:number|null;variant_id:number|null;qty:number}[];
+        const delta = b.status === "cancelled" ? 1 : fresh.status === "cancelled" ? -1 : 0;
+        if (delta) for (const it of items) {
+          if (delta < 0 && it.product_id) {
+            const p=db.prepare("SELECT stock,active FROM products WHERE id=?").get(it.product_id) as {stock:number;active:number}|undefined;
+            const v=it.variant_id ? db.prepare("SELECT stock FROM product_variants WHERE id=? AND product_id=?").get(it.variant_id,it.product_id) as {stock:number}|undefined : null;
+            if (!p || !p.active || p.stock<it.qty || (it.variant_id && (!v || v.stock<it.qty))) throw new Error("لا يمكن إعادة تفعيل الطلب: المخزون غير كافٍ");
+          }
+          if(it.product_id) db.prepare("UPDATE products SET stock=stock+? WHERE id=?").run(delta*it.qty,it.product_id);
+          if(it.variant_id) db.prepare("UPDATE product_variants SET stock=stock+? WHERE id=?").run(delta*it.qty,it.variant_id);
+        }
+        if (b.status !== fresh.status) {
+          db.prepare("UPDATE orders SET status=? WHERE id=?").run(b.status,params.id);
+          db.prepare("INSERT INTO order_status_log(order_id,status) VALUES (?,?)").run(params.id,b.status);
+          applyOrderStatusEffects(db,Number(params.id),fresh.status,b.status);
+        }
+      })(); } catch(e) { return bad(e instanceof Error ? e.message : "تعذر تحديث الطلب"); }
       // إشعار الزبون بتغيّر الحالة إن كان عندنا بريده — لا يعطّل الحفظ إطلاقاً
       const full = db.prepare("SELECT * FROM orders WHERE id = ?").get(params.id) as Record<string, unknown> | undefined;
       if (full) {
@@ -54,8 +66,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const db = getDb();
   db.prepare("DELETE FROM orders WHERE id = ?").run(params.id);
   return NextResponse.json({ ok: true });

@@ -14,5 +14,5 @@ export async function loginHandler(req:NextRequest,panel:Panel){
  if(!principal){const secs=authFailure(panel,username,ip);authLog(panel,username,device,'failed');return secs?reject(secs):NextResponse.json({error:'بيانات الدخول غير صحيحة'},{status:401});}
  if(totpEnabled(panel,principal))return NextResponse.json({requires_totp:true,challenge:makeChallenge(panel,principal,username,remember)});
  }
- authSuccess(panel,username,ip);if(panel==='admin')cookies().set('admin_session',createSession(Number(principal),remember),cookieOptions(remember));else setControlCookie(remember);authLog(panel,username,device,'success');return NextResponse.json({ok:true});
+ authSuccess(panel,username,ip);if(panel==='admin')(await cookies()).set('admin_session',createSession(Number(principal),remember),cookieOptions(remember));else (await setControlCookie(remember));authLog(panel,username,device,'success');return NextResponse.json({ok:true});
 }

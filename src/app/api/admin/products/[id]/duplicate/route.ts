@@ -4,8 +4,9 @@ import { requireAdmin, bad } from "@/lib/admin-api";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdmin(); if (auth) return auth;
+export async function POST(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const auth = (await requireAdmin());if (auth) return auth;
   const db = getDb();
   const p = db.prepare("SELECT * FROM products WHERE id = ?").get(params.id) as Record<string, unknown> | undefined;
   if (!p) return bad("المنتج غير موجود", 404);

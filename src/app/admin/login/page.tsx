@@ -4,4 +4,4 @@ import {getSessionAdmin} from '@/lib/auth';
 import {getSettings} from '@/lib/settings';
 import SecureLogin from '@/components/admin/SecureLogin';
 export const dynamic='force-dynamic';
-export default function Page(){if(getSessionAdmin())redirect('/admin');const s=getSettings();return <SecureLogin panel="admin" storeName={s.store_name||'آي ستور'} logo={s.intro_logo?'/api/logo':undefined}/>;}
+export default async function Page(){if((await getSessionAdmin()))redirect('/admin');const s=getSettings();return <SecureLogin panel="admin" storeName={s.store_name||'آي ستور'} logo={s.intro_logo?'/api/logo':undefined}/>;}

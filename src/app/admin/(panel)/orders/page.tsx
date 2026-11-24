@@ -21,7 +21,10 @@ const PERIODS = [
 ];
 const PER_PAGE = 20;
 
-export default function AdminOrders({ searchParams }: { searchParams: { status?: string; q?: string; period?: string; page?: string } }) {
+export default async function AdminOrders(
+  props: { searchParams: Promise<{ status?: string; q?: string; period?: string; page?: string }> }
+) {
+  const searchParams = await props.searchParams;
   const db = getDb();
   const s = getSettings();
   const st = searchParams.status || "";

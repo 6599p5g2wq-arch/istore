@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   if (tooMany("reg:" + clientIp(req), 10)) return bad("محاولات كثيرة، حاول بعد قليل", 429);
   const b = await req.json().catch(() => ({}));
+  if (!b || typeof b!=="object" || ["name", "email", "phone", "password"].some(k=>b[k]!==undefined && typeof b[k]!=="string")) return bad("بيانات غير صالحة");
   const name = (b.name || "").trim().slice(0, 100);
   const email = (b.email || "").trim().toLowerCase();
   const phone = normalizeLibyanPhone(b.phone || "");

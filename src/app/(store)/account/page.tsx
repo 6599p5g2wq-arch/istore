@@ -23,8 +23,8 @@ const STATUS_CLS: Record<string, string> = {
   delivered: "bg-emerald-500/10 text-emerald-400", cancelled: "bg-red-500/10 text-red-400",
 };
 
-export default function AccountPage() {
-  const customer = getSessionCustomer();
+export default async function AccountPage() {
+  const customer = (await getSessionCustomer());
   if (!customer) {
     return (
       <div className="mx-auto max-w-xl px-4 pt-12 sm:px-6">

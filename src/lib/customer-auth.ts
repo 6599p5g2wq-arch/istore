@@ -45,8 +45,8 @@ export function createCustomerSession(customerId: number): string {
   return token;
 }
 
-export function getSessionCustomer(): Customer | null {
-  const token = cookies().get("customer_session")?.value;
+export async function getSessionCustomer(): Promise<Customer | null> {
+  const token = (await cookies()).get("customer_session")?.value;
   if (!token) return null;
   const db = getDb();
   const row = db
@@ -63,10 +63,13 @@ export function destroyCustomerSession(token: string) {
   db.prepare("DELETE FROM customer_sessions WHERE token = ?").run(token);
 }
 
-export function setCustomerPassword(customerId: number, password: string, mustChange = 0) {
+export function setCustomerPassword(customerId: number, password: string, mustChange = 0, keepToken = "") {
   const db = getDb();
   const salt = crypto.randomBytes(16).toString("hex");
+  db.transaction(() => {
   db.prepare("UPDATE customers SET pass_hash = ?, salt = ?, must_change = ? WHERE id = ?").run(hashPassword(password, salt), salt, mustChange, customerId);
+  db.prepare("DELETE FROM customer_sessions WHERE customer_id=? AND token!=?").run(customerId,keepToken);
+  })();
 }
 
 export function checkCustomerPassword(customerId: number, password: string): boolean {
