@@ -76,7 +76,6 @@ public/uploads/    الصور المرفوعة من لوحة التحكم
 |---|---|
 | `DB_PATH` | مسار قاعدة SQLite |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | مشرف أول عند التهيئة (إلزامي في الإنتاج) |
-| `SETTINGS_USERNAME` / `SETTINGS_PASSWORD` | دخول صفحة `/control` (الافتراضي المحلي فقط: control / control123) |
 | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | بديل لإعدادات تيليجرام في `/control` |
 | `RESEND_API_KEY` / `NOTIFY_EMAIL` / `RESEND_FROM` | إشعارات الطلبات بالبريد (اختياري) |
 
@@ -91,3 +90,4 @@ public/uploads/    الصور المرفوعة من لوحة التحكم
 ## واجهة API v1 (نسخة PHP)
 
 تحت `api/v1/` في فرع `php`: المصادقة والحساب، المنتجات، التصنيفات، الماركات، السلة، الكوبونات، الطلبات، التقييمات، المفضلة، تنبيهات المخزون، والإعدادات. يستعملها تطبيق Flutter في المستودع `istore-app` (لم يُبنَ ولم يُتحقق منه كملف APK بعد).
+/control credentials: run `npm run control:setup` in a private terminal. See CONTROL-SECURITY-AR.md. No default credentials or plaintext environment fallback.

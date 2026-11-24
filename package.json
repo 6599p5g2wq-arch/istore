@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
+    "control:setup": "node scripts/setup-control.mjs",
     "seed": "node scripts/seed.mjs"
   },
   "dependencies": {
