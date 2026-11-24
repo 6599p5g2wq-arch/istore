@@ -108,10 +108,10 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
                     <span className="inline-block rounded-full bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-400">متوفر في المخزون</span>
                   )}
                 </div>
-                <AddToCartPanel product={product} />
+                {product.stock > 0 && <AddToCartPanel product={product} />}
               </>
             )}
-            <WhatsAppOrderButton product={product} whatsapp={s.whatsapp} currency={s.currency} />
+            {product.stock > 0 && <WhatsAppOrderButton product={product} whatsapp={s.whatsapp} currency={s.currency} />}
             {product.stock <= 0 && <StockAlertForm productId={product.id} />}
 
             <div className="mt-8 grid grid-cols-3 gap-3 border-t border-[var(--border)] pt-8 text-center">

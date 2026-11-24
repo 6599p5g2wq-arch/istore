@@ -27,10 +27,11 @@ const badgeMeta: Record<string, { title: string; cls: string }> = {
   "/admin/orders": { title: "طلبات جديدة", cls: "bg-red-500" },
   "/admin/products": { title: "منتجات مخزونها منخفض", cls: "bg-amber-500" },
   "/admin/reviews": { title: "تقييمات منخفضة معروضة", cls: "bg-red-500" },
+  "/admin/stock-alerts": { title: "طلبات إشعار منتظرة", cls: "bg-amber-500" },
 };
 
-export default function AdminSidebar({ storeName, username, newOrders = 0, lowStock = 0, lowReviews = 0 }: { storeName: string; username: string; newOrders?: number; lowStock?: number; lowReviews?: number }) {
-  const badges: Record<string, number> = { "/admin/orders": newOrders, "/admin/products": lowStock, "/admin/reviews": lowReviews };
+export default function AdminSidebar({ storeName, username, newOrders = 0, lowStock = 0, lowReviews = 0, waitingAlerts = 0 }: { storeName: string; username: string; newOrders?: number; lowStock?: number; lowReviews?: number; waitingAlerts?: number }) {
+  const badges: Record<string, number> = { "/admin/orders": newOrders, "/admin/products": lowStock, "/admin/reviews": lowReviews, "/admin/stock-alerts": waitingAlerts };
   const totalAlerts = newOrders + lowStock;
   const pathname = usePathname();
   const router = useRouter();

@@ -29,7 +29,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   replaceVariants(db, Number(params.id), optionsJson, Array.isArray(b.variants) ? b.variants : []);
   // Back-in-stock: notify everyone waiting when stock returns.
   if (prev.stock <= 0 && newStock > 0) {
-    const waiting = db.prepare("SELECT id, contact FROM stock_alerts WHERE product_id = ? AND notified = 0").all(params.id) as { id: number; contact: string }[];
+    const waiting = (db.prepare("SELECT id, contact FROM stock_alerts WHERE product_id = ? AND notified = 0").all(params.id) as { id: number; contact: string }[])
+      .filter((w) => w.contact.includes("@"));
     if (waiting.length > 0) {
       const base = getSetting("site_url", "").replace(/\/$/, "");
       const url = `${base}/product/${b.slug?.trim() || ""}`;

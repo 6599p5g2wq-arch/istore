@@ -15,9 +15,10 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   const newOrders = (db.prepare("SELECT COUNT(*) c FROM orders WHERE status = 'new'").get() as { c: number }).c;
   const lowStock = (db.prepare("SELECT COUNT(*) c FROM products WHERE active = 1 AND stock <= 5").get() as { c: number }).c;
   const lowReviews = (db.prepare("SELECT COUNT(*) c FROM reviews WHERE approved = 1 AND rating <= 2").get() as { c: number }).c;
+  const waitingAlerts = (db.prepare("SELECT COUNT(*) c FROM stock_alerts WHERE notified = 0").get() as { c: number }).c;
   return (
     <div className="light-scope min-h-screen bg-[#f5f5f7]">
-      <AdminSidebar storeName={s.store_name} username={admin.username} newOrders={newOrders} lowStock={lowStock} lowReviews={lowReviews} />
+      <AdminSidebar storeName={s.store_name} username={admin.username} newOrders={newOrders} lowStock={lowStock} lowReviews={lowReviews} waitingAlerts={waitingAlerts} />
       <div className="lg:mr-64">
         <main className="mx-auto max-w-6xl p-4 pt-20 sm:p-8 lg:pt-8">{children}</main>
       </div>
