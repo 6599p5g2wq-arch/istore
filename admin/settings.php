@@ -169,10 +169,11 @@ admin_header('الإعدادات', 'settings.php');
       <div class="flex items-center justify-between gap-3">
         <div>
           <h2 class="font-extrabold">شريط المميزات المتحرك</h2>
-          <p class="mt-1 text-xs text-neutral-500">الشريط الذي يمر أفقياً تحت السلايدر. حتى 6 عناصر، كل عنصر أيقونة ونص. اترك النص فارغاً لحذف العنصر.</p>
+          <p class="mt-1 text-xs text-neutral-500">الشريط الذي يمر أفقياً تحت السلايدر. حتى 6 عناصر، كل عنصر أيقونة ونص.</p>
         </div>
         <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="marquee_enabled" value="1" <?= ($posted ? !empty($_POST['marquee_enabled']) : setting('marquee_enabled','1')!=='0') ? 'checked' : '' ?> class="panel-switch" aria-label="ظاهر"></label>
       </div>
+      <p id="mq-status" class="mt-2 text-xs font-bold"></p>
       <div id="mq-rows" class="mt-4 space-y-2">
         <?php foreach ($mqRows as $chip): ?>
         <div class="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 p-2">
