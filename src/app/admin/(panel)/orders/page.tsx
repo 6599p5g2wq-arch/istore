@@ -1,4 +1,5 @@
 import React from "react";
+import {OrdersSelection,OrderCheckbox} from "@/components/admin/OrdersSelection";
 import OrdersExport from "@/components/admin/OrdersExport";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
@@ -76,7 +77,7 @@ export default function AdminOrders({ searchParams }: { searchParams: { status?:
   const periodLabel = PERIODS.find((p) => p.key === period)?.label || "";
 
   return (
-    <div>
+    <OrdersSelection ids={orders.map(o=>o.id)}><div>
       <h1 className="text-2xl font-black sm:text-3xl">الطلبات</h1>
 
       <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -127,7 +128,7 @@ export default function AdminOrders({ searchParams }: { searchParams: { status?:
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="flex flex-wrap items-center gap-2">
-                        <span className="font-extrabold text-[var(--accent)]" dir="ltr">{o.code}</span>
+                        <OrderCheckbox id={o.id} code={o.code}/><span className="font-extrabold text-[var(--accent)]" dir="ltr">{o.code}</span>
                         {o.status === "new" && <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-extrabold text-white">جديد</span>}
                         {repeatPhones.has(o.phone) && <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-extrabold text-sky-700">زبون متكرر</span>}
                       </p>
@@ -159,7 +160,7 @@ export default function AdminOrders({ searchParams }: { searchParams: { status?:
                       className={`border-b border-neutral-50 last:border-0 hover:bg-neutral-50/60 ${o.status === "new" ? "border-r-4 border-amber-400 bg-amber-50/40" : ""}`}>
                       <td className="p-3">
                         <span className="flex items-center gap-2">
-                          <span className="font-extrabold text-[var(--accent)]" dir="ltr">{o.code}</span>
+                          <OrderCheckbox id={o.id} code={o.code}/><span className="font-extrabold text-[var(--accent)]" dir="ltr">{o.code}</span>
                           {o.status === "new" && <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-extrabold text-white">جديد</span>}
                         </span>
                       </td>
@@ -191,6 +192,6 @@ export default function AdminOrders({ searchParams }: { searchParams: { status?:
           {curPage < pages && <Link href={qs({ page: String(curPage + 1) })} className="rounded-xl bg-white px-4 py-2 shadow-sm hover:bg-neutral-100">التالي ›</Link>}
         </div>
       )}
-    </div>
+    </div></OrdersSelection>
   );
 }
