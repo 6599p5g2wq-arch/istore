@@ -23,7 +23,6 @@
 
 ## الحسابات الافتراضية (من ملف config.php)
 - لوحة التحكم `/admin`: المستخدم `admin` / كلمة المرور `admin123`
-- وحدة الإعدادات `/control`: المستخدم `control` / كلمة المرور `control123`
 
 غيّر كلمات المرور الافتراضية في `config.php` قبل التشغيل، وبعد أول دخول يمكنك تغيير كلمة مرور
 المدير من صفحة «المشرفون» داخل لوحة التحكم. احذف `install.php` بعد التثبيت.
@@ -77,3 +76,5 @@
 
 الجداول الجديدة (api_tokens, api_cart, api_wishlist) تُنشأ تلقائياً من install.sql/install.php —
 لا حاجة لأي خطوة إضافية، والموقع يعمل كما هو تماماً.
+
+/control: no config credentials. Run `php scripts/setup-control.php` privately; see CONTROL-SECURITY-AR.md.

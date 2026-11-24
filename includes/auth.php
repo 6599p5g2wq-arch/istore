@@ -23,16 +23,17 @@ function require_admin(): array {
 
 // ---- لوحة إعدادات الموقع (/control): نظام منفصل تماماً ----
 
-function control_bootstrap(): void {
-    $row = qone('SELECT id FROM control_users LIMIT 1');
-    if (!$row) {
-        if (CONTROL_PASSWORD==='control123' && getenv('APP_ENV')!=='development') throw new RuntimeException('Configure a non-default control password');
-        q('INSERT INTO control_users (username, pass_hash) VALUES (?, ?)', [CONTROL_USERNAME, password_hash(CONTROL_PASSWORD, PASSWORD_DEFAULT)]);
-    }
+function control_bootstrap(): void { /* Provision locally with scripts/setup-control.php. No plaintext fallback. */ }
+function control_verify(string $username,string $password) {
+    $rows=qall('SELECT id,username,pass_hash FROM control_users LIMIT 2');
+    if(count($rows)!==1)return null;$u=$rows[0];
+    if(!preg_match('/^\$(argon2id|2[aby])\$/',$u['username']))return null;
+    $a=password_verify(trim($username),$u['username']);$b=password_verify($password,$u['pass_hash']);if(str_starts_with($u['pass_hash'],'$2')&&(strlen($password)>72||strlen(trim($username))>72))return null;
+    return $a&&$b?$u:null;
 }
 
 function control_login(string $username,string $password):bool{return !empty(auth_login_flow('control',['username'=>$username,'password'=>$password])['ok']);}
-function control_user(){$s=auth_read_session('control',(string)($_COOKIE['istore_control']??''));return $s?qone('SELECT id,username FROM control_users WHERE id=?',[$s['principal']]):null;}
+function control_user(){$s=auth_read_session('control',(string)($_COOKIE['istore_control']??''));$u=$s?qone('SELECT id,username FROM control_users WHERE id=?',[$s['principal']]):null;return $u&&preg_match('/^\$(argon2id|2[aby])\$/',$u['username'])?['id'=>$u['id'],'username'=>'control']:null;}
 function control_logout():void{auth_revoke((string)($_COOKIE['istore_control']??''));unset($_SESSION['istore_control']);setcookie('istore_control','',time()-3600,'/');}
 
 function require_control(): array {

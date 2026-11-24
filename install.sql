@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS `control_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 CREATE TABLE IF NOT EXISTS `control_users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(100) NOT NULL,
+  `username` varchar(255) NOT NULL,
   `pass_hash` varchar(255) NOT NULL,
   `salt` varchar(64) NOT NULL DEFAULT '',
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),

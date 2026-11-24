@@ -29,8 +29,8 @@ define('ADMIN_USERNAME', 'admin');
 define('ADMIN_PASSWORD', 'admin123'); // غيّرها فوراً من لوحة التحكم بعد أول دخول
 
 // ---- لوحة إعدادات الموقع (/control) — مستقلة تماماً عن لوحة التحكم ----
-define('CONTROL_USERNAME', 'control');
-define('CONTROL_PASSWORD', 'control123'); // غيّرها فوراً بعد أول دخول
+// No control credentials in config. Run: php scripts/setup-control.php
+// See CONTROL-SECURITY-AR.md. Only salted hashes are stored in control_users.
 
 // Enable only while installing an EMPTY database, then set false and remove install.php.
 define('INSTALL_ENABLED', false);

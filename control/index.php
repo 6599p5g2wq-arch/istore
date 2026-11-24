@@ -115,6 +115,7 @@ $storeName = setting('store_name', 'آي ستور');
   <?php if ($formErr !== ''): ?><div class="mt-5 rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700"><?= e($formErr) ?></div><?php endif; ?>
   <?php if ($saved): ?><div class="mt-5 rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-700">تم حفظ الإعدادات بنجاح ✓</div><?php endif; ?>
   <?php if ($tgTest !== null): ?><div class="mt-5 rounded-2xl p-4 text-sm font-bold <?= $tgTest ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' ?>"><?= $tgTest ? 'وصلت الرسالة التجريبية إلى تيليجرام ✓' : 'فشل الإرسال — راجع التوكن ومعرف المحادثة' ?></div><?php endif; ?>
+  <?php require APP_ROOT.'/includes/control-credentials-ui.php'; ?>
   <?php $secPanel='control';require APP_ROOT.'/includes/security-settings.php'; ?>
 <form method="post" enctype="multipart/form-data" class="mt-8 space-y-6">
     <?php $ic = intro_cfg(); $icRaw = settings(); ?>

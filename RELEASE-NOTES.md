@@ -17,3 +17,12 @@ Verification: Next production build, zero known npm audit findings, 84 PHP synta
 Still requires production work: durable DB/uploads and backups, correct HTTPS/proxy settings, host-specific deny/upload rules, supported runtime extensions, real notification delivery and CDN reachability. Render's ephemeral SQLite can reset data/settings/logo/2FA on deploy; these fixes do not solve persistence. All admin users currently have equal authority; email/phone ownership is not OTP-verified; customer/API tokens remain raw in DB. Protect backups and consider a future token migration. No claim of exploitation or security certification is made.
 
 No secret credentials or user database dumps are included. config.php holds starter placeholders and must be configured. Document-root guards are Apache rules and require equivalent configuration on Nginx/IIS. New private 2FA key file must remain outside the web root or be supplied through server environment securely.
+
+## 2026-11-24: بيانات الكنترول ببصمات فقط
+- أزيلت بيانات control النصية من config/bootstrap، ولا توجد بيانات افتراضية أو رجوع لحساب قديم نصي.
+- اسم المستخدم وكلمة المرور ببصمات مستقلة مع ملح. PHP: Argon2id أو bcrypt cost 12 مع حد 72 بايت عند عدم توفر Argon2id. Next: scrypt N=131072/r=8/p=1.
+- scripts/setup-control.php للإعداد المحلي المخفي على XAMPP/Terminal. لا توجد صفحة إعداد مفتوحة. وسع عمود control_users.username إلى 255 مع الحفاظ على id و2FA.
+- نموذج جديد داخل الكنترول لتغيير الاسم/المرور: كلمة المرور الحالية دائماً؛ رمز 2FA/الاسترداد فقط إذا كانت مفعلة. لا يفرض تفعيل 2FA.
+- الحفظ يبطل جميع جلسات وتحديات الكنترول ويحفظ بيانات جديدة فعلياً. 2FA والرموز المتبقية محفوظة. سجل الكنترول لا يخزن اسم المستخدم الحقيقي في المحاولات الجديدة.
+- اختبارات محلية: تغيير الاسم وحده والمرور وحدها، رفض القديم، دخول بالجديد، تحقق اختياري/إجباري حسب الحالة، وإعادة تشغيل الخادمين دون فقد البيانات. الاستضافة الحقيقية ومسار PowerShell على Windows غير مختبرين.
+- طالع CONTROL-SECURITY-AR.md قبل النشر. البيانات القديمة في نسخ config/env/backups لا تمحى تلقائياً. admin منفصل ولم يتغير في هذا العمل. لا تحتوي الحزمة بصمات صاحب المتجر أو كلمات مروره.
