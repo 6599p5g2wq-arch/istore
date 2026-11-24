@@ -87,11 +87,11 @@ admin_header('الطلبات', 'orders.php');
   <!-- بطاقات الموبايل -->
   <div class="mt-5 space-y-3 lg:hidden">
     <?php foreach ($orders as $o): ?>
-      <a href="<?= e(admin_url('order.php?id=' . (int)$o['id'])) ?>" class="block rounded-3xl bg-white p-4 shadow-sm <?= $o['status'] === 'new' ? 'border-r-4 border-amber-400' : '' ?>">
+      <div onclick="if(!event.target.closest('input'))location.href='<?= e(admin_url('order.php?id=' . (int)$o['id'])) ?>'" class="block cursor-pointer rounded-3xl bg-white p-4 shadow-sm <?= $o['status'] === 'new' ? 'border-r-4 border-amber-400' : '' ?>">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <p class="flex flex-wrap items-center gap-2">
-              <span class="font-extrabold text-violet-700" dir="ltr"><?= e($o['code']) ?></span>
+              <input type="checkbox" data-order-id="<?= (int)$o['id'] ?>" aria-label="تحديد الطلب <?= e($o['code']) ?>" class="relative z-10 h-4 w-4 shrink-0 accent-black" onclick="event.stopPropagation()"><span class="font-extrabold text-violet-700" dir="ltr"><?= e($o['code']) ?></span>
               <?php if ($o['status'] === 'new'): ?><span class="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-extrabold text-white">جديد</span><?php endif; ?>
               <?php if (isset($repeatPhones[$o['phone']])): ?><span class="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-extrabold text-sky-700">زبون متكرر</span><?php endif; ?>
             </p>
@@ -103,7 +103,7 @@ admin_header('الطلبات', 'orders.php');
             <span class="badge <?= order_status_class($o['status']) ?>"><?= e(order_status_label($o['status'])) ?></span>
           </div>
         </div>
-      </a>
+      </div>
     <?php endforeach; ?>
   </div>
 
@@ -113,10 +113,10 @@ admin_header('الطلبات', 'orders.php');
       <thead><tr><th>الطلب</th><th>العميل</th><th>الهاتف</th><th>المدينة</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead>
       <tbody>
       <?php foreach ($orders as $o): ?>
-        <tr class="cursor-pointer hover:bg-neutral-50 <?= $o['status'] === 'new' ? 'border-r-4 border-amber-400 bg-amber-50/40' : '' ?>" onclick="if(!event.target.closest('a,button,select'))location.href='<?= e(admin_url('order.php?id=' . (int)$o['id'])) ?>'">
+        <tr class="cursor-pointer hover:bg-neutral-50 <?= $o['status'] === 'new' ? 'border-r-4 border-amber-400 bg-amber-50/40' : '' ?>" onclick="if(!event.target.closest('a,button,select,input'))location.href='<?= e(admin_url('order.php?id=' . (int)$o['id'])) ?>'">
           <td>
             <span class="flex items-center gap-2">
-              <a href="<?= e(admin_url('order.php?id=' . (int)$o['id'])) ?>" class="font-extrabold text-violet-700 hover:underline" dir="ltr"><?= e($o['code']) ?></a>
+              <input type="checkbox" data-order-id="<?= (int)$o['id'] ?>" aria-label="تحديد الطلب <?= e($o['code']) ?>" class="h-4 w-4 shrink-0 accent-black"><a href="<?= e(admin_url('order.php?id=' . (int)$o['id'])) ?>" class="font-extrabold text-violet-700 hover:underline" dir="ltr"><?= e($o['code']) ?></a>
               <?php if ($o['status'] === 'new'): ?><span class="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-extrabold text-white">جديد</span><?php endif; ?>
             </span>
           </td>
@@ -143,4 +143,7 @@ admin_header('الطلبات', 'orders.php');
   </div>
 <?php endif; ?>
 
+<script>
+document.querySelectorAll('[data-order-id]').forEach(c=>c.addEventListener('change',()=>{document.querySelectorAll('[data-order-id]').forEach(other=>{if(other.dataset.orderId===c.dataset.orderId)other.checked=c.checked;});window.dispatchEvent(new Event('orders-selection'));}));
+</script>
 <?php admin_footer(); ?>

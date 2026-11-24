@@ -15,10 +15,12 @@ if($error){http_response_code(400);header('Content-Type: application/json; chars
 $tz=db()->query('SELECT TIMESTAMPDIFF(MINUTE,UTC_TIMESTAMP(),NOW()) minutes')->fetch();
 $minutes=(int)$tz['minutes'];$autoOffset=sprintf('%s%02d:%02d',$minutes<0?'-':'+',intdiv(abs($minutes),60),abs($minutes)%60);
 $offset=defined('ORDER_EXPORT_DB_OFFSET')?ORDER_EXPORT_DB_OFFSET:$autoOffset;
+$ids=isset($_GET['ids'])?explode(',',(string)$_GET['ids']):[];if(isset($_GET['ids'])&&(!$ids||count($ids)>500||array_filter($ids,fn($n)=>!ctype_digit($n)||(int)$n<=0))){http_response_code(400);header('Content-Type: application/json; charset=utf-8');echo json_encode(['error'=>'تحديد الطلبات غير صالح']);exit;}
 $dateExpr='CONVERT_TZ(o.created_at, ?, ?)';$args=[$offset,'+02:00'];$conds=[];
-if($from){$conds[]='DATE('.$dateExpr.')>=?';array_push($args,$offset,'+02:00',$from);}
-if($to){$conds[]='DATE('.$dateExpr.')<=?';array_push($args,$offset,'+02:00',$to);}
-if($status){$conds[]='o.status=?';$args[]=$status;}
+if($ids){$conds[]='o.id IN ('.implode(',',array_fill(0,count($ids),'?')).')';array_push($args,...$ids);}
+if(!$ids&&$from){$conds[]='DATE('.$dateExpr.')>=?';array_push($args,$offset,'+02:00',$from);}
+if(!$ids&&$to){$conds[]='DATE('.$dateExpr.')<=?';array_push($args,$offset,'+02:00',$to);}
+if(!$ids&&$status){$conds[]='o.status=?';$args[]=$status;}
 $sql='SELECT o.*,o.id order_id,'.$dateExpr.' date,i.id item_id,i.product_id,i.variant_id,i.name,i.variant_label,i.qty,i.price,(i.qty*i.price) line_total FROM orders o JOIN order_items i ON i.order_id=o.id'.($conds?' WHERE '.implode(' AND ',$conds):'').' ORDER BY o.id DESC,i.id ASC';
 $stmt=db()->prepare($sql);$stmt->execute($args);
 header('Content-Type: text/csv; charset=utf-8');header('Content-Disposition: attachment; filename="orders-export.csv"');header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');
