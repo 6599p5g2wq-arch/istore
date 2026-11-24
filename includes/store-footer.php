@@ -57,7 +57,7 @@ $year = date('Y');
 </button>
 
 <script>window.CART_DRAWER_ICONS=<?=json_encode(['bag'=>icon('shopping-bag',48),'trash'=>icon('trash',16)],JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?>;</script>
-<script>window.THEME_ICONS=<?=json_encode(['sun'=>icon('sun',18),'moon'=>icon('moon',18)],JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?>;</script>
+<script>window.THEME_ICONS=<?=json_encode(['sun'=>icon('sun',20),'moon'=>icon('moon',20)],JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?>;(function(){var l=document.documentElement.classList.contains('light');document.querySelectorAll('[data-theme-icon]').forEach(function(e){e.innerHTML=window.THEME_ICONS[l?'moon':'sun']||''})})();</script>
 <script src="<?= e(url('assets/js/app.js')) ?>"></script>
 <?php require APP_ROOT.'/includes/analytics.php'; ?>
 </body>

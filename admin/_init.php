@@ -138,7 +138,7 @@ function program_panel(string $group, string $title, string $desc, bool $enabled
       <div class="mt-4 grid gap-3 sm:grid-cols-2">
         <?php foreach ($fields as [$key, $label, $hint, $step]): ?>
           <label class="block text-sm font-bold"><?= e($label) ?>
-            <input type="number" name="<?= e($key) ?>" step="<?= e((string)$step) ?>" min="0" required value="<?= e(rtrim(rtrim(number_format((float)setting($key, (string)$hint), 2, '.', ''), '0'), '.')) ?>" class="admin-input mt-1.5"><span class="mt-1 block text-[11px] font-normal text-neutral-400">الافتراضي: <?=e((string)$hint)?></span>
+            <input type="number" name="<?= e($key) ?>" step="<?= e((string)$step) ?>" min="0" required value="<?= e(rtrim(rtrim(number_format((float)setting($key, (string)$hint), 2, '.', ''), '0'), '.')) ?>" class="admin-input mt-1.5">
           </label>
         <?php endforeach; ?>
       </div>

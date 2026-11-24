@@ -61,7 +61,7 @@ try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=matchMedia
         <?php endforeach; ?>
       </nav>
       <div class="flex items-center gap-1">
-        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="hidden h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)] sm:grid"><span data-theme-icon><?=icon('sun',18)?></span></button>
+        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="hidden h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)] sm:grid"><span data-theme-icon><?=icon('sun',20)?></span></button>
         <button onclick="toggleSearch(true)" aria-label="بحث" class="grid h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><?= icon('search') ?></button>
         <a href="<?= e(url('wishlist.php')) ?>" aria-label="المفضلة" class="relative grid h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]">
           <?= icon('heart') ?>
@@ -99,11 +99,11 @@ document.getElementById('back-btn').addEventListener('click', function () {
       <button onclick="toggleMenu(false)" aria-label="إغلاق" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text-dim)] hover:bg-[var(--chip)]"><?= icon('x', 18) ?></button>
     </div>
     <nav class="flex flex-col gap-1 text-base font-medium">
-      <a href="<?= e(url('account.php')) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]">حسابي</a>
+      <a href="<?= e(url('account.php')) ?>" onclick="toggleMenu(false)" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[var(--text)] hover:bg-[var(--chip)]"><?= icon('user', 18) ?> حسابي</a>
       <a href="<?= e(url('track.php')) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text-dim)] hover:bg-[var(--chip)]">تتبع طلبك</a>
       <div class="flex items-center justify-between rounded-lg px-3 py-2.5 text-[var(--text-dim)]">
         <span>المظهر</span>
-        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><span data-theme-icon><?=icon('sun',18)?></span></button>
+        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="grid h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><span data-theme-icon><?=icon('sun',20)?></span></button>
       </div>
 
       <div class="my-2 border-t border-[var(--border)]"></div>
