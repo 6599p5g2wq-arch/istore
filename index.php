@@ -41,44 +41,29 @@ require APP_ROOT . '/includes/store-header.php';
 
 <!-- سلايدر الهيرو -->
 <?php if ($slides): ?>
-<section class="relative mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-  <div id="hero-slider" class="on-dark relative overflow-hidden rounded-[2rem] border border-white/15 bg-[#140b30]/85 text-white shadow-[0_30px_90px_-20px_rgba(123,47,247,.45)] backdrop-blur-xl">
-    <div class="pointer-events-none absolute -left-32 -top-32 h-[34rem] w-[34rem]" style="background:radial-gradient(closest-side,rgba(0,198,255,.28),transparent)"></div>
-    <div class="pointer-events-none absolute -bottom-52 -right-32 h-[34rem] w-[34rem]" style="background:radial-gradient(closest-side,rgba(147,51,234,.3),transparent)"></div>
-    <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-    <?php foreach ($slides as $i => $sl): ?>
-    <div class="hero-slide <?= $i === 0 ? 'active' : '' ?> relative z-10 grid min-h-[540px] items-center gap-8 p-8 sm:p-14 lg:min-h-[640px] lg:grid-cols-2">
-      <div class="relative z-10 order-2 lg:order-1">
-        <span class="hst mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-bold backdrop-blur"><?= icon('sparkles', 14) ?> تشكيلة <?= date('Y') ?> الجديدة</span>
-        <<?= $heroTag ?> class="hst text-balance whitespace-pre-line text-4xl font-black leading-[1.12] tracking-tight sm:text-5xl lg:text-7xl"><?= e($sl['title']) ?></<?= $heroTag ?>>
-        <p class="hst mt-5 max-w-md text-base leading-8 text-white/70 sm:text-lg"><?= e($sl['subtitle']) ?></p>
-        <div class="hst mt-8 flex flex-wrap items-center gap-4">
-          <a href="<?= e(str_starts_with($sl['cta_link'], 'http') ? $sl['cta_link'] : url(ltrim($sl['cta_link'], '/'))) ?>" class="glow-btn group inline-flex items-center gap-2 rounded-full px-8 py-3.5 font-bold transition hover:scale-[1.03]">
-            <?= e($sl['cta_text']) ?>
-            <?= icon('chevron-left', 18, 'transition-transform group-hover:-translate-x-1') ?>
-          </a>
-        </div>
-      </div>
-      <div class="relative z-10 order-1 lg:order-2">
-        <div class="relative mx-auto aspect-square w-full max-w-md rounded-[2rem] shadow-[0_30px_80px_-20px_rgba(0,0,0,.7)]">
-          <div class="h-full w-full overflow-hidden rounded-[2rem]" style="-webkit-mask-image:-webkit-radial-gradient(white,black);transform:translateZ(0)">
-          <img src="<?= e(img_url($sl['image'])) ?>" alt="<?= e($sl['title']) ?>" class="h-full w-full rounded-[2rem] object-cover">
-          </div>
-        </div>
-      </div>
-    </div>
-    <?php endforeach; ?>
-    <?php if (count($slides) > 1): ?>
-    <div class="absolute bottom-6 right-8 z-20 flex gap-2 sm:right-14">
-      <?php foreach ($slides as $i => $sl): ?>
-      <button data-dot onclick="heroShow(<?= $i ?>)" aria-label="شريحة <?= $i + 1 ?>" class="h-2 rounded-full transition-all duration-300 <?= $i === 0 ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60' ?>"></button>
+<link rel="stylesheet" href="<?= e(url('assets/css/hero-slider.css')) ?>?v=3">
+<section id="hero-slider" class="hero-rail on-dark" aria-roledescription="عرض شرائح" aria-label="عروض المتجر">
+  <div class="hp-clip">
+    <div class="hp-track" aria-hidden="true">
+      <?php $cards = count($slides) > 1 ? array_merge([end($slides)], $slides, [$slides[0]]) : $slides; foreach ($cards as $sl): ?>
+      <article class="hp-card"><img src="<?= e(img_url($sl['image'])) ?>" alt="" draggable="false"></article>
       <?php endforeach; ?>
     </div>
-    <button onclick="heroGo(-1)" aria-label="السابق" class="absolute left-4 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20 sm:grid"><?= icon('chevron-left') ?></button>
-    <button onclick="heroGo(1)" aria-label="التالي" class="absolute right-4 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20 sm:grid"><?= icon('chevron-right') ?></button>
+    <div class="hp-overlay">
+      <?php foreach ($slides as $i => $sl): $href = str_starts_with($sl['cta_link'], 'http') ? $sl['cta_link'] : url(ltrim($sl['cta_link'], '/')); ?>
+      <div class="hp-copy" data-copy="<?= $i ?>" data-label="<?= e($sl['cta_text']) ?>" data-href="<?= e($href) ?>" aria-hidden="<?= $i === 0 ? 'false' : 'true' ?>">
+        <<?= $heroTag ?>><?= e($sl['title']) ?></<?= $heroTag ?>><p><?= e($sl['subtitle']) ?></p><div class="hp-cta-space" aria-hidden="true">&nbsp;</div>
+      </div>
+      <?php endforeach; $firstHref = str_starts_with($slides[0]['cta_link'], 'http') ? $slides[0]['cta_link'] : url(ltrim($slides[0]['cta_link'], '/')); ?>
+      <div class="hp-copy hp-fixed-button"><a href="<?= e($firstHref) ?>"><?= e($slides[0]['cta_text']) ?></a></div>
+    </div>
+    <?php if (count($slides) > 1): ?>
+    <button type="button" data-go="-1" class="hp-arrow prev" aria-label="السابق">‹</button><button type="button" data-go="1" class="hp-arrow next" aria-label="التالي">›</button>
     <?php endif; ?>
   </div>
+  <?php if (count($slides) > 1): ?><div class="hp-dots"><?php foreach ($slides as $i => $sl): ?><button type="button" data-dot="<?= $i ?>" class="<?= $i === 0 ? 'active' : '' ?>" aria-label="شريحة <?= $i + 1 ?>"></button><?php endforeach; ?></div><?php endif; ?>
 </section>
+<script type="module" src="<?= e(url('assets/js/hero-motion.js')) ?>?v=3"></script>
 <?php endif; ?>
 
 <!-- شريط المميزات المتحرك -->
