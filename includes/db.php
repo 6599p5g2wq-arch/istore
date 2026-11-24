@@ -43,6 +43,7 @@ function migrate_orders_admin(PDO $pdo): void {
     $done = true;
     foreach ([
         'ALTER TABLE orders ADD COLUMN admin_notes TEXT NULL',
+        "ALTER TABLE orders ADD COLUMN email VARCHAR(200) NOT NULL DEFAULT ''",
         'CREATE TABLE IF NOT EXISTS order_status_log (id INT AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, status VARCHAR(20) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX (order_id), FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
     ] as $sql) {
         try { $pdo->exec($sql); } catch (PDOException $e) { /* موجود مسبقاً */ }

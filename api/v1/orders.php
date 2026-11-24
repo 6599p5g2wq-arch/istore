@@ -36,6 +36,9 @@ if ($m === 'POST') {
     $city = trim($b['city'] ?? '');
     $address = trim($b['address'] ?? '');
     $notes = trim($b['notes'] ?? '');
+// بريد اختياري لاستلام تأكيد الطلب وتحديثاته
+$email = trim($b['email'] ?? '');
+if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) json_response(['ok' => false, 'error' => 'صيغة البريد الإلكتروني غير صحيحة'], 400);
     $couponCode = trim($b['coupon'] ?? '');
     $items = [];
     foreach ((is_array($b['items'] ?? null) ? $b['items'] : []) as $i) {
@@ -78,9 +81,10 @@ if ($m === 'POST') {
         }
         $deliveryFee = ($freeThreshold > 0 && $subtotal - $discount >= $freeThreshold) ? 0 : (float)$cityRow['fee'];
         $code = 'IST-' . strtoupper(bin2hex(random_bytes(3)));
-        q('INSERT INTO orders (code, customer_name, phone, city, address, notes, subtotal, discount, coupon_code, delivery_fee, total, customer_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [$code, $name, $phone, $city, $address, $notes, $subtotal, $discount, $discount > 0 ? strtoupper($couponCode) : '', $deliveryFee, $subtotal - $discount + $deliveryFee, $customer['id'] ?? null]);
+        if (!$email && $customer && !empty($customer['email'])) $email = $customer['email'];
+        q('INSERT INTO orders (code, customer_name, phone, city, address, notes, subtotal, discount, coupon_code, delivery_fee, total, customer_id, email)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [$code, $name, $phone, $city, $address, $notes, $subtotal, $discount, $discount > 0 ? strtoupper($couponCode) : '', $deliveryFee, $subtotal - $discount + $deliveryFee, $customer['id'] ?? null, $email]);
         $orderId = (int)$pdo->lastInsertId();
         if ($discount > 0) q('UPDATE coupons SET used_count = used_count + 1 WHERE UPPER(code) = UPPER(?)', [$couponCode]);
         foreach ($lines as $l) {
@@ -101,6 +105,13 @@ if ($m === 'POST') {
             'items' => $lines, 'subtotal' => $subtotal, 'discount' => $discount, 'couponCode' => $couponCode, 'deliveryFee' => $deliveryFee,
             'total' => $subtotal - $discount + $deliveryFee]);
     } catch (Throwable $e) { /* ignore */ }
+    // تأكيد الطلب للزبون إن أعطانا بريده — لا يعطل إتمام الطلب إطلاقاً
+    if ($email) {
+        try {
+            send_order_confirmation($email, ['code' => $code, 'customer' => $name, 'items' => $lines,
+                'subtotal' => $subtotal, 'discount' => $discount, 'couponCode' => $couponCode, 'deliveryFee' => $deliveryFee, 'total' => $subtotal - $discount + $deliveryFee]);
+        } catch (Throwable $e) { /* ignore */ }
+    }
     // تنبيه تيليجرام للمالك — لا يؤثر على إتمام الطلب إطلاقاً
     try {
         tg_order_alert(['order_id' => $orderId, 'code' => $code, 'customer' => $name, 'phone' => $phone, 'city' => $city,

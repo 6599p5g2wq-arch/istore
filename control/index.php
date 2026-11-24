@@ -25,6 +25,11 @@ $SECTIONS = [
         ['tiktok_pixel_id', 'معرف بكسل تيك توك (TikTok Pixel ID)', false, true],
         ['ga_id', 'معرف قوقل أناليتكس (G-XXXX)', false, true],
     ]],
+    ['title' => 'إشعارات البريد (Resend)', 'note' => 'تُرسل رسائل الطلبات (للمتجر وللزبون) وإشعارات التوفر عبر خدمة Resend. مهم: حتى يُوثَّق دومينك في Resend، تصل الرسائل فقط إلى بريد مالك حساب Resend نفسه. بعد توثيق الدومين ضع عنوان مرسل على دومينه مثل المتجر <orders@yourdomain.com>.', 'fields' => [
+        ['resend_api_key', 'مفتاح Resend (API Key)', false, true],
+        ['resend_from', 'عنوان المرسل — مثال: المتجر <orders@yourdomain.com>', false, true],
+        ['notify_email', 'إيميل مختلف لاستلام الطلبات (اختياري — الافتراضي بريد التواصل أعلاه)', false, true],
+    ]],
     ['title' => 'إشعارات الطلبات (تيليجرام)', 'fields' => [
         ['telegram_chat_id', 'معرف المحادثة (Chat ID)', false, true], ['telegram_bot_token', 'توكن البوت (Bot Token)', false, true],
     ]],
@@ -54,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (($f[4] ?? '') === 'toggle') { set_setting($key, !empty($_POST[$key]) ? '1' : '0'); continue; }
                 if (!array_key_exists($key, $_POST)) continue;
                 // التوكن لا يُمسح بقيمة فارغة: يُحدَّث فقط عند كتابة قيمة جديدة
-                if ($key === 'telegram_bot_token' && trim((string)$_POST[$key]) === '') continue;
+                if (($key === 'telegram_bot_token' || $key === 'resend_api_key') && trim((string)$_POST[$key]) === '') continue;
                 set_setting($key, trim((string)$_POST[$key]));
             }
         }
@@ -75,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 $tgTokenSaved = setting('telegram_bot_token', '') !== '';
+$resendKeySaved = setting('resend_api_key', '') !== '';
 $storeName = setting('store_name', 'آي ستور');
 ?>
 <!doctype html>
@@ -137,7 +143,8 @@ $storeName = setting('store_name', 'آي ستور');
     </div>
     <?php foreach ($SECTIONS as $sec): ?>
       <div class="rounded-3xl bg-white p-6 shadow-sm">
-        <h2 class="mb-5 text-lg font-extrabold"><?= e($sec['title']) ?></h2>
+        <h2 class="<?= isset($sec['note']) ? '' : 'mb-5 ' ?>text-lg font-extrabold"><?= e($sec['title']) ?></h2>
+        <?php if (isset($sec['note'])): ?><p class="mb-5 mt-1 text-xs leading-6 text-neutral-500"><?= e($sec['note']) ?></p><?php endif; ?>
         <div class="grid gap-4 sm:grid-cols-2">
           <?php foreach ($sec['fields'] as $f): [$key, $label, $area, $ltr] = $f + [2 => false, 3 => false]; $toggle = ($f[4] ?? '') === 'toggle'; ?>
             <label class="block text-sm font-bold <?= $area ? 'sm:col-span-2' : '' ?>"><?= e($label) ?>
@@ -147,6 +154,8 @@ $storeName = setting('store_name', 'آي ستور');
                 <textarea name="<?= e($key) ?>" rows="3" class="c-input mt-1.5 resize-none" <?= $ltr ? 'dir="ltr" style="text-align:left"' : '' ?>><?= e(setting($key, '')) ?></textarea>
               <?php elseif ($key === 'telegram_bot_token'): ?>
                 <input type="password" name="telegram_bot_token" value="" autocomplete="off" placeholder="<?= $tgTokenSaved ? 'محفوظ — اتركه فارغاً للإبقاء عليه' : 'من @BotFather' ?>" class="c-input mt-1.5" dir="ltr" style="text-align:left">
+              <?php elseif ($key === 'resend_api_key'): ?>
+                <input type="password" name="resend_api_key" value="" autocomplete="off" placeholder="<?= $resendKeySaved ? 'محفوظ — اتركه فارغاً للإبقاء عليه' : 're_xxxxxxxxxxxx' ?>" class="c-input mt-1.5" dir="ltr" style="text-align:left">
               <?php else: ?>
                 <input name="<?= e($key) ?>" value="<?= e(setting($key, '')) ?>" class="c-input mt-1.5" <?= $ltr ? 'dir="ltr" style="text-align:left"' : '' ?>>
               <?php endif; ?>

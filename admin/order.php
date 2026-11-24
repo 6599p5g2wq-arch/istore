@@ -42,6 +42,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             apply_order_status_effects($id, $old, $new);
+            // إشعار الزبون بتغير الحالة إن كان عندنا بريده — لا يعطل الحفظ إطلاقاً
+            try {
+                $custEmail = trim((string)($order['email'] ?? ''));
+                if (!$custEmail && !empty($order['customer_id'])) {
+                    $c = qone('SELECT email FROM customers WHERE id = ?', [(int)$order['customer_id']]);
+                    $custEmail = trim((string)($c['email'] ?? ''));
+                }
+                if ($custEmail) {
+                    $mailItems = array_map(fn($it) => ['name' => $it['name'] . ($it['variant_label'] ? ' — ' . $it['variant_label'] : ''), 'price' => $it['price'], 'qty' => $it['qty']],
+                        qall('SELECT name, variant_label, price, qty FROM order_items WHERE order_id = ?', [$id]));
+                    send_order_status_email($custEmail, ['code' => $order['code'], 'customer' => $order['customer_name'],
+                        'items' => $mailItems, 'total' => $order['total'], 'currency' => setting('currency', '')], $new);
+                }
+            } catch (Throwable $e) { /* ignore */ }
             flash('تم تحديث حالة الطلب إلى «' . order_status_label($new) . '»');
         }
         redirect_admin('order.php?id=' . $id);

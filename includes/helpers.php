@@ -214,62 +214,94 @@ function read_json_body(): array {
 }
 
 // إشعار طلب جديد عبر Resend (اختياري — يعمل فقط إذا ضبطت المفتاح في config.php)
-function notify_new_order(array $o): void {
-    if (!defined('RESEND_API_KEY') || !RESEND_API_KEY || !defined('NOTIFY_EMAIL') || !NOTIFY_EMAIL) return;
-    $lines = [];
-    foreach ($o['items'] as $it) $lines[] = '• ' . $it['name'] . ' × ' . $it['qty'] . ' — ' . format_price($it['price'] * $it['qty']);
-    $html = '<div dir="rtl" style="font-family:sans-serif">'
-        . '<h2>طلب جديد ' . e($o['code']) . '</h2>'
-        . '<p><b>الاسم:</b> ' . e($o['customer']) . '<br><b>الهاتف:</b> ' . e($o['phone'])
-        . '<br><b>المدينة:</b> ' . e($o['city']) . '<br><b>العنوان:</b> ' . e($o['address'])
-        . ($o['notes'] ? '<br><b>ملاحظات:</b> ' . e($o['notes']) : '') . '</p>'
-        . '<p>' . implode('<br>', $lines) . '</p>'
-        . '<p>المجموع: ' . format_price($o['subtotal'])
-        . ($o['discount'] > 0 ? '<br>الخصم' . ($o['couponCode'] ? ' (' . e($o['couponCode']) . ')' : '') . ': -' . format_price($o['discount']) : '')
-        . '<br>التوصيل: ' . format_price($o['deliveryFee'])
-        . '<br><b>الإجمالي: ' . format_price($o['total']) . '</b></p></div>';
-    $payload = json_encode([
-        'from' => 'آي ستور <onboarding@resend.dev>',
-        'to' => [NOTIFY_EMAIL],
-        'subject' => 'طلب جديد ' . $o['code'] . ' — ' . $o['customer'],
-        'html' => $html,
-    ], JSON_UNESCAPED_UNICODE);
+// إعدادات البريد: قاعدة البيانات أولاً ثم ثوابت config.php كاحتياط
+function mail_key(): string {
+    $k = setting('resend_api_key', '');
+    if ($k) return $k;
+    return defined('RESEND_API_KEY') ? (string)RESEND_API_KEY : '';
+}
+function mail_from(): string {
+    $f = setting('resend_from', '');
+    if ($f) return $f;
+    if (defined('RESEND_FROM') && RESEND_FROM) return (string)RESEND_FROM;
+    return setting('store_name', 'المتجر') . ' <onboarding@resend.dev>';
+}
+// بريد استلام الطلبات: الإيميل المخصص إن وُجد وإلا بريد التواصل
+function notify_email_addr(): string {
+    return setting('notify_email', '') ?: setting('email', '') ?: (defined('NOTIFY_EMAIL') ? (string)NOTIFY_EMAIL : '');
+}
+// إرسال عبر Resend — يرجع true فقط عند القبول، ولا يوقف الموقع أبداً
+function resend_send(string $to, string $subject, string $html): bool {
+    $key = mail_key();
+    if (!$key || !$to) return false;
+    $payload = json_encode(['from' => mail_from(), 'to' => [$to], 'subject' => $subject, 'html' => $html], JSON_UNESCAPED_UNICODE);
     $ch = curl_init('https://api.resend.com/emails');
     curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . RESEND_API_KEY, 'Content-Type: application/json'],
-        CURLOPT_POSTFIELDS => $payload,
-        CURLOPT_TIMEOUT => 8,
+        CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $key, 'Content-Type: application/json'],
+        CURLOPT_POSTFIELDS => $payload, CURLOPT_TIMEOUT => 8,
     ]);
-    @curl_exec($ch);
+    $resp = @curl_exec($ch);
+    $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if ($resp === false || $code >= 400) error_log('Resend send failed (' . $code . ') to ' . $to . ': ' . (string)$resp);
     curl_close($ch);
+    return $resp !== false && $code >= 200 && $code < 300;
+}
+// قالب بريد موحد باسم المتجر
+function mail_shell(string $title, string $bodyHtml): string {
+    $store = e(setting('store_name', 'المتجر'));
+    return '<div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:560px;margin:auto;background:#f7f7f9;padding:28px;border-radius:16px">'
+        . '<h1 style="margin:0 0 16px;font-size:20px">' . $store . '</h1>'
+        . '<div style="background:#fff;border-radius:12px;padding:20px"><h2 style="margin:0 0 10px;font-size:17px">' . $title . '</h2>' . $bodyHtml . '</div>'
+        . '<p style="color:#999;font-size:11px;margin-top:16px">' . $store . '</p></div>';
+}
+function mail_items_html(array $o): string {
+    $h = '<table style="width:100%;border-collapse:collapse;font-size:14px">';
+    foreach ($o['items'] as $it) {
+        $h .= '<tr><td style="padding:4px 0;border-bottom:1px solid #eee">' . e($it['name']) . ' × ' . $it['qty'] . '</td>'
+            . '<td style="padding:4px 0;border-bottom:1px solid #eee;text-align:left">' . e($it['price']) . '</td></tr>';
+    }
+    $h .= '</table><p style="font-weight:bold;margin:12px 0 0">الإجمالي: ' . e((string)$o['total']) . ' ' . e($o['currency'] ?? setting('currency', '')) . '</p>';
+    return $h;
+}
+// تأكيد الطلب للزبون
+function send_order_confirmation(string $to, array $o): bool {
+    $body = '<p>شكراً لطلبك من <b>' . e(setting('store_name', 'المتجر')) . '</b> يا <b>' . e($o['customer']) . '</b>!</p>'
+        . '<p>رقم طلبك: <b>' . e($o['code']) . '</b> — سنتواصل معك لتأكيد الطلب.</p>'
+        . mail_items_html($o)
+        . '<p style="color:#888;font-size:12px">طريقة الدفع: الدفع عند الاستلام.</p>';
+    return resend_send($to, 'تأكيد طلبك ' . $o['code'], mail_shell('تم استلام طلبك ✅', $body));
+}
+// إشعار الزبون بتغير حالة طلبه
+function send_order_status_email(string $to, array $o, string $status): bool {
+    $body = '<p>مرحباً <b>' . e($o['customer']) . '</b>،</p>'
+        . '<p>حالة طلبك <b>' . e($o['code']) . '</b> أصبحت: <b>' . e(order_status_label($status)) . '</b>.</p>'
+        . mail_items_html($o);
+    return resend_send($to, 'طلبك ' . $o['code'] . ' — ' . order_status_label($status), mail_shell('تحديث حالة طلبك', $body));
+}
+
+function notify_new_order(array $o): void {
+    $to = notify_email_addr();
+    if (!$to) return;
+    $o['coupon_code'] = $o['coupon_code'] ?? ($o['couponCode'] ?? '');
+    $o['delivery_fee'] = $o['delivery_fee'] ?? ($o['deliveryFee'] ?? 0);
+    $lines = '';
+    foreach ($o['items'] as $it) $lines .= '<li>' . e($it['name']) . ' × ' . $it['qty'] . ' — ' . e($it['price']) . '</li>';
+    $coupon = $o['coupon_code'] ? '<p>كوبون: <b>' . e($o['coupon_code']) . '</b> (−' . e((string)$o['discount']) . ')</p>' : '';
+    $body = '<p><b>' . e($o['customer']) . '</b> — <span dir="ltr">' . e($o['phone']) . '</span><br>' . e($o['city']) . ($o['address'] ? ' — ' . e($o['address']) : '') . '</p>'
+        . ($o['notes'] ? '<p>ملاحظات الزبون: ' . e($o['notes']) . '</p>' : '')
+        . '<ul>' . $lines . '</ul>'
+        . '<p>المجموع: ' . e((string)$o['subtotal']) . ' — التوصيل: ' . e((string)$o['delivery_fee']) . $coupon . '</p>'
+        . '<p style="font-weight:bold;font-size:16px">الإجمالي: ' . e((string)$o['total']) . ' ' . e($o['currency'] ?? setting('currency', '')) . '</p>';
+    resend_send($to, '🛒 طلب جديد ' . $o['code'] . ' — ' . $o['total'] . ' ' . ($o['currency'] ?? setting('currency', '')), mail_shell('طلب جديد', $body));
 }
 
 // بريد "توفر مجدداً" لزبون سجّل بريده على منتج نافد (يعمل فقط إذا ضبطت المفتاح في config.php)
-function send_stock_alert_email(string $to, string $productName, string $productUrl): void {
-    if (!defined('RESEND_API_KEY') || !RESEND_API_KEY) return;
-    $html = '<div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:520px;margin:auto;background:#f7f7f9;padding:24px;border-radius:16px">'
-        . '<h2 style="margin:0 0 8px">خبر سار 🎉</h2>'
-        . '<p>المنتج <b>' . e($productName) . '</b> الذي سجلت اهتمامك به أصبح متوفراً الآن في المتجر.</p>'
+function send_stock_alert_email(string $to, string $productName, string $productUrl): bool {
+    $body = '<p>المنتج <b>' . e($productName) . '</b> الذي سجلت اهتمامك به أصبح متوفراً الآن في المتجر.</p>'
         . '<p style="text-align:center;margin:20px 0"><a href="' . e($productUrl) . '" style="background:#0071e3;color:#fff;padding:12px 28px;border-radius:99px;text-decoration:none;font-weight:bold">اطلبه الآن</a></p>'
-        . '<p style="color:#999;font-size:12px">الكمية محدودة — سارع بالطلب قبل نفادها.</p></div>';
-    $payload = json_encode([
-        'from' => 'آي ستور <onboarding@resend.dev>',
-        'to' => [$to],
-        'subject' => '✅ توفر مجدداً: ' . $productName,
-        'html' => $html,
-    ], JSON_UNESCAPED_UNICODE);
-    $ch = curl_init('https://api.resend.com/emails');
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . RESEND_API_KEY, 'Content-Type: application/json'],
-        CURLOPT_POSTFIELDS => $payload,
-        CURLOPT_TIMEOUT => 8,
-    ]);
-    @curl_exec($ch);
-    curl_close($ch);
+        . '<p style="color:#999;font-size:12px">الكمية محدودة — سارع بالطلب قبل نفادها.</p>';
+    return resend_send($to, '✅ توفر مجدداً: ' . $productName, mail_shell('خبر سار 🎉', $body));
 }
 
 // عند عودة مخزون منتج من صفر: أرسل بريداً لكل مسجّل ببريد إلكتروني وعلّمه فقط.
@@ -279,8 +311,9 @@ function notify_stock_restocked(int $productId, string $productName, string $slu
     if (!$waiting) return;
     $url = rtrim(setting('site_url', ''), '/') . url('product.php?slug=' . rawurlencode($slug));
     foreach ($waiting as $w) {
-        send_stock_alert_email($w['contact'], $productName, $url);
-        q('UPDATE stock_alerts SET notified = 1 WHERE id = ?', [(int)$w['id']]);
+        if (send_stock_alert_email($w['contact'], $productName, $url)) {
+            q('UPDATE stock_alerts SET notified = 1 WHERE id = ?', [(int)$w['id']]);
+        }
     }
 }
 

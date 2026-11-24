@@ -72,6 +72,7 @@ function submitOrder(ev) {
   var body = {
     name: document.getElementById('f-name').value.trim(),
     phone: document.getElementById('f-phone').value.trim(),
+    email: document.getElementById('f-email').value.trim(),
     city: document.getElementById('f-city').value,
     address: document.getElementById('f-address').value.trim(),
     notes: document.getElementById('f-notes').value.trim(),
@@ -124,6 +125,7 @@ window.initCheckoutPage = function () {
     + '<label class="block text-sm font-bold">المدينة<select id="f-city" required onchange="renderSummary()" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 outline-none transition focus:border-[var(--accent)]"><option value="">اختر مدينتك</option>'
     + CITIES.map(function (c) { return '<option value="' + c.name + '">' + c.name + '</option>'; }).join('')
     + '</select></label>'
+    + '<label class="block text-sm font-bold sm:col-span-2">البريد الإلكتروني (اختياري — نرسل لك تأكيد الطلب وتحديثاته)<input id="f-email" type="email" dir="ltr" placeholder="name@example.com" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20"></label>'
     + '<label class="block text-sm font-bold">العنوان بالتفصيل<input id="f-address" placeholder="الحي، الشارع، أقرب معلم" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20"></label>'
     + '</div>'
     + '<label class="mt-4 block text-sm font-bold">ملاحظات إضافية<textarea id="f-notes" rows="3" placeholder="أي تفاصيل تساعدنا في التوصيل" class="mt-1.5 w-full resize-none rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20"></textarea></label>'
@@ -147,11 +149,12 @@ window.initCheckoutPage = function () {
     + '<p id="order-err" class="mt-3 hidden rounded-xl bg-red-500/10 p-3 text-sm font-bold text-red-400"></p>'
     + '<button id="submit-btn" class="glow-btn mt-5 w-full rounded-full py-4 text-lg font-bold transition hover:scale-[1.01] active:scale-95">تأكيد الطلب</button>'
     + '</div></div></form>';
-  var PRE = <?= json_encode($cu ? ['name' => $cu['name'], 'phone' => $cu['phone'], 'city' => $cu['city'], 'address' => $cu['address']] : null, JSON_UNESCAPED_UNICODE) ?>;
+  var PRE = <?= json_encode($cu ? ['name' => $cu['name'], 'phone' => $cu['phone'], 'city' => $cu['city'], 'address' => $cu['address'], 'email' => $cu['email']] : null, JSON_UNESCAPED_UNICODE) ?>;
   if (PRE) {
     document.getElementById('f-name').value = PRE.name || '';
     document.getElementById('f-phone').value = PRE.phone || '';
     document.getElementById('f-address').value = PRE.address || '';
+    document.getElementById('f-email').value = PRE.email || '';
     var cs = document.getElementById('f-city');
     if (PRE.city) { for (var k = 0; k < cs.options.length; k++) { if (cs.options[k].value === PRE.city) cs.value = PRE.city; } }
   }
