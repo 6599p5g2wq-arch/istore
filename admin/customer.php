@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($act === 'reset') {
         $chars = 'abcdefghjkmnpqrstuvwxyz23456789';
         for ($i = 0; $i < 8; $i++) $tempPw .= $chars[random_int(0, strlen($chars) - 1)];
-        q('UPDATE customers SET pass_hash = ?, must_change = 1 WHERE id = ?', [password_hash($tempPw, PASSWORD_DEFAULT), $id]);
+        customer_change_password($id,$tempPw,1);
         q('DELETE FROM customer_sessions WHERE customer_id = ?', [$id]); q('DELETE FROM api_tokens WHERE customer_id = ?', [$id]);
     } elseif ($act === 'delete') {
         q('UPDATE orders SET customer_id = NULL WHERE customer_id = ?', [$id]);

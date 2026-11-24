@@ -11,6 +11,7 @@ if ($m === 'GET') {
 }
 if ($m === 'POST') {
     $b = api_body();
+foreach (['name','comment','phone','order_code'] as $field) { if (isset($b[$field]) && !is_string($b[$field])) json_response(['ok'=>false,'error'=>'بيانات غير صالحة'],400); }
     $productId = (int)($b['product_id'] ?? 0);
     $name = mb_substr(trim($b['name'] ?? ''), 0, 80);
     $rating = min(5, max(1, (int)($b['rating'] ?? 0)));

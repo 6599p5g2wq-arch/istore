@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         elseif (!password_verify((string)($_POST['current'] ?? ''), $row['pass_hash'])) $error = 'كلمة المرور الحالية غير صحيحة';
         elseif (mb_strlen($new) < 8) $error = 'كلمة المرور الجديدة 8 أحرف على الأقل';
         else {
-            q('UPDATE customers SET pass_hash = ?, must_change = 0 WHERE id = ?', [password_hash($new, PASSWORD_DEFAULT), $cur['id']]);
+            customer_change_password((int)$cur['id'],$new,0,(string)($_COOKIE['istore_customer'] ?? ($_SESSION['istore_customer'] ?? '')));
             $notice = 'تم تغيير كلمة المرور';
         }
     } elseif ($action === 'reorder' && $cur) {

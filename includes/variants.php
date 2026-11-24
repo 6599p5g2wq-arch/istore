@@ -43,8 +43,8 @@ function get_variants(int $productId): array {
  */
 function replace_variants(int $productId, string $optionsJson, array $inputs): void {
     $options = parse_options($optionsJson);
-    q('DELETE FROM product_variants WHERE product_id = ?', [$productId]);
-    if (!$options) return;
+    $existing=get_variants($productId);$kept=[];
+    if (!$options) {q('DELETE FROM product_variants WHERE product_id=?',[$productId]);return;}
     $byLabel = [];
     foreach ($inputs as $inp) {
         if (!is_array($inp)) continue;
@@ -62,9 +62,11 @@ function replace_variants(int $productId, string $optionsJson, array $inputs): v
         $price = $inp && $inp['price'] !== null && $inp['price'] !== '' && (float)$inp['price'] > 0 ? (float)$inp['price'] : null;
         $stock = max(0, (int)($inp['stock'] ?? 0));
         $image = mb_substr((string)($inp['image'] ?? ''), 0, 500);
-        q('INSERT INTO product_variants (product_id, label, options, price, stock, image, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [$productId, $label, json_encode($combo, JSON_UNESCAPED_UNICODE), $price, $stock, $image, $sort++]);
+        $old=null;foreach($existing as $v)if($v['label']===$label){$old=$v;break;}
+        if($old){q('UPDATE product_variants SET options=?,price=?,stock=?,image=?,sort_order=? WHERE id=?',[json_encode($combo,JSON_UNESCAPED_UNICODE),$price,$stock,$image,$sort++,$old['id']]);$kept[]=$old['id'];}
+        else {q('INSERT INTO product_variants(product_id,label,options,price,stock,image,sort_order) VALUES(?,?,?,?,?,?,?)',[$productId,$label,json_encode($combo,JSON_UNESCAPED_UNICODE),$price,$stock,$image,$sort++]);$kept[]=db()->lastInsertId();}
     }
+    foreach($existing as $v)if(!in_array($v['id'],$kept))q('DELETE FROM product_variants WHERE id=?',[$v['id']]);
     sync_product_stock($productId);
 }
 

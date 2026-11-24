@@ -10,11 +10,13 @@ if ($m === 'GET') {
 }
 if ($m === 'PUT') {
     $b = api_body();
+foreach (['name','phone','new_password','current_password'] as $field) { if (isset($b[$field]) && !is_string($b[$field])) json_response(['ok'=>false,'error'=>'بيانات غير صالحة'],400); }
     if (isset($b['new_password'])) {
         if (!password_verify((string)($b['current_password'] ?? ''), qone('SELECT pass_hash FROM customers WHERE id = ?', [(int)$c['id']])['pass_hash']))
             api_fail('كلمة المرور الحالية غير صحيحة', 403);
         if (mb_strlen((string)$b['new_password']) < 8) api_fail('كلمة المرور 8 أحرف على الأقل');
-        q('UPDATE customers SET pass_hash = ? WHERE id = ?', [password_hash((string)$b['new_password'], PASSWORD_DEFAULT), (int)$c['id']]);
+        $authHeader=$_SERVER['HTTP_AUTHORIZATION']??'';preg_match('/Bearer\s+([a-f0-9]{64})/i',$authHeader,$match);
+        customer_change_password((int)$c['id'],(string)$b['new_password'],0,'',strtolower($match[1]??''));
         api_ok();
     }
     $name = mb_substr(trim($b['name'] ?? $c['name']), 0, 100);

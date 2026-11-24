@@ -27,6 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $old = $order['status'];
         $new = $_POST['status'];
         if ($new !== $old) {
+            $pdo=db(); $pdo->beginTransaction();
+            try {
+            $locked=qone('SELECT status FROM orders WHERE id=? FOR UPDATE',[$id]); $old=$locked['status'];
+            if($old===$new){$pdo->commit();redirect_admin('order.php?id='.$id);}
             q('UPDATE orders SET status = ? WHERE id = ?', [$new, $id]);
             q('INSERT INTO order_status_log (order_id, status) VALUES (?, ?)', [$id, $new]);
             // إعادة المخزون عند الإلغاء، وخصمه عند التراجع عن الإلغاء
@@ -37,11 +41,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } elseif ($old === 'cancelled' && $new !== 'cancelled') {
                 foreach (qall('SELECT product_id, qty, variant_id FROM order_items WHERE order_id = ? AND product_id IS NOT NULL', [$id]) as $it) {
-                    if ($it['variant_id']) q('UPDATE product_variants SET stock = GREATEST(0, stock - ?) WHERE id = ?', [(int)$it['qty'], (int)$it['variant_id']]);
-                    q('UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?', [(int)$it['qty'], (int)$it['product_id']]);
+                    $product=qone('SELECT stock,active FROM products WHERE id=? FOR UPDATE',[(int)$it['product_id']]);
+                    $variant=$it['variant_id']?qone('SELECT stock FROM product_variants WHERE id=? AND product_id=? FOR UPDATE',[(int)$it['variant_id'],(int)$it['product_id']]):null;
+                    if(!$product || !$product['active'] || $product['stock']<$it['qty'] || ($it['variant_id'] && (!$variant || $variant['stock']<$it['qty']))) throw new RuntimeException('لا يمكن إعادة تفعيل الطلب: المخزون غير كافٍ');
+                    if ($it['variant_id']) q('UPDATE product_variants SET stock = stock - ? WHERE id = ?', [(int)$it['qty'], (int)$it['variant_id']]);
+                    q('UPDATE products SET stock = stock - ? WHERE id = ?', [(int)$it['qty'], (int)$it['product_id']]);
                 }
             }
             apply_order_status_effects($id, $old, $new);
+            $pdo->commit();
+            } catch(Throwable $e) {if($pdo->inTransaction())$pdo->rollBack();flash($e->getMessage(),true);redirect_admin('order.php?id='.$id);}
             // إشعار الزبون بتغير الحالة إن كان عندنا بريده — لا يعطل الحفظ إطلاقاً
             try {
                 $custEmail = trim((string)($order['email'] ?? ''));

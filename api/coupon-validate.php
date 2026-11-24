@@ -2,6 +2,7 @@
 require dirname(__DIR__) . '/includes/bootstrap.php';
 require APP_ROOT . '/includes/auth.php';
 $b = read_json_body();
+foreach (['code'] as $field) { if (isset($b[$field]) && !is_string($b[$field])) json_response(['ok'=>false,'error'=>'بيانات غير صالحة'],400); }
 $code = trim($b['code'] ?? '');
 $subtotal = (float)($b['subtotal'] ?? 0);
 if ($code === '') json_response(['ok' => false, 'error' => 'أدخل كود الخصم'], 400);

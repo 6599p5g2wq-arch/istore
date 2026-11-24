@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $r = $id ? qone('SELECT * FROM reviews WHERE id = ?', [$id]) : null;
     if ($r && $action === 'toggle') {
         q('UPDATE reviews SET approved = 1 - approved WHERE id = ?', [$id]);
-        q('UPDATE products SET rating = (SELECT COALESCE(ROUND(AVG(rating), 1), rating) FROM reviews WHERE product_id = ? AND approved = 1) WHERE id = ?', [$r['product_id'], $r['product_id']]);
+        q('UPDATE products SET rating = COALESCE((SELECT ROUND(AVG(rating), 1) FROM reviews WHERE product_id = ? AND approved = 1), rating) WHERE id = ?', [$r['product_id'], $r['product_id']]);
     } elseif ($r && $action === 'reply') {
         q('UPDATE reviews SET reply = ? WHERE id = ?', [mb_substr(trim($_POST['reply'] ?? ''), 0, 500), $id]);
         flash('تم حفظ الرد');

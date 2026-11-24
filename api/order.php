@@ -4,6 +4,7 @@ require dirname(__DIR__) . '/includes/bootstrap.php';
 require APP_ROOT . '/includes/auth.php';
 if (maintenance_on()) json_response(['ok' => false, 'error' => setting('maintenance_message', '') ?: 'المتجر مغلق مؤقتاً للصيانة'], 503);
 $b = read_json_body();
+foreach (['name','phone','city','address','notes','email','coupon'] as $field) { if (isset($b[$field]) && !is_string($b[$field])) json_response(['ok'=>false,'error'=>'بيانات غير صالحة'],400); }
 $name = trim($b['name'] ?? '');
 $phone = trim($b['phone'] ?? '');
 $city = trim($b['city'] ?? '');
@@ -16,8 +17,10 @@ $couponCode = trim($b['coupon'] ?? '');
 $usePoints = !empty($b['use_points']);
 $items = [];
 foreach ((is_array($b['items'] ?? null) ? $b['items'] : []) as $i) {
-    if (is_array($i) && (int)($i['id'] ?? 0) > 0 && (int)($i['qty'] ?? 0) > 0) $items[] = ['id' => (int)$i['id'], 'qty' => (int)$i['qty'], 'variant_id' => (int)($i['variant_id'] ?? 0)];
+    if (!is_array($i) || !is_int($i['id'] ?? null) || $i['id'] < 1 || !is_int($i['qty'] ?? null) || $i['qty'] < 1 || $i['qty'] > 99 || (isset($i['variant_id']) && (!is_int($i['variant_id']) || $i['variant_id'] < 0))) json_response(['ok'=>false,'error'=>'كمية أو منتج غير صالح'],400);
+    $items[] = ['id'=>$i['id'],'qty'=>$i['qty'],'variant_id'=>$i['variant_id'] ?? 0];
 }
+if (count($items)>100) json_response(['ok'=>false,'error'=>'السلة كبيرة جداً'],400);
 if (!$name || !$phone || !$city) json_response(['ok' => false, 'error' => 'يرجى تعبئة الاسم ورقم الهاتف والمدينة'], 400);
 if (!$items) json_response(['ok' => false, 'error' => 'السلة فارغة'], 400);
 if (mb_strlen($name) > 120 || mb_strlen($phone) > 30 || mb_strlen($address) > 300 || mb_strlen($notes) > 500) {
@@ -30,7 +33,7 @@ $freeThreshold = (float)setting('free_shipping_threshold', '0');
 $pdo = db();
 try {
     $pdo->beginTransaction();
-    $subtotal = 0; $lines = [];
+    $subtotal = 0; $lines = []; $reserved = [];
     foreach ($items as $it) {
         $p = qone('SELECT id, name, price, stock, active, options FROM products WHERE id = ? FOR UPDATE', [$it['id']]);
         if (!$p || !$p['active']) throw new RuntimeException('منتج غير متوفر: #' . $it['id']);
@@ -43,6 +46,9 @@ try {
         } elseif ($p['stock'] < $qty) {
             throw new RuntimeException('الكمية المطلوبة من «' . $p['name'] . '» غير متوفرة (المتوفر: ' . $p['stock'] . ')');
         }
+        $reserveKey = $variant ? 'v:'.$variant['id'] : 'p:'.$p['id'];
+        $reserved[$reserveKey] = ($reserved[$reserveKey] ?? 0) + $qty;
+        if ((int)($variant ? $variant['stock'] : $p['stock']) < $reserved[$reserveKey]) throw new RuntimeException('الكمية المطلوبة غير متوفرة');
         $unitPrice = $variant && $variant['price'] !== null ? (float)$variant['price'] : (float)$p['price'];
         $subtotal += $unitPrice * $qty;
         $lines[] = ['id' => (int)$p['id'], 'name' => $p['name'], 'price' => $unitPrice, 'qty' => $qty,

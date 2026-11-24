@@ -90,3 +90,13 @@ function customer_logout(): void {
     unset($_SESSION['istore_customer']);
     setcookie('istore_customer', '', time() - 3600, '/');
 }
+
+// Preserve only the session initiating a customer password change.
+function customer_change_password(int $id,string $password,int $mustChange=0,string $keepWeb='',string $keepApi=''):void {
+    $pdo=db();$pdo->beginTransaction();try {
+      q('UPDATE customers SET pass_hash=?,must_change=? WHERE id=?',[password_hash($password,PASSWORD_DEFAULT),$mustChange,$id]);
+      q('DELETE FROM customer_sessions WHERE customer_id=? AND token!=?',[$id,$keepWeb]);
+      q('DELETE FROM api_tokens WHERE customer_id=? AND token!=?',[$id,$keepApi]);
+      $pdo->commit();
+    }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+}

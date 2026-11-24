@@ -57,12 +57,11 @@ INSERT INTO `categories` (`id`,`name`,`slug`,`description`,`image`,`sort_order`,
 (6,'حماية الشاشة','protection','زجاج حماية وأفلام شاشة بجودة عالية','/images/cat-protection.jpg',6,1),
 (7,'أجهزة Apple','devices','iPhone وiPad وMacBook وأجهزة Apple الأصلية','/images/cat-devices.jpg',7,1);
 
-INSERT INTO `brands` (`id`,`name`,`slug`,`image`,`sort_order`,`active`) VALUES
-(1,'Apple','apple','',1,1),
-(2,'Anker','anker','',2,1),
-(3,'Belkin','belkin','',3,1),
-(4,'Baseus','baseus','',4,1),
-(5,'Anker','anker-dupe-test','',99,1);
+INSERT INTO `brands` (`id`,`name`,`slug`,`description`,`image`,`sort_order`,`active`) VALUES
+(1,'Apple','apple','','',1,1),
+(2,'Anker','anker','','',2,1),
+(3,'Belkin','belkin','','',3,1),
+(4,'Baseus','baseus','','',4,1);
 
 INSERT INTO `products` (`id`,`name`,`slug`,`category_id`,`description`,`price`,`old_price`,`stock`,`image`,`images`,`badge`,`featured`,`active`,`rating`,`created_at`,`brand_id`) VALUES
 (1,'غطاء iPhone 16 Pro Max سيليكون أصلي MagSafe','iphone-16-pro-max-silicone-case',1,'غطاء سيليكون أصلي من Apple مع دعم MagSafe كامل، بطانة مايكروفايبر ناعمة تحمي جهازك من الخدوش، وحواف مرتفعة لحماية الشاشة والكاميرا.',245,290,25,'/images/p-silicone-case.jpg','[]','الأكثر مبيعاً',1,1,4.9,'2026-11-22 10:40:47',1),
