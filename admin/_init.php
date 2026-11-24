@@ -54,9 +54,10 @@ function admin_header(string $title, string $active = ''): void {
   .admin-btn-ghost:hover { background: #f4f4f5; }
   .admin-btn-danger { color: #dc2626; } .admin-btn-danger:hover { background: #fef2f2; border-color: #fecaca; }
   .admin-card { border-radius: 1.5rem; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
-  .admin-table th { padding: .7rem 1rem; font-size: .75rem; font-weight: 800; color: #71717a; text-align: right; border-bottom: 1px solid #f4f4f5; white-space: nowrap; }
-  .admin-table td { padding: .8rem 1rem; font-size: .85rem; border-bottom: 1px solid #f4f4f5; }
-  .admin-table tr:hover td { background: #fafafa; }
+  .admin-table th { padding: .75rem; font-size: .75rem; font-weight: 700; color: #a3a3a3; text-align: right; border-bottom: 1px solid #e5e5e5; white-space: nowrap; }
+  .admin-table td { padding: .75rem; font-size: .875rem; border-bottom: 1px solid #fafafa; }
+  .admin-table tr:last-child td { border-bottom: 0; }
+  .admin-table tr:hover td { background: rgba(250,250,250,.6); }
   .badge { display: inline-block; border-radius: 9999px; padding: .15rem .7rem; font-size: .72rem; font-weight: 800; }
 
 .dashboard-stat {display:flex;flex-direction:column;align-items:flex-start}

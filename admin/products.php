@@ -200,8 +200,8 @@ admin_header('المنتجات', 'products.php');
       </div>
       <div class="flex items-center gap-2">
         <a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="تعديل"><?= icon('edit', 17) ?></a>
-        <a href="<?=e(url('product.php?slug='.rawurlencode($p['slug'])))?>" target="_blank" class="inline-grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="عرض"><?=icon('eye',17)?></a>
         <form method="post" class="inline" onsubmit="return confirm('نسخ المنتج بكل بياناته؟')"><input type="hidden" name="action" value="duplicate"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="نسخ المنتج"><?= icon('copy', 17) ?></button></form>
+        <a href="<?=e(url('product.php?slug='.rawurlencode($p['slug'])))?>" target="_blank" class="inline-grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="عرض"><?=icon('eye',17)?></a>
         <form method="post" class="inline" onsubmit="return confirm('حذف المنتج نهائياً؟')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="inline-grid h-9 w-9 place-items-center rounded-full bg-red-50 text-red-500 transition hover:bg-red-600 hover:text-white" title="حذف"><?= icon('trash', 17) ?></button></form>
       </div>
     </div>
@@ -213,7 +213,7 @@ admin_header('المنتجات', 'products.php');
 <!-- جدول سطح المكتب -->
 <div class="admin-card mt-4 hidden overflow-x-auto p-4 lg:block">
   <table class="admin-table w-full min-w-[960px]">
-    <thead><tr><th class="w-8"><input type="checkbox" class="js-bulk-all" title="تحديد الكل"></th><th>المنتج</th><th>التصنيف</th><th>السعر</th><th>المخزون</th><th>المبيعات</th><th>مميز</th><th>ظاهر</th><th></th></tr></thead>
+    <thead><tr><th class="w-8"><input type="checkbox" class="js-bulk-all" title="تحديد الكل"></th><th>المنتج</th><th>التصنيف</th><th>السعر</th><th>المخزون</th><th>المبيعات</th><th>مميز</th><th>ظاهر</th><th>إجراءات</th></tr></thead>
     <tbody>
     <?php foreach ($products as $p): ?>
       <tr class="js-product-row <?= $p['active'] ? '' : 'opacity-50' ?>">
