@@ -60,7 +60,8 @@ $ref = $_SERVER['HTTP_REFERER'] ?? '';
 if ($ref && preg_match('~^https?://' . preg_quote($_SERVER['HTTP_HOST'] ?? '', '~') . '~', $ref) && str_contains($ref, '/admin/customers.php')) $backUrl = $ref;
 admin_header($c['name'], 'customers.php');
 ?>
-<a href="<?= e($backUrl) ?>" class="admin-btn-ghost"><?= icon('arrow-left', 16) ?> رجوع للزبائن</a>
+<div class="max-w-4xl">
+<a href="<?= e($backUrl) ?>" class="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-6 py-3 font-bold text-neutral-700 shadow-sm transition hover:bg-neutral-100"><?= icon('arrow-right', 18) ?> رجوع للزبائن</a>
 <div class="mt-4 flex flex-wrap items-center gap-3">
   <h1 class="text-2xl font-black sm:text-3xl"><?= e($c['name']) ?></h1>
   <?php if ($vip): ?><span class="badge bg-amber-100 text-amber-700">★ VIP</span><?php endif; ?>
@@ -78,9 +79,9 @@ admin_header($c['name'], 'customers.php');
   <p class="text-2xl font-black"><?= (int)$c['points'] ?> <span class="text-sm font-bold text-neutral-400">نقطة<?= $prog['loyalty_enabled'] ? '' : ' (البرنامج متوقف)' ?></span></p>
   <form method="post" class="mt-4 flex flex-wrap items-end gap-2">
     <input type="hidden" name="action" value="points">
-    <label class="w-32 text-xs font-bold">± نقاط<input name="delta" type="number" required class="admin-input mt-1" placeholder="50 أو -20"></label>
-    <label class="min-w-[160px] flex-1 text-xs font-bold">السبب<input name="reason" class="admin-input mt-1" placeholder="تعويض، هدية..."></label>
-    <button class="admin-btn">تطبيق</button>
+    <label class="w-32 text-xs font-bold">± نقاط<input name="delta" type="number" required class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-black mt-1" placeholder="مثال: 50 أو -20"></label>
+    <label class="min-w-[160px] flex-1 text-xs font-bold">السبب<input name="reason" class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-black mt-1" placeholder="تعويض، هدية..."></label>
+    <button class="flex items-center gap-1.5 rounded-full bg-black px-5 py-2 text-sm font-bold text-white disabled:opacity-60">تطبيق</button>
   </form>
   <form method="post" class="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold">
     <input type="hidden" name="action" value="vip"><span class="text-neutral-500">وسم VIP:</span>
@@ -137,22 +138,22 @@ foreach ($orders as $o) {
   </table>
   <?php endif; ?>
 </div>
-<form method="post" class="admin-card mt-5 p-6">
+<form method="post" class="mt-5 rounded-3xl bg-white p-6 shadow-sm">
   <input type="hidden" name="action" value="update">
   <h2 class="mb-4 font-extrabold">تعديل البيانات</h2>
   <div class="grid gap-4 sm:grid-cols-2">
-    <label class="text-sm font-bold">الاسم<input name="name" required value="<?= e($c['name']) ?>" class="admin-input mt-1.5"></label>
-    <label class="text-sm font-bold">الهاتف<input name="phone" required dir="ltr" value="<?= e($c['phone']) ?>" class="admin-input mt-1.5"></label>
-    <label class="text-sm font-bold sm:col-span-2">البريد<input type="email" name="email" required dir="ltr" value="<?= e($c['email']) ?>" class="admin-input mt-1.5"></label>
+    <label class="text-sm font-bold">الاسم<input name="name" required value="<?= e($c['name']) ?>" class="mt-1.5 w-full rounded-2xl border border-neutral-200 px-4 py-2.5 text-sm outline-none focus:border-black"></label>
+    <label class="text-sm font-bold">الهاتف<input name="phone" required dir="ltr" value="<?= e($c['phone']) ?>" class="mt-1.5 w-full rounded-2xl border border-neutral-200 px-4 py-2.5 text-sm outline-none focus:border-black"></label>
+    <label class="text-sm font-bold sm:col-span-2">البريد<input type="email" name="email" required dir="ltr" value="<?= e($c['email']) ?>" class="mt-1.5 w-full rounded-2xl border border-neutral-200 px-4 py-2.5 text-sm outline-none focus:border-black"></label>
   </div>
-  <button class="admin-btn mt-4">حفظ</button>
+  <button class="mt-4 inline-flex items-center gap-2 rounded-full bg-black px-6 py-2.5 text-sm font-bold text-white disabled:opacity-60"><?= icon('save', 15) ?> حفظ</button>
 </form>
 <div class="admin-card mt-5 p-6">
   <h2 class="mb-4 font-extrabold">إجراءات الحساب</h2>
   <div class="flex flex-wrap gap-3">
-    <form method="post" onsubmit="return confirm('إنشاء كلمة مرور مؤقتة؟ ستنتهي كلمة مروره الحالية ويُسجَّل خروجه.')"><input type="hidden" name="action" value="reset"><button class="admin-btn-ghost">إعادة تعيين كلمة المرور</button></form>
-    <form method="post" onsubmit="return confirm('<?= $c['blocked'] ? 'إلغاء إيقاف الحساب؟' : 'إيقاف هذا الحساب؟ سيُسجَّل خروجه ولن يستطيع الدخول.' ?>')"><input type="hidden" name="action" value="<?= $c['blocked'] ? 'unblock' : 'block' ?>"><button class="admin-btn-ghost <?= $c['blocked'] ? '' : 'text-amber-700' ?>"><?= $c['blocked'] ? 'إلغاء الإيقاف' : 'إيقاف الحساب' ?></button></form>
-    <form method="post" onsubmit="return confirm('حذف الحساب نهائياً؟ تبقى طلباته محفوظة بدون ربط بالحساب.')"><input type="hidden" name="action" value="delete"><button class="admin-btn-ghost admin-btn-danger">حذف الحساب</button></form>
+    <form method="post" onsubmit="return confirm('إنشاء كلمة مرور مؤقتة؟ ستنتهي كلمة مروره الحالية ويُسجَّل خروجه.')"><input type="hidden" name="action" value="reset"><button class="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-5 py-2.5 text-sm font-bold text-neutral-700 hover:bg-neutral-100 disabled:opacity-60"><?= icon('lock', 15) ?> إعادة تعيين كلمة المرور</button></form>
+    <form method="post" <?= $c['blocked'] ? '' : 'onsubmit="return confirm(\'إيقاف هذا الحساب؟ سيُسجَّل خروجه ولن يستطيع الدخول.\')"' ?>><input type="hidden" name="action" value="<?= $c['blocked'] ? 'unblock' : 'block' ?>"><button class="inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-bold disabled:opacity-60 <?= $c['blocked'] ? 'border-emerald-300 text-emerald-700 hover:bg-emerald-50' : 'border-amber-300 text-amber-700 hover:bg-amber-50' ?>"><?= $c['blocked'] ? icon('check', 15) . ' إلغاء الإيقاف' : icon('alert-triangle', 15) . ' إيقاف الحساب' ?></button></form>
+    <form method="post" onsubmit="return confirm('حذف حساب «<?= e($c['name']) ?>» نهائياً؟ تبقى طلباته محفوظة بدون ربط بالحساب.')"><input type="hidden" name="action" value="delete"><button class="inline-flex items-center gap-2 rounded-full border border-red-200 px-5 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 disabled:opacity-60"><?= icon('trash', 15) ?> حذف الحساب</button></form>
   </div>
   <?php if ($tempPw): ?>
   <div class="mt-5 rounded-2xl bg-emerald-50 p-4">
@@ -163,5 +164,6 @@ foreach ($orders as $o) {
     </div>
   </div>
   <?php endif; ?>
+</div>
 </div>
 <?php admin_footer(); ?>
