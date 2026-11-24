@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save, CheckCircle2 } from "lucide-react";
 
-const SECTIONS: { title: string; fields: { key: string; label: string; area?: boolean; ltr?: boolean; toggle?: boolean }[] }[] = [
+const SECTIONS: { title: string; note?: string; fields: { key: string; label: string; area?: boolean; ltr?: boolean; toggle?: boolean }[] }[] = [
   {
     title: "هوية المتجر",
     fields: [
@@ -48,6 +48,15 @@ const SECTIONS: { title: string; fields: { key: string; label: string; area?: bo
     ],
   },
   {
+    title: "إشعارات البريد (Resend)",
+    note: "تُرسل رسائل الطلبات (للمتجر وللزبون) وإشعارات التوفر عبر خدمة Resend. مهم: حتى يُوثَّق دومينك في Resend، تصل الرسائل فقط إلى بريد مالك حساب Resend نفسه. بعد توثيق الدومين ضع عنوان مرسل على دومينه مثل المتجر <orders@yourdomain.com>.",
+    fields: [
+      { key: "resend_api_key", label: "مفتاح Resend (API Key)", ltr: true },
+      { key: "resend_from", label: "عنوان المرسل — مثال: المتجر <orders@yourdomain.com>", ltr: true },
+      { key: "notify_email", label: "إيميل مختلف لاستلام الطلبات (اختياري — الافتراضي بريد التواصل أعلاه)", ltr: true },
+    ],
+  },
+  {
     title: "إشعارات الطلبات (تيليجرام)",
     fields: [
       { key: "telegram_chat_id", label: "معرف المحادثة (Chat ID)", ltr: true },
@@ -71,10 +80,10 @@ const SECTIONS: { title: string; fields: { key: string; label: string; area?: bo
   },
 ];
 
-export default function SettingsForm({ settings, telegramTokenSaved = false }: { settings: Record<string, string>; telegramTokenSaved?: boolean }) {
+export default function SettingsForm({ settings, telegramTokenSaved = false, resendKeySaved = false }: { settings: Record<string, string>; telegramTokenSaved?: boolean; resendKeySaved?: boolean }) {
   const router = useRouter();
-  // التوكن لا يُعرض أبداً بعد حفظه: يبدأ الحقل فارغاً ويُحدَّث فقط إن كُتبت قيمة جديدة
-  const [form, setForm] = useState<Record<string, string>>({ ...settings, telegram_bot_token: "" });
+  // الأسرار لا تُعرض أبداً بعد حفظها: يبدأ الحقل فارغاً ويُحدَّث فقط إن كُتبت قيمة جديدة
+  const [form, setForm] = useState<Record<string, string>>({ ...settings, telegram_bot_token: "", resend_api_key: "" });
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState("");
@@ -87,6 +96,7 @@ export default function SettingsForm({ settings, telegramTokenSaved = false }: {
     const body: Record<string, string> = {};
     for (const sec of SECTIONS) for (const fl of sec.fields) body[fl.key] = form[fl.key] || "";
     if (!body.telegram_bot_token) delete body.telegram_bot_token;
+    if (!body.resend_api_key) delete body.resend_api_key;
     for (const k of INTRO_KEYS) {
       if (k === "intro_logo" || k === "intro_chips") continue; // الشعار من زر الرفع، والشرائح من لوحة الإدارة
       if (form[k] !== undefined) body[k] = form[k];
@@ -123,7 +133,9 @@ export default function SettingsForm({ settings, telegramTokenSaved = false }: {
     <form onSubmit={save} className="mt-8 max-w-3xl space-y-6">
       {SECTIONS.map((sec) => (
         <div key={sec.title} className="rounded-3xl bg-white p-6 shadow-sm">
-          <h2 className="mb-5 font-extrabold">{sec.title}</h2>
+          <h2 className="font-extrabold">{sec.title}</h2>
+          {sec.note && <p className="mb-5 mt-1 text-xs leading-6 text-neutral-500">{sec.note}</p>}
+          {!sec.note && <div className="mb-5" />}
           <div className="space-y-4">
             {sec.fields.map((f) => f.toggle ? (
               <label key={f.key} className="flex items-start gap-3 text-sm font-bold">
@@ -138,11 +150,11 @@ export default function SettingsForm({ settings, telegramTokenSaved = false }: {
                 ) : (
                   <input
                     dir={f.ltr ? "ltr" : undefined}
-                    type={f.key === "telegram_bot_token" ? "password" : "text"}
+                    type={f.key === "telegram_bot_token" || f.key === "resend_api_key" ? "password" : "text"}
                     autoComplete="off"
                     value={form[f.key] || ""}
                     onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                    placeholder={f.key === "telegram_bot_token" ? (telegramTokenSaved ? "محفوظ — اتركه فارغاً للإبقاء عليه" : "من @BotFather") : undefined}
+                    placeholder={f.key === "telegram_bot_token" ? (telegramTokenSaved ? "محفوظ — اتركه فارغاً للإبقاء عليه" : "من @BotFather") : f.key === "resend_api_key" ? (resendKeySaved ? "محفوظ — اتركه فارغاً للإبقاء عليه" : "re_xxxxxxxxxxxx") : undefined}
                     className={`mt-1.5 ${f.ltr ? "text-left" : ""} ${inputCls}`}
                   />
                 )}

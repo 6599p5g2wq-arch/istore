@@ -16,6 +16,7 @@ export async function PUT(req: NextRequest) {
     (b as Record<string, unknown>).map_url = mu.trim();
   }
   for (const [k, v] of Object.entries(b)) {
+    if ((k === "resend_api_key" || k === "telegram_bot_token") && typeof v === "string" && !v.trim()) continue;
     if (typeof v === "string" && k.length <= 60 && v.length <= 5000) setSetting(k, v);
   }
   return NextResponse.json({ ok: true });

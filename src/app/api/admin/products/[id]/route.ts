@@ -34,9 +34,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (waiting.length > 0) {
       const base = getSetting("site_url", "").replace(/\/$/, "");
       const url = `${base}/product/${b.slug?.trim() || ""}`;
-      Promise.allSettled(waiting.map((w) => sendStockAlert(w.contact, b.name?.trim() || "منتج", url))).then(() => {
+      Promise.all(waiting.map(async (w) => ({ id: w.id, ok: await sendStockAlert(w.contact, b.name?.trim() || "منتج", url) }))).then((results) => {
         const mark = db.prepare("UPDATE stock_alerts SET notified = 1 WHERE id = ?");
-        for (const w of waiting) mark.run(w.id);
+        for (const r of results) if (r.ok) mark.run(r.id);
       }).catch(() => {});
     }
   }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireAdmin, bad } from "@/lib/admin-api";
 import { applyOrderStatusEffects } from "@/lib/loyalty";
+import { sendOrderStatusEmail, type OrderNotice } from "@/lib/notify";
+import { getSetting } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +33,22 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       db.prepare("UPDATE orders SET status = ? WHERE id = ?").run(b.status, params.id);
       db.prepare("INSERT INTO order_status_log (order_id, status) VALUES (?, ?)").run(params.id, b.status);
       applyOrderStatusEffects(db, Number(params.id), order.status, b.status);
+      // إشعار الزبون بتغيّر الحالة إن كان عندنا بريده — لا يعطّل الحفظ إطلاقاً
+      const full = db.prepare("SELECT * FROM orders WHERE id = ?").get(params.id) as Record<string, unknown> | undefined;
+      if (full) {
+        const email = String(full.email || "") || (full.customer_id ? String((db.prepare("SELECT email FROM customers WHERE id = ?").get(full.customer_id) as { email: string } | undefined)?.email || "") : "");
+        if (email) {
+          const items = db.prepare("SELECT name, variant_label, price, qty FROM order_items WHERE order_id = ?").all(params.id) as { name: string; variant_label: string; price: number; qty: number }[];
+          const notice: OrderNotice = {
+            code: String(full.code), customer: String(full.customer_name), phone: String(full.phone), city: String(full.city),
+            address: String(full.address || ""), notes: "",
+            items: items.map((i) => ({ name: i.variant_label ? `${i.name} — ${i.variant_label}` : i.name, price: i.price, qty: i.qty })),
+            subtotal: Number(full.subtotal) || 0, discount: Number(full.discount) || 0, couponCode: String(full.coupon_code || ""),
+            deliveryFee: Number(full.delivery_fee) || 0, total: Number(full.total) || 0, currency: getSetting("currency", "د.ل"),
+          };
+          sendOrderStatusEmail(email, notice, b.status).catch(() => {});
+        }
+      }
     }
   }
   return NextResponse.json({ ok: true });

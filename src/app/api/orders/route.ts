@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getDb } from "@/lib/db";
-import { notifyNewOrder } from "@/lib/notify";
+import { notifyNewOrder, sendOrderConfirmation } from "@/lib/notify";
 import { sendTelegram } from "@/lib/telegram";
 import { getSetting } from "@/lib/settings";
 import { getSessionAdmin } from "@/lib/auth";
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   if (getSetting("maintenance_enabled") === "1" && !getSessionAdmin()) {
     return NextResponse.json({ error: getSetting("maintenance_message") || "المتجر مغلق مؤقتاً للصيانة" }, { status: 503 });
   }
-  let body: { name?: string; phone?: string; city?: string; address?: string; notes?: string; coupon?: string; use_points?: boolean; items?: Item[] };
+  let body: { name?: string; phone?: string; city?: string; address?: string; notes?: string; email?: string; coupon?: string; use_points?: boolean; items?: Item[] };
   try {
     body = await req.json();
   } catch {
@@ -91,10 +91,13 @@ export async function POST(req: NextRequest) {
       }
     }
     const deliveryFee = freeThreshold > 0 && subtotal - discount - pointsDiscount >= freeThreshold ? 0 : cityRow.fee;
+    const emailRaw = (body.email || "").trim().slice(0, 200);
+    if (emailRaw && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw)) throw new Error("صيغة البريد الإلكتروني غير صحيحة");
+    const email = emailRaw || ((customer ? (db.prepare("SELECT email FROM customers WHERE id = ?").get(customer.id) as { email: string } | undefined)?.email : "") || "");
     const code = "IST-" + crypto.randomBytes(3).toString("hex").toUpperCase();
     const r = db.prepare(
-      "INSERT INTO orders (code, customer_name, phone, city, address, notes, subtotal, discount, coupon_code, delivery_fee, total, customer_id, points_used, points_discount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    ).run(code, name, phone, city, address, notes, subtotal, discount, discount > 0 ? couponCode.toUpperCase() : "", deliveryFee, subtotal - discount - pointsDiscount + deliveryFee, customer?.id ?? null, pointsUsed, pointsDiscount);
+      "INSERT INTO orders (code, customer_name, phone, city, address, notes, email, subtotal, discount, coupon_code, delivery_fee, total, customer_id, points_used, points_discount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    ).run(code, name, phone, city, address, notes, email, subtotal, discount, discount > 0 ? couponCode.toUpperCase() : "", deliveryFee, subtotal - discount - pointsDiscount + deliveryFee, customer?.id ?? null, pointsUsed, pointsDiscount);
     const orderId = Number(r.lastInsertRowid);
     if (discount > 0) db.prepare("UPDATE coupons SET used_count = used_count + 1 WHERE UPPER(code) = UPPER(?)").run(couponCode);
     if (pointsUsed > 0 && customer) addPoints(db, customer.id, -pointsUsed, "استبدال نقاط في طلب", orderId);
@@ -106,17 +109,19 @@ export async function POST(req: NextRequest) {
       decStock.run(l.qty, l.id);
       if (l.variantId) decVariant.run(l.qty, l.variantId);
     }
-    return { code, orderId, lines, subtotal, discount, pointsDiscount, deliveryFee };
+    return { code, orderId, lines, subtotal, discount, pointsDiscount, deliveryFee, email };
   });
 
   try {
-    const { code, orderId, lines, subtotal, discount, pointsDiscount, deliveryFee } = tx();
+    const { code, orderId, lines, subtotal, discount, pointsDiscount, deliveryFee, email } = tx();
     const currency = (db.prepare("SELECT value FROM settings WHERE key = 'currency'").get() as { value: string } | undefined)?.value || "د.ل";
     // Checkout completed: clear any abandoned-cart lead for this phone.
     db.prepare("DELETE FROM cart_leads WHERE phone = ?").run(phone);
     const notifyLines = lines.map((l) => ({ name: l.label ? `${l.name} — ${l.label}` : l.name, price: l.price, qty: l.qty }));
     // Fire-and-forget: never let the notification delay or break checkout.
     notifyNewOrder({ code, customer: name, phone, city, address, notes, items: notifyLines, subtotal, discount, couponCode, deliveryFee, total: subtotal - discount - pointsDiscount + deliveryFee, currency }).catch(() => {});
+    // تأكيد الطلب للزبون إن ترك بريده — لا يعطّل إتمام الطلب إطلاقاً
+    if (email) sendOrderConfirmation(email, { code, customer: name, phone, city, address, notes, items: notifyLines, subtotal, discount, couponCode, deliveryFee, total: subtotal - discount - pointsDiscount + deliveryFee, currency }).catch(() => {});
     // تنبيه تيليجرام للمالك — لا يؤثر على إتمام الطلب إطلاقاً
     const money = (n: number) => `${n.toLocaleString("en-US")} ${currency}`;
     const siteUrl = getSetting("site_url");

@@ -26,7 +26,7 @@ export default function CheckoutPage() {
           يمكنك إتمام الطلب كزائر، أو <Link href="/account" className="font-bold text-[var(--accent)] hover:underline">سجّل دخولك</Link> لتعبئة بياناتك تلقائياً وتتبع طلباتك.
         </p>
       )}
-      <CheckoutForm cities={cities} currency={s.currency} whatsapp={s.whatsapp} freeThreshold={Number(s.free_shipping_threshold || 0)} customer={c ? { name: c.name, phone: c.phone, city: c.city, address: c.address } : null} loyalty={c && prog.loyalty.enabled ? { points: c.points, redeemPoints: prog.loyalty.redeemPoints, redeemValue: prog.loyalty.redeemValue } : null} />
+      <CheckoutForm cities={cities} currency={s.currency} whatsapp={s.whatsapp} freeThreshold={Number(s.free_shipping_threshold || 0)} customer={c ? { name: c.name, phone: c.phone, city: c.city, address: c.address, email: c.email } : null} loyalty={c && prog.loyalty.enabled ? { points: c.points, redeemPoints: prog.loyalty.redeemPoints, redeemValue: prog.loyalty.redeemValue } : null} />
     </div>
   );
 }

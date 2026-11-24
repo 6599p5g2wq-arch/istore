@@ -8,11 +8,11 @@ import { useCart } from "./CartContext";
 import { formatPrice, formatSecondary } from "@/lib/format";
 import type { City } from "@/lib/types";
 
-export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold, customer, loyalty }: { cities: City[]; currency: string; whatsapp: string; freeThreshold: number; customer?: { name: string; phone: string; city: string; address: string } | null; loyalty?: { points: number; redeemPoints: number; redeemValue: number } | null }) {
+export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold, customer, loyalty }: { cities: City[]; currency: string; whatsapp: string; freeThreshold: number; customer?: { name: string; phone: string; city: string; address: string; email?: string } | null; loyalty?: { points: number; redeemPoints: number; redeemValue: number } | null }) {
   const { items, total, clear } = useCart();
   const router = useRouter();
   const [form, setForm] = useState({
-    name: customer?.name || "", phone: customer?.phone || "",
+    name: customer?.name || "", phone: customer?.phone || "", email: customer?.email || "",
     city: cities.find((c) => c.name === customer?.city)?.name || cities[0]?.name || "",
     address: customer?.address || "", notes: "",
   });
@@ -107,6 +107,10 @@ export default function CheckoutForm({ cities, currency, whatsapp, freeThreshold
             <label className="block text-sm font-bold text-[var(--text)]">
               رقم الهاتف *
               <input required dir="ltr" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={`mt-1.5 text-left ${inputCls}`} placeholder="09XXXXXXXX" />
+            </label>
+            <label className="block text-sm font-bold text-[var(--text)] sm:col-span-2">
+              البريد الإلكتروني (اختياري — نرسل لك تأكيد الطلب وتحديثاته)
+              <input dir="ltr" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={`mt-1.5 text-left ${inputCls}`} placeholder="name@example.com" />
             </label>
           </div>
         </div>

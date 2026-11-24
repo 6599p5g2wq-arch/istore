@@ -236,6 +236,7 @@ function initSchema(db: Database.Database) {
     "ALTER TABLE orders ADD COLUMN admin_notes TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE brands ADD COLUMN description TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE reviews ADD COLUMN reply TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE orders ADD COLUMN email TEXT NOT NULL DEFAULT ''",
   ]) {
     try { db.exec(stmt); } catch { /* column already exists */ }
   }
