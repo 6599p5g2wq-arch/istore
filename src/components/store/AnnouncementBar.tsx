@@ -37,11 +37,11 @@ export default function AnnouncementBar({ config, sig, preview = false }: { conf
   }, [config.messages.length, config.interval]);
 
   useEffect(() => {
-    if (!config.countdown || end === null) return;
+    if (end === null && !config.start) return;
     setNow(Date.now());
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
-  }, [config.countdown, end]);
+  }, [end, config.start]);
 
   // انتهت المدة أثناء تصفح الزائر: أخفِ الشريط
   const st = toMs(config.start);

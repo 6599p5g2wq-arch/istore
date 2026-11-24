@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save, CheckCircle2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Save, CheckCircle2, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { ANNOUNCE_DEFAULT, EFFECTS, type AnnounceConfig, type AnnounceEffect } from "@/lib/announcement";
 import AnnouncementBar from "@/components/store/AnnouncementBar";
 import ChipEditor, { type Chip } from "@/components/admin/ChipEditor";
@@ -61,6 +61,15 @@ export default function SiteSettings({ values, announce, introChips, marquee }: 
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState("");
 
+  const snapshot=JSON.stringify({v,ann,chips,mq});
+  const [baseline,setBaseline]=useState(snapshot);
+  const dirty=snapshot!==baseline;
+  const [clock,setClock]=useState(Date.now());
+  useEffect(()=>{const t=setInterval(()=>setClock(Date.now()),1000);return()=>clearInterval(t);},[]);
+  useEffect(()=>{const f=(e:BeforeUnloadEvent)=>{if(dirty){e.preventDefault();e.returnValue="";}};window.addEventListener("beforeunload",f);const click=(e:MouseEvent)=>{const a=(e.target as HTMLElement).closest("a");if(dirty&&a&&!a.getAttribute("href")?.startsWith("#")&&!confirm("توجد تعديلات غير محفوظة. مغادرة الصفحة؟"))e.preventDefault();};document.addEventListener("click",click,true);return()=>{window.removeEventListener("beforeunload",f);document.removeEventListener("click",click,true);};},[dirty]);
+  const schedule=!ann.enabled?"متوقف":!ann.messages.some(m=>m.text.trim())?"بلا رسائل":ann.start&&clock<Date.parse(ann.start+":00+02:00")?"مجدول":ann.end&&clock>=Date.parse(ann.end+":00+02:00")?"منتهي":"نشط";
+  const warnings=[!!v.currency2_symbol.trim()!==!!v.currency2_rate.trim()?"أكمل رمز العملة الثانية وسعر الصرف معاً لتظهر المعاينة":"",ann.enabled&&!ann.messages.some(m=>m.text.trim())?"الإعلان مفعّل بلا رسالة، لن يظهر للزبائن":""].filter(Boolean);
+  const previewPrice=(n:number)=>{const dec=v.currency_decimals;const num=new Intl.NumberFormat("ar-LY",dec==="2"?{minimumFractionDigits:2,maximumFractionDigits:2}:dec==="0"?{maximumFractionDigits:0}:{maximumFractionDigits:2}).format(n);return v.currency_pos==="before"?`${v.currency} ${num}`:`${num} ${v.currency}`;};
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setSaved(false); setErr("");
@@ -69,10 +78,13 @@ export default function SiteSettings({ values, announce, introChips, marquee }: 
     body.intro_chips = chips.filter((c) => c.text.trim());
     body.marquee_enabled = mq.enabled ? "1" : "0";
     body.marquee_items = mq.items.filter((c) => c.text.trim());
-    const r = await fetch("/api/admin/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    setLoading(false);
-    if (r.ok) { setSaved(true); router.refresh(); setTimeout(() => setSaved(false), 2500); }
-    else { const d = await r.json().catch(() => ({})); setErr(d.error || "حدث خطأ أثناء الحفظ"); }
+    try {
+      const r = await fetch("/api/admin/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (!r.ok) { const d=await r.json().catch(()=>({}));throw new Error(d.error||"حدث خطأ أثناء الحفظ"); }
+      setBaseline(snapshot);setSaved(true);router.refresh();setTimeout(()=>setSaved(false),2500);
+    } catch(e) {setErr(e instanceof Error && e.message!=="Failed to fetch"?e.message:"تعذر الاتصال. لم يتم تأكيد الحفظ، حاول مجدداً");}
+    finally {setLoading(false);}
+
   };
 
   const setMsg = (i: number, patch: Partial<{ text: string; link: string }>) =>
@@ -81,10 +93,12 @@ export default function SiteSettings({ values, announce, introChips, marquee }: 
   const previewMsg = ann.messages.find((m) => m.text.trim())?.text || "نص الإعلان يظهر هنا";
 
   return (
-    <form onSubmit={save} className="mt-6 space-y-5">
+    <form onSubmit={save} className="mt-6 space-y-5 pb-28">
+      <nav aria-label="أقسام الإعدادات" className="flex flex-wrap gap-2">{["الإعلانات","شرائح المقدمة","المميزات","العملة","الشحن"].map((n,i)=><a key={n} href={`#settings-${i}`} className="rounded-full border bg-white px-3 py-2 text-xs font-bold">{n}</a>)}</nav>
+      {warnings.map(w=><p key={w} role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">{w}</p>)}
       {(
         <>
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <div id="settings-0" className="scroll-mt-6 rounded-3xl bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="font-extrabold">شريط الإعلانات</h2>
@@ -94,11 +108,13 @@ export default function SiteSettings({ values, announce, introChips, marquee }: 
                 <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${ann.enabled ? "right-0.5" : "right-[1.375rem]"}`} />
               </button>
             </div>
+            <p className="mt-3 text-sm font-bold">حالة الجدولة: {schedule} · توقيت ليبيا</p>
             <p className={`mt-2 text-xs font-bold ${ann.enabled ? "text-emerald-600" : "text-neutral-400"}`}>{ann.enabled ? "مفعّل" : "متوقف (لن يظهر للزبائن)"}</p>
 
             <div className="mt-5 space-y-3">
               {ann.messages.map((m, i) => (
                 <div key={i} className="rounded-2xl bg-neutral-50 p-3">
+                  <div className="mb-2 flex gap-2">{[-1,1].map(d=><button key={d} type="button" aria-label={d<0?"رفع الرسالة":"خفض الرسالة"} disabled={i+d<0||i+d>=ann.messages.length} onClick={()=>{const a=[...ann.messages];[a[i],a[i+d]]=[a[i+d],a[i]];setAnn({...ann,messages:a});}} className="rounded-lg bg-white p-1 disabled:opacity-25">{d<0?<ChevronUp size={15}/>:<ChevronDown size={15}/>}</button>)}</div>
                   <div className="flex items-center gap-2">
                     <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-black text-[11px] font-extrabold text-white">{i + 1}</span>
                     <input value={m.text} onChange={(e) => setMsg(i, { text: e.target.value })} maxLength={200} placeholder="نص الرسالة" className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:border-black" />
@@ -142,11 +158,11 @@ export default function SiteSettings({ values, announce, introChips, marquee }: 
             <AnnouncementBar key={ann.effect + ann.messages.length} preview sig="preview" config={{ ...ann, messages: ann.messages.filter((m) => m.text.trim()).length ? ann.messages.filter((m) => m.text.trim()) : [{ text: "نص الإعلان يظهر هنا", link: "" }] }} />
           </div>
 
-          <Card title="شرائح العروض (المقدمة الافتتاحية)" desc="الشرائح الصغيرة تحت الوصف في أول شاشة من الصفحة الرئيسية، حتى 6 شرائح. اترك النص فارغاً أو احذف الشريحة لإخفائها. باقي نصوص المقدمة والشعار من /control.">
+          <div id="settings-1" className="scroll-mt-6"><Card title="شرائح العروض (المقدمة الافتتاحية)" desc="الشرائح الصغيرة تحت الوصف في أول شاشة من الصفحة الرئيسية، حتى 6 شرائح. اترك النص فارغاً أو احذف الشريحة لإخفائها. باقي نصوص المقدمة والشعار من /control.">
             <ChipEditor items={chips} onChange={setChips} icons={INTRO_ICONS} addLabel="إضافة شريحة" />
-          </Card>
+          </Card></div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <div id="settings-2" className="scroll-mt-6 rounded-3xl bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="font-extrabold">شريط المميزات المتحرك</h2>
@@ -162,7 +178,7 @@ export default function SiteSettings({ values, announce, introChips, marquee }: 
             </div>
           </div>
 
-          <Card title="العملة وعرض الأسعار" desc="تنطبق على صفحات المتجر.">
+          <div id="settings-3" className="scroll-mt-6"><Card title="العملة وعرض الأسعار" desc="تنطبق على صفحات المتجر.">
             <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
               <label className="block text-sm font-bold">رمز العملة
                 <input value={v.currency} onChange={(e) => set("currency", e.target.value)} maxLength={20} required className={inputCls} />
@@ -191,22 +207,26 @@ export default function SiteSettings({ values, announce, introChips, marquee }: 
                 </label>
               </div>
             </div>
-          </Card>
+            <div aria-label="معاينة الأسعار" className="mt-4 rounded-xl bg-neutral-50 p-4 text-sm"><p className="mb-2 font-bold">معاينة الأسعار</p>{[150,150.75].map(n=><p key={n} className="mt-2">{previewPrice(n)} {v.currency2_symbol&&Number(v.currency2_rate)>0&&Number.isFinite(Number(v.currency2_rate))&&<span className="text-neutral-500">≈ {(n/Number(v.currency2_rate)).toFixed(2)} {v.currency2_symbol}</span>}</p>)}</div>
+          </Card></div>
 
-          <Card title="الشحن" desc="الطلبات التي يتجاوز مجموعها هذا الحد يصير توصيلها مجاناً (تُضاف الرسالة التحفيزية في السلة تلقائياً).">
+          <div id="settings-4" className="scroll-mt-6"><Card title="الشحن" desc="الطلبات التي يتجاوز مجموعها هذا الحد يصير توصيلها مجاناً (تُضاف الرسالة التحفيزية في السلة تلقائياً).">
             <label className="block max-w-xs text-sm font-bold">حد الشحن المجاني ({v.currency || "د.ل"}) — 0 لتعطيله
               <input dir="ltr" inputMode="decimal" value={v.free_shipping_threshold} onChange={(e) => set("free_shipping_threshold", e.target.value)} className={`text-left ${inputCls}`} />
             </label>
-          </Card>
+          </Card></div>
 
         </>
       )}
 
-      {err && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{err}</p>}
+      <div className="fixed bottom-3 left-4 right-4 lg:right-72 z-20 flex flex-wrap items-center gap-3 rounded-2xl border bg-white p-3 shadow-lg">
+      <span className="text-xs font-bold">{dirty?"تعديلات غير محفوظة":"كل التعديلات محفوظة"}</span>
+      {err && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{err}</p>}
       <button disabled={loading} className="flex items-center gap-2 rounded-full bg-black px-10 py-4 font-bold text-white shadow-lg transition hover:bg-neutral-800 disabled:opacity-60">
         {loading ? <Loader2 size={18} className="animate-spin" /> : saved ? <CheckCircle2 size={18} className="text-emerald-400" /> : <Save size={18} />}
         {saved ? "تم الحفظ" : "حفظ الإعدادات"}
       </button>
+      </div>
     </form>
   );
 }
