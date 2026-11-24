@@ -140,9 +140,13 @@ require APP_ROOT . '/includes/store-header.php';
     <?php foreach ($banners as $i => $b): ?>
     <a href="<?= e(str_starts_with($b['link'], 'http') ? $b['link'] : url(ltrim($b['link'], '/'))) ?>" class="reveal group relative flex items-center gap-4 overflow-hidden rounded-3xl border border-[var(--border)] bg-gradient-to-l from-neutral-900 to-neutral-800 p-7 text-white shadow-lg" style="transition-delay:<?= $i * 0.1 ?>s">
       <div class="absolute -left-10 -top-10 h-36 w-36 rounded-full bg-[var(--accent)] opacity-25 blur-2xl transition group-hover:opacity-40"></div>
+      <?php if (!empty($b['image'])): ?>
+      <img src="<?= e(img_url($b['image'])) ?>" alt="<?= e($b['title']) ?>" loading="lazy" class="h-16 w-16 shrink-0 rounded-2xl object-cover ring-1 ring-white/20">
+      <?php else: ?>
       <span class="shrink-0 text-white/80"><?= icon('tag', 36) ?></span>
+      <?php endif; ?>
       <div>
-        <h3 class="text-xl font-extrabold"><?= e($b['title']) ?></h3>
+        <h3 class="text-xl font-extrabold text-white"><?= e($b['title']) ?></h3>
         <p class="mt-1 text-sm text-white/70"><?= e($b['subtitle']) ?></p>
       </div>
     </a>
