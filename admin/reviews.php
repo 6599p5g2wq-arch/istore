@@ -87,7 +87,7 @@ admin_header('التقييمات', 'reviews.php');
 <div class="mt-4 space-y-3" id="revList">
   <?php foreach ($reviews as $r): $status = $r['approved'] ? 'visible' : 'hidden'; ?>
     <div class="rev-card admin-card p-5 <?= $r['approved'] ? '' : 'opacity-60' ?>" data-status="<?= $status ?>" data-rating="<?= (int)$r['rating'] ?>" data-text="<?= e(mb_strtolower($r['customer_name'] . ' ' . $r['product_name'])) ?>">
-      <div class="flex flex-wrap items-start gap-4">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
         <div class="flex pt-1 text-amber-500"><?php for ($i = 0; $i < (int)$r['rating']; $i++) echo '★'; ?><span class="text-neutral-300"><?php for ($i = (int)$r['rating']; $i < 5; $i++) echo '★'; ?></span></div>
         <div class="min-w-0 flex-1">
           <p class="flex flex-wrap items-center gap-2 font-extrabold">
@@ -104,7 +104,7 @@ admin_header('التقييمات', 'reviews.php');
           </form>
           <p class="mt-1 text-xs text-neutral-400" dir="ltr"><?= e($r['order_code']) ?> — <?= e($r['created_at']) ?></p>
         </div>
-        <div class="flex shrink-0 flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 sm:shrink-0">
           <button type="button" class="reply-toggle grid h-9 w-9 place-items-center rounded-full border border-neutral-200 text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900" title="<?= !empty($r['reply']) ? 'تعديل الرد' : 'رد على التقييم' ?>"><?= icon('message', 15) ?></button>
           <form method="post"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int)$r['id'] ?>"><button class="flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition <?= $r['approved'] ? 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200' : 'bg-neutral-900 text-white' ?>"><?= $r['approved'] ? 'إخفاء' : 'عرض' ?></button></form>
           <form method="post" onsubmit="return confirm('حذف التقييم؟')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$r['id'] ?>"><button class="grid h-9 w-9 place-items-center rounded-full text-neutral-400 transition hover:text-red-600"><?= icon('trash', 16) ?></button></form>
