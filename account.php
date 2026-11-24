@@ -27,7 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'login') {
         $idf = trim($_POST['identifier'] ?? ($_POST['email'] ?? ''));
-        $rk = 'login:' . client_ip() . ':' . mb_strtolower($idf);
+        $rk = 'login-account:' . hash('sha256',mb_strtolower($idf));
+        if(rate_limited('login-ip:'.client_ip(),40)){http_response_code(429);exit('محاولات كثيرة، حاول لاحقا');}
         if (rate_limited($rk, 8)) $error = 'محاولات دخول كثيرة، حاول بعد 15 دقيقة';
         else {
             $r = customer_login($idf, (string)($_POST['password'] ?? ''));
@@ -78,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         if ($lines) {
-            echo '<!doctype html><meta charset="utf-8"><script>(function(){var add=' . json_encode($lines, JSON_UNESCAPED_UNICODE) . ';var cart=[];try{cart=JSON.parse(localStorage.getItem("istore-cart")||"[]")}catch(e){}'
+            echo '<!doctype html><meta charset="utf-8"><script>(function(){var add=' . json_encode($lines, JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) . ';var cart=[];try{cart=JSON.parse(localStorage.getItem("istore-cart")||"[]")}catch(e){}'
                . 'add.forEach(function(n){var f=null;cart.forEach(function(i){if(i.id===n.id&&(i.variant_id||0)===n.variant_id)f=i});if(f)f.qty=Math.min(f.qty+n.qty,n.stock);else cart.push(n)});'
                . 'localStorage.setItem("istore-cart",JSON.stringify(cart));location.href=' . json_encode(url('cart.php')) . ';})();</script>';
             exit;

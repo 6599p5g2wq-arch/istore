@@ -10,11 +10,13 @@ if ($m === 'GET') {
     api_ok(['reviews' => $rows, 'average' => $avg['a'] !== null ? (float)$avg['a'] : null, 'count' => (int)$avg['c']]);
 }
 if ($m === 'POST') {
+    if(rate_limited('review-mobile:'.client_ip(),8))api_fail('محاولات كثيرة، حاول لاحقا',429);
     $b = api_body();
 foreach (['name','comment','phone','order_code'] as $field) { if (isset($b[$field]) && !is_string($b[$field])) json_response(['ok'=>false,'error'=>'بيانات غير صالحة'],400); }
     $productId = (int)($b['product_id'] ?? 0);
     $name = mb_substr(trim($b['name'] ?? ''), 0, 80);
-    $rating = min(5, max(1, (int)($b['rating'] ?? 0)));
+    $rating=$b['rating']??null;
+if(!is_int($rating)||$rating<1||$rating>5)json_response(['error'=>'تقييم غير صالح'],400);
     $comment = mb_substr(trim($b['comment'] ?? ''), 0, 1000);
     $phone = trim($b['phone'] ?? '');
     $code = strtoupper(trim($b['order_code'] ?? ''));

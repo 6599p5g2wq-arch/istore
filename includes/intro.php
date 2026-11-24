@@ -68,12 +68,10 @@ function intro_save_logo(array $f): array {
     $base = 'intro-logo-' . time() . '-' . bin2hex(random_bytes(3));
     // SVG: نرفضه إن احتوى سكربت أو أحداث أو مراجع خارجية، وإلا نحفظه كما هو
     if (stripos(ltrim($raw), '<') === 0 && stripos($raw, '<svg') !== false) {
-        if (preg_match('#<script|\son[a-z]+\s*=|javascript:|<foreignObject|<iframe|<image[^>]+href\s*=\s*["\']?https?:|<!ENTITY#i', $raw)) return [null, 'ملف SVG يحتوي على عناصر غير آمنة'];
-        $rel = 'uploads/' . $base . '.svg';
-        return file_put_contents(APP_ROOT . '/' . $rel, $raw) !== false ? [$rel, ''] : [null, 'تعذّر حفظ الشعار'];
+        return [null, 'استخدم شعار PNG أو JPG أو WebP بدلاً من SVG'];
     }
     $info = @getimagesizefromstring($raw);
-    if (!$info || !in_array($info[2], [IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_WEBP], true)) return [null, 'الصيغة غير مدعومة (PNG / JPG / WebP / SVG)'];
+    if (!$info || $info[0]*$info[1]>40000000 || !in_array($info[2], [IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_WEBP], true)) return [null, 'الصيغة غير مدعومة (PNG / JPG / WebP / SVG)'];
     $ext = $info[2] === IMAGETYPE_PNG ? 'png' : ($info[2] === IMAGETYPE_WEBP ? 'webp' : 'jpg');
     if (function_exists('imagecreatefromstring')) {
         $im = @imagecreatefromstring($raw);

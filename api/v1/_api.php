@@ -22,7 +22,8 @@ function api_fail(string $error, int $status = 400): void {
 }
 
 function api_body(): array {
-    $b = json_decode(file_get_contents('php://input'), true);
+    if((int)($_SERVER['CONTENT_LENGTH']??0)>1048576)api_fail('الطلب كبير جدا',413);
+    $b = json_decode(file_get_contents('php://input',false,null,0,1048577), true);
     return is_array($b) ? $b : [];
 }
 
@@ -38,7 +39,7 @@ function api_issue_token(int $customerId): string {
 // العميل من توكن Bearer — null للزائر
 function api_customer() {
     $h = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-    if (!preg_match('/Bearer\s+([a-f0-9]{64})/i', $h, $m)) return null;
+    if (!preg_match('/^Bearer\s+([a-f0-9]{64})$/i', $h, $m)) return null;
     return qone(
         'SELECT c.id, c.name, c.email, c.phone FROM api_tokens t JOIN customers c ON c.id = t.customer_id WHERE t.token = ? AND t.expires_at > NOW() AND c.blocked = 0',
         [strtolower($m[1])]);
@@ -52,7 +53,7 @@ function api_require_customer() {
 
 function api_logout_token(): void {
     $h = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-    if (preg_match('/Bearer\s+([a-f0-9]{64})/i', $h, $m)) q('DELETE FROM api_tokens WHERE token = ?', [strtolower($m[1])]);
+    if (preg_match('/^Bearer\s+([a-f0-9]{64})$/i', $h, $m)) q('DELETE FROM api_tokens WHERE token = ?', [strtolower($m[1])]);
 }
 
 // تمثيل منتج موحد للتطبيق

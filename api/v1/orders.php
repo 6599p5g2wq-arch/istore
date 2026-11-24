@@ -9,6 +9,7 @@ if ($m === 'GET') {
     $code = strtoupper(trim($_GET['code'] ?? ''));
     $phone = trim($_GET['phone'] ?? '');
     if ($code && $phone) {
+        if(rate_limited('track-mobile:'.client_ip(),8))api_fail('محاولات كثيرة، حاول لاحقا',429);
         $norm = fn($p) => preg_replace('/^\+?218/', '0', preg_replace('/[^\d+]/', '', $p));
         $o = qone('SELECT * FROM orders WHERE UPPER(code) = ?', [$code]);
         if (!$o || $norm($o['phone']) !== $norm($phone)) api_fail('لم يتم العثور على طلب بهذه البيانات', 404);
@@ -29,6 +30,7 @@ if ($m === 'GET') {
 }
 
 if ($m === 'POST') {
+    if(rate_limited('checkout-mobile:'.client_ip(),10))api_fail('محاولات كثيرة، حاول لاحقا',429);
     if (maintenance_on()) json_response(['ok' => false, 'error' => setting('maintenance_message', '') ?: 'المتجر مغلق مؤقتاً للصيانة'], 503);
     $b = api_body();
     foreach (['name','phone','city','address','notes','email','coupon'] as $field) { if (isset($b[$field]) && !is_string($b[$field])) json_response(['ok'=>false,'error'=>'بيانات غير صالحة'],400); }
@@ -102,7 +104,7 @@ if (!$name || !$phone || !$city) api_fail('يرجى تعبئة الاسم ورق
         $pdo->commit();
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
-        api_fail($e->getMessage());
+        api_fail(($e instanceof PDOException ? 'تعذر إتمام الطلب، حاول لاحقا' : $e->getMessage()));
     }
     if ($customer) q('DELETE FROM api_cart WHERE customer_id = ?', [(int)$customer['id']]);
     q('DELETE FROM cart_leads WHERE phone = ?', [$phone]);

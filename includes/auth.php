@@ -5,6 +5,7 @@ function admin_bootstrap(): void {
     // تنشئ حساب الأدمن الافتراضي من config.php عند أول تشغيل
     $row = qone('SELECT id FROM admin_users LIMIT 1');
     if (!$row) {
+        if (ADMIN_PASSWORD==='admin123' && getenv('APP_ENV')!=='development') throw new RuntimeException('Configure a non-default admin password');
         q('INSERT INTO admin_users (username, pass_hash) VALUES (?, ?)', [ADMIN_USERNAME, password_hash(ADMIN_PASSWORD, PASSWORD_DEFAULT)]);
     }
 }
@@ -25,6 +26,7 @@ function require_admin(): array {
 function control_bootstrap(): void {
     $row = qone('SELECT id FROM control_users LIMIT 1');
     if (!$row) {
+        if (CONTROL_PASSWORD==='control123' && getenv('APP_ENV')!=='development') throw new RuntimeException('Configure a non-default control password');
         q('INSERT INTO control_users (username, pass_hash) VALUES (?, ?)', [CONTROL_USERNAME, password_hash(CONTROL_PASSWORD, PASSWORD_DEFAULT)]);
     }
 }
@@ -41,7 +43,8 @@ function require_control(): array {
 
 // ---- حسابات الزبائن ----
 
-function customer_register(string $name, string $email, string $phone, string $password): array {
+function customer_register(string $name, string $email, string $phone, string $password, bool $webLogin=true): array {
+    if(strlen($password)>1024 || strlen($email)>254) return ["ok"=>false,"error"=>"بيانات غير صالحة"];
     $ph = normalize_libyan_phone($phone);
     if (!$ph) return ['ok' => false, 'error' => 'رقم الهاتف غير صحيح (مثال: 0912345678)'];
     if (mb_strlen($password) < 8) return ['ok' => false, 'error' => 'كلمة المرور 8 أحرف على الأقل'];
@@ -51,11 +54,12 @@ function customer_register(string $name, string $email, string $phone, string $p
         [$name, $email, $ph, password_hash($password, PASSWORD_DEFAULT)]);
     $newId = (int)(qone('SELECT id FROM customers WHERE email = ?', [$email])['id'] ?? 0);
     if ($newId) { try { create_welcome_coupon($newId); } catch (Throwable $e) { /* لا يمنع التسجيل */ } }
-    return customer_login($email, $password);
+    return $webLogin ? customer_login($email, $password) : ["ok"=>true];
 }
 
 // الدخول بالبريد أو برقم الهاتف
 function customer_login(string $identifier, string $password): array {
+    if(strlen($identifier)>254 || strlen($password)>1024)return ['ok'=>false,'error'=>'بيانات غير صالحة'];
     $identifier = trim($identifier);
     if (str_contains($identifier, '@')) {
         $u = qone('SELECT * FROM customers WHERE email = ?', [mb_strtolower($identifier)]);
@@ -72,6 +76,7 @@ function customer_login(string $identifier, string $password): array {
         'expires' => time() + 30 * 86400, 'path' => '/', 'httponly' => true,
         'samesite' => 'Lax', 'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
     ]);
+    session_regenerate_id(true);
     $_SESSION['istore_customer'] = $token;
     return ['ok' => true];
 }

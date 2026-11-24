@@ -1,11 +1,13 @@
 <?php
 // تقييمات موثقة فقط: رقم الطلب + الهاتف يجب أن يطابقا طلباً مسلماً يحوي المنتج
 require dirname(__DIR__) . '/includes/bootstrap.php';
+if(rate_limited('review:'.client_ip(),8))json_response(['error'=>'محاولات كثيرة، حاول لاحقا'],429);
 $b = read_json_body();
 foreach (['name','comment','phone','order_code'] as $field) { if (isset($b[$field]) && !is_string($b[$field])) json_response(['ok'=>false,'error'=>'بيانات غير صالحة'],400); }
 $productId = (int)($b['product_id'] ?? 0);
 $name = mb_substr(trim($b['name'] ?? ''), 0, 80);
-$rating = min(5, max(1, (int)($b['rating'] ?? 0)));
+$rating=$b['rating']??null;
+if(!is_int($rating)||$rating<1||$rating>5)json_response(['error'=>'تقييم غير صالح'],400);
 $comment = mb_substr(trim($b['comment'] ?? ''), 0, 1000);
 $phone = trim($b['phone'] ?? '');
 $code = strtoupper(trim($b['order_code'] ?? ''));

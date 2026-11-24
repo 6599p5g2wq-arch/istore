@@ -7,10 +7,12 @@ function normalize_phone(string $p): string {
     return preg_replace('/^\+?218/', '0', $p);
 }
 
-$code = strtoupper(trim($_GET['code'] ?? ''));
-$phone = trim($_GET['phone'] ?? '');
+$input=$_SERVER['REQUEST_METHOD']==='POST'?$_POST:$_GET;
+$code = strtoupper(trim(is_string($input['code']??null)?$input['code']:''));
+$phone = trim(is_string($_POST['phone']??null)?$_POST['phone']:'');
 $order = null; $items = []; $error = '';
 if ($code !== '' && $phone !== '') {
+    if(rate_limited('tracking:'.client_ip(),8)){http_response_code(429);exit('محاولات كثيرة، حاول لاحقا');}
     $order = qone('SELECT * FROM orders WHERE UPPER(code) = ?', [$code]);
     if (!$order || normalize_phone($order['phone']) !== normalize_phone($phone)) {
         $order = null;
@@ -27,7 +29,7 @@ require APP_ROOT . '/includes/store-header.php';
   <h1 class="text-center text-3xl font-black sm:text-4xl">تتبع طلبك</h1>
   <p class="mt-3 text-center text-[var(--text-faint)]">أدخل رقم الطلب ورقم هاتفك لمعرفة حالة طلبك</p>
 
-  <form method="get" action="<?= url('track.php') ?>" class="mt-8 space-y-4 rounded-3xl border border-[var(--border)] bg-[var(--card)] glass-card p-6">
+  <form method="post" action="<?= url('track.php') ?>" class="mt-8 space-y-4 rounded-3xl border border-[var(--border)] bg-[var(--card)] glass-card p-6">
     <label class="block text-sm font-bold">رقم الطلب
       <input name="code" required dir="ltr" value="<?= e($code) ?>" placeholder="IST-XXXXXX" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20">
     </label>

@@ -109,7 +109,8 @@ function order_status_class(string $s): string {
 }
 
 function validate_coupon(string $code, float $subtotal, ?int $customerId = null): array {
-    $c = qone('SELECT * FROM coupons WHERE UPPER(code) = UPPER(?)', [trim($code)]);
+    if(!is_finite($subtotal)||$subtotal<0)return ['ok'=>false,'error'=>'مبلغ غير صالح'];
+    $c = qone('SELECT * FROM coupons WHERE UPPER(code) = UPPER(?)'.(db()->inTransaction()?' FOR UPDATE':''), [trim($code)]);
     if (!$c || !$c['active']) return ['ok' => false, 'error' => 'كود الخصم غير صالح'];
     // كوبون خاص بزبون محدد (مثل كوبون الترحيب)
     if (!empty($c['customer_id']) && (int)$c['customer_id'] !== (int)$customerId) return ['ok' => false, 'error' => 'كود الخصم غير صالح'];
@@ -119,7 +120,7 @@ function validate_coupon(string $code, float $subtotal, ?int $customerId = null)
     if ((int)$c['max_uses'] > 0 && (int)$c['used_count'] >= (int)$c['max_uses']) return ['ok' => false, 'error' => 'انتهى عدد مرات استخدام هذا الكود'];
     if ($subtotal < (float)$c['min_total']) return ['ok' => false, 'error' => 'هذا الكود يتطلب حد أدنى للطلب ' . format_price($c['min_total'])];
     $discount = $c['kind'] === 'percent' ? round($subtotal * ((float)$c['value'] / 100)) : min((float)$c['value'], $subtotal);
-    if ($discount <= 0) return ['ok' => false, 'error' => 'كود الخصم غير صالح'];
+    if (!is_finite($discount) || $discount <= 0 || $discount > $subtotal) return ['ok' => false, 'error' => 'كود الخصم غير صالح'];
     return ['ok' => true, 'discount' => $discount, 'coupon' => $c];
 }
 
@@ -208,7 +209,8 @@ function json_response($data, int $status = 200): void {
 }
 
 function read_json_body(): array {
-    $raw = file_get_contents('php://input');
+    $raw = file_get_contents('php://input',false,null,0,1048577);
+    if(strlen($raw)>1048576)json_response(['error'=>'الطلب كبير جدا'],413);
     $b = json_decode($raw ?: '[]', true);
     return is_array($b) ? $b : [];
 }
@@ -232,6 +234,7 @@ function notify_email_addr(): string {
 }
 // إرسال عبر Resend — يرجع true فقط عند القبول، ولا يوقف الموقع أبداً
 function resend_send(string $to, string $subject, string $html): bool {
+    if(getenv('ISTORE_DISABLE_NOTIFICATIONS')==='1')return false;
     $key = mail_key();
     if (!$key || !$to) return false;
     $payload = json_encode(['from' => mail_from(), 'to' => [$to], 'subject' => $subject, 'html' => $html], JSON_UNESCAPED_UNICODE);
@@ -348,21 +351,15 @@ function wa_number(string $phone): string {
 
 // حد المحاولات (في قاعدة البيانات): true إذا تجاوز $max خلال $windowSec
 function rate_limited(string $key, int $max = 8, int $windowSec = 900): bool {
-    $key = substr($key, 0, 190);
-    $row = qone('SELECT cnt, reset_at FROM login_attempts WHERE k = ?', [$key]);
-    if (!$row || strtotime($row['reset_at']) < time()) {
-        q('REPLACE INTO login_attempts (k, cnt, reset_at) VALUES (?, 1, ?)', [$key, date('Y-m-d H:i:s', time() + $windowSec)]);
-        return false;
-    }
-    q('UPDATE login_attempts SET cnt = cnt + 1 WHERE k = ?', [$key]);
-    return ((int)$row['cnt'] + 1) > $max;
+    $key=hash('sha256',$key);
+    q('DELETE FROM login_attempts WHERE reset_at < NOW()');
+    q('INSERT INTO login_attempts(k,cnt,reset_at) VALUES(?,1,?) ON DUPLICATE KEY UPDATE cnt=cnt+1',[$key,date('Y-m-d H:i:s',time()+$windowSec)]);
+    return (int)(qone('SELECT cnt FROM login_attempts WHERE k=?',[$key])['cnt']??0)>$max;
 }
-
-function rate_reset(string $key): void {
-    q('DELETE FROM login_attempts WHERE k = ?', [substr($key, 0, 190)]);
-}
+function rate_reset(string $key): void {q('DELETE FROM login_attempts WHERE k=?',[hash('sha256',$key)]);}
 
 function client_ip(): string {
-    $f = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
-    return $f !== '' ? trim(explode(',', $f)[0]) : ($_SERVER['REMOTE_ADDR'] ?? 'local');
+    return substr($_SERVER['REMOTE_ADDR'] ?? 'local',0,100);
 }
+
+function safe_nav_url(string $value,string $fallback='#'):string {$s=trim($value);if(preg_match('/[\x00-\x20\\\\]/',$s))return $fallback;if(preg_match('#^/(?!/)#',$s)||preg_match('#^https?://#i',$s))return $s;return $fallback;}

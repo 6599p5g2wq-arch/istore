@@ -1,3 +1,12 @@
+Options -Indexes
+<FilesMatch "(?i)(^\.|^config\.php$|\.(sql|log|bak|old|zip|key|env|md|txt)$)">
+Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "DENY"
+Header always set Referrer-Policy "no-referrer"
+</IfModule>
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteRule ^favicon\.ico$ favicon.php?ico=1 [L]

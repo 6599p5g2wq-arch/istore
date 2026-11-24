@@ -1,6 +1,7 @@
 <?php
 // إنشاء طلب جديد (الدفع عند الاستلام)
 require dirname(__DIR__) . '/includes/bootstrap.php';
+if(rate_limited('checkout:'.client_ip(),10))json_response(['error'=>'محاولات كثيرة، حاول لاحقا'],429);
 require APP_ROOT . '/includes/auth.php';
 if (maintenance_on()) json_response(['ok' => false, 'error' => setting('maintenance_message', '') ?: 'المتجر مغلق مؤقتاً للصيانة'], 503);
 $b = read_json_body();
@@ -83,7 +84,7 @@ try {
     $pdo->commit();
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
-    json_response(['ok' => false, 'error' => $e->getMessage()], 400);
+    json_response(['ok' => false, 'error' => ($e instanceof PDOException ? 'تعذر إتمام الطلب، حاول لاحقا' : $e->getMessage())], 400);
 }
 // اكتمال الطلب: حذف أي سلة مهجورة لهذا الهاتف
 q('DELETE FROM cart_leads WHERE phone = ?', [$phone]);

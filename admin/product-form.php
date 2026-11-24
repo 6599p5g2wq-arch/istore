@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($_FILES['gallery_files']['name'] as $gi => $gname) {
             if (($_FILES['gallery_files']['error'][$gi] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) continue;
             if (($_FILES['gallery_files']['size'][$gi] ?? 0) > 4 * 1024 * 1024) continue;
+            if(!valid_image_upload(['name'=>$gname,'tmp_name'=>$_FILES['gallery_files']['tmp_name'][$gi],'size'=>$_FILES['gallery_files']['size'][$gi],'error'=>$_FILES['gallery_files']['error'][$gi]]))continue;
             $gext = strtolower(pathinfo($gname, PATHINFO_EXTENSION));
             if (!in_array($gext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'], true)) continue;
             $gfile = 'up-' . date('Ymd-His') . '-' . bin2hex(random_bytes(4)) . '.' . $gext;

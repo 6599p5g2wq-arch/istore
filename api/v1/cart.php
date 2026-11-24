@@ -31,6 +31,7 @@ if ($m === 'GET') {
 
 if ($m === 'POST' || $m === 'PUT') {
     $b = api_body();
+    if(!is_int($b['product_id']??null)||!is_int($b['qty']??null)||$b['qty']<1||$b['qty']>99||(isset($b['variant_id'])&&(!is_int($b['variant_id'])||$b['variant_id']<0)))api_fail('كمية أو منتج غير صالح');
     $pid = (int)($b['product_id'] ?? 0);
     $vid = (int)($b['variant_id'] ?? 0);
     $qty = max(1, min(99, (int)($b['qty'] ?? 1)));
@@ -46,6 +47,8 @@ if ($m === 'POST' || $m === 'PUT') {
         if ($qty > (int)$p['stock']) api_fail('الكمية المطلوبة غير متوفرة (المتوفر: ' . (int)$p['stock'] . ')');
     }
     if ($m === 'POST') {
+        $existing=(int)(qone('SELECT qty FROM api_cart WHERE customer_id=? AND product_id=? AND variant_id=?',[(int)$c['id'],$pid,$vid])['qty']??0);
+        if($existing+$qty>min(99,(int)($vid?$v['stock']:$p['stock'])))api_fail('الكمية المطلوبة غير متوفرة');
         q('INSERT INTO api_cart (customer_id, product_id, variant_id, qty) VALUES (?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE qty = LEAST(qty + VALUES(qty), 99)', [(int)$c['id'], $pid, $vid, $qty]);
     } else {

@@ -8,7 +8,7 @@
 // في XAMPP الافتراضي: المستخدم root وكلمة المرور فارغة
 define('DB_HOST', '127.0.0.1');
 define('DB_PORT', '3306');
-define('DB_NAME', 'istore');
+define('DB_NAME', getenv('ISTORE_DB_NAME') ?: 'istore');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_SOCKET', ''); // اتركه فارغاً إلا إذا طُلب منك غير ذلك
@@ -31,3 +31,6 @@ define('ADMIN_PASSWORD', 'admin123'); // غيّرها فوراً من لوحة �
 // ---- لوحة إعدادات الموقع (/control) — مستقلة تماماً عن لوحة التحكم ----
 define('CONTROL_USERNAME', 'control');
 define('CONTROL_PASSWORD', 'control123'); // غيّرها فوراً بعد أول دخول
+
+// Enable only while installing an EMPTY database, then set false and remove install.php.
+define('INSTALL_ENABLED', false);

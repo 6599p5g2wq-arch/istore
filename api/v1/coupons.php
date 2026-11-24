@@ -2,6 +2,7 @@
 // POST التحقق من كوبون: {code, subtotal}
 require_once __DIR__ . '/_api.php';
 if (api_method() !== 'POST') api_fail('Method not allowed', 405);
+if(rate_limited('coupon-mobile:'.client_ip(),20))api_fail('محاولات كثيرة، حاول لاحقا',429);
 $b = api_body();
 foreach (['code'] as $field) { if (isset($b[$field]) && !is_string($b[$field])) json_response(['ok'=>false,'error'=>'بيانات غير صالحة'],400); }
 $code = trim($b['code'] ?? '');

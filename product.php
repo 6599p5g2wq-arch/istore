@@ -24,7 +24,7 @@ $reviews = qall('SELECT * FROM reviews WHERE product_id = ? AND approved = 1 ORD
 $avg = $reviews ? array_sum(array_column($reviews, 'rating')) / count($reviews) : (float)$p['rating'];
 $wa = setting('whatsapp');
 $waMsg = $wa ? ('https://wa.me/' . preg_replace('/\D/', '', $wa) . '?text=' . rawurlencode('السلام عليكم، أريد طلب: ' . $p['name'] . ' — ' . format_price($p['price']))) : '';
-$jsData = e(json_encode(['id' => (int)$p['id'], 'name' => $p['name'], 'price' => (float)$p['price'], 'image' => img_url($p['image']), 'slug' => $p['slug'], 'stock' => (int)$p['stock']], JSON_UNESCAPED_UNICODE));
+$jsData = e(json_encode(['id' => (int)$p['id'], 'name' => $p['name'], 'price' => (float)$p['price'], 'image' => img_url($p['image']), 'slug' => $p['slug'], 'stock' => (int)$p['stock']], JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT));
 $page_title = $p['name'];
 $page_desc = mb_substr($p['description'], 0, 150);
 require APP_ROOT . '/includes/store-header.php';
@@ -232,9 +232,9 @@ require APP_ROOT . '/includes/store-header.php';
 <?php if ($options): ?>
 <script>
 (function () {
-  var OPTIONS = <?= json_encode($options, JSON_UNESCAPED_UNICODE) ?>;
-  var VARIANTS = <?= json_encode($variants, JSON_UNESCAPED_UNICODE) ?>;
-  var BASE_DATA = { id: <?= (int)$p['id'] ?>, name: <?= json_encode($p['name'], JSON_UNESCAPED_UNICODE) ?>, price: <?= (float)$p['price'] ?>, image: <?= json_encode(img_url($p['image'])) ?>, slug: <?= json_encode($p['slug']) ?>, stock: <?= (int)$p['stock'] ?> };
+  var OPTIONS = <?= json_encode($options, JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+  var VARIANTS = <?= json_encode($variants, JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;
+  var BASE_DATA = { id: <?= (int)$p['id'] ?>, name: <?= json_encode($p['name'], JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>, price: <?= (float)$p['price'] ?>, image: <?= json_encode(img_url($p['image'])) ?>, slug: <?= json_encode($p['slug']) ?>, stock: <?= (int)$p['stock'] ?> };
   var selected = {};
   var currentVariant = null;
   var addBtn = document.getElementById('add-btn');

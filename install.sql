@@ -1,36 +1,369 @@
-
 SET NAMES utf8mb4;
-CREATE TABLE IF NOT EXISTS settings (`key` VARCHAR(100) PRIMARY KEY, value TEXT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS categories (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(200) NOT NULL, slug VARCHAR(200) NOT NULL UNIQUE, description TEXT NOT NULL, image VARCHAR(500) NOT NULL DEFAULT '', sort_order INT NOT NULL DEFAULT 0, active TINYINT NOT NULL DEFAULT 1) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS brands (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(200) NOT NULL, slug VARCHAR(200) NOT NULL UNIQUE, description TEXT NOT NULL, image VARCHAR(500) NOT NULL DEFAULT '', sort_order INT NOT NULL DEFAULT 0, active TINYINT NOT NULL DEFAULT 1) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS products (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(300) NOT NULL, slug VARCHAR(300) NOT NULL UNIQUE, category_id INT NULL, brand_id INT NULL, description MEDIUMTEXT NOT NULL, price DECIMAL(10,2) NOT NULL DEFAULT 0, old_price DECIMAL(10,2) NULL, stock INT NOT NULL DEFAULT 0, image VARCHAR(500) NOT NULL DEFAULT '', images TEXT NOT NULL, options TEXT NULL, badge VARCHAR(100) NOT NULL DEFAULT '', featured TINYINT NOT NULL DEFAULT 0, active TINYINT NOT NULL DEFAULT 1, rating DECIMAL(2,1) NOT NULL DEFAULT 4.8, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX (category_id), INDEX (brand_id), FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL, FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE SET NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS orders (id INT AUTO_INCREMENT PRIMARY KEY, code VARCHAR(40) NOT NULL UNIQUE, customer_name VARCHAR(200) NOT NULL, phone VARCHAR(60) NOT NULL, city VARCHAR(120) NOT NULL, address TEXT NOT NULL, notes TEXT NOT NULL, subtotal DECIMAL(10,2) NOT NULL DEFAULT 0, delivery_fee DECIMAL(10,2) NOT NULL DEFAULT 0, discount DECIMAL(10,2) NOT NULL DEFAULT 0, coupon_code VARCHAR(60) NOT NULL DEFAULT '', total DECIMAL(10,2) NOT NULL DEFAULT 0, status VARCHAR(20) NOT NULL DEFAULT 'new', customer_id INT NULL, admin_notes TEXT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX (status), INDEX (created_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS order_status_log (id INT AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, status VARCHAR(20) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX (order_id), FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS product_variants (id INT AUTO_INCREMENT PRIMARY KEY, product_id INT NOT NULL, label VARCHAR(300) NOT NULL DEFAULT '', options TEXT NOT NULL, price DECIMAL(10,2) NULL, stock INT NOT NULL DEFAULT 0, image VARCHAR(500) NOT NULL DEFAULT '', sort_order INT NOT NULL DEFAULT 0, UNIQUE KEY uq_variant (product_id, label(120)), FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS order_items (id INT AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, product_id INT NULL, name VARCHAR(300) NOT NULL, price DECIMAL(10,2) NOT NULL, qty INT NOT NULL DEFAULT 1, variant_id INT NULL, variant_label VARCHAR(300) NOT NULL DEFAULT '', FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS cities (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(120) NOT NULL UNIQUE, fee DECIMAL(10,2) NOT NULL DEFAULT 0, active TINYINT NOT NULL DEFAULT 1, sort_order INT NOT NULL DEFAULT 0) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS hero_slides (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(300) NOT NULL DEFAULT '', subtitle TEXT NOT NULL, cta_text VARCHAR(100) NOT NULL DEFAULT 'تسوق الآن', cta_link VARCHAR(300) NOT NULL DEFAULT '/products.php', image VARCHAR(500) NOT NULL DEFAULT '', theme VARCHAR(10) NOT NULL DEFAULT 'dark', sort_order INT NOT NULL DEFAULT 0, active TINYINT NOT NULL DEFAULT 1) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS banners (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(300) NOT NULL DEFAULT '', subtitle TEXT NOT NULL, image VARCHAR(500) NOT NULL DEFAULT '', link VARCHAR(300) NOT NULL DEFAULT '/products.php', sort_order INT NOT NULL DEFAULT 0, active TINYINT NOT NULL DEFAULT 1) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS admin_users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100) NOT NULL UNIQUE, pass_hash VARCHAR(255) NOT NULL, salt VARCHAR(64) NOT NULL DEFAULT '', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS sessions (token VARCHAR(128) PRIMARY KEY, admin_id INT NOT NULL, expires_at DATETIME NOT NULL, FOREIGN KEY (admin_id) REFERENCES admin_users(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS control_users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100) NOT NULL UNIQUE, pass_hash VARCHAR(255) NOT NULL, salt VARCHAR(64) NOT NULL DEFAULT '', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS control_sessions (token VARCHAR(128) PRIMARY KEY, control_id INT NOT NULL, expires_at DATETIME NOT NULL, FOREIGN KEY (control_id) REFERENCES control_users(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS coupons (id INT AUTO_INCREMENT PRIMARY KEY, code VARCHAR(60) NOT NULL UNIQUE, kind VARCHAR(20) NOT NULL DEFAULT 'percent', value DECIMAL(10,2) NOT NULL DEFAULT 0, min_total DECIMAL(10,2) NOT NULL DEFAULT 0, active TINYINT NOT NULL DEFAULT 1, expires_at VARCHAR(40) NOT NULL DEFAULT '', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS stock_alerts (id INT AUTO_INCREMENT PRIMARY KEY, product_id INT NOT NULL, contact VARCHAR(200) NOT NULL, notified TINYINT NOT NULL DEFAULT 0, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY uq_alert (product_id, contact), FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS reviews (id INT AUTO_INCREMENT PRIMARY KEY, product_id INT NOT NULL, customer_name VARCHAR(200) NOT NULL, rating INT NOT NULL DEFAULT 5, comment TEXT NOT NULL, phone VARCHAR(60) NOT NULL, order_code VARCHAR(40) NOT NULL, approved TINYINT NOT NULL DEFAULT 0, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS cart_leads (id INT AUTO_INCREMENT PRIMARY KEY, phone VARCHAR(60) NOT NULL UNIQUE, items TEXT NOT NULL, total DECIMAL(10,2) NOT NULL DEFAULT 0, reminded TINYINT NOT NULL DEFAULT 0, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS page_views (id INT AUTO_INCREMENT PRIMARY KEY, path VARCHAR(500) NOT NULL, referrer VARCHAR(500) NOT NULL DEFAULT '', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX (created_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS customers (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(200) NOT NULL, email VARCHAR(200) NOT NULL UNIQUE, phone VARCHAR(60) NOT NULL DEFAULT '', pass_hash VARCHAR(255) NOT NULL, salt VARCHAR(64) NOT NULL DEFAULT '', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, blocked TINYINT NOT NULL DEFAULT 0, last_login DATETIME NULL, city VARCHAR(100) NOT NULL DEFAULT '', address VARCHAR(300) NOT NULL DEFAULT '', must_change TINYINT NOT NULL DEFAULT 0) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS login_attempts (k VARCHAR(190) PRIMARY KEY, cnt INT NOT NULL DEFAULT 0, reset_at DATETIME NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS customer_sessions (token VARCHAR(128) PRIMARY KEY, customer_id INT NOT NULL, expires_at DATETIME NOT NULL, FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS api_tokens (token VARCHAR(128) PRIMARY KEY, customer_id INT NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, expires_at DATETIME NOT NULL, FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS api_cart (id INT AUTO_INCREMENT PRIMARY KEY, customer_id INT NOT NULL, product_id INT NOT NULL, variant_id INT NOT NULL DEFAULT 0, qty INT NOT NULL DEFAULT 1, UNIQUE KEY uq_cart (customer_id, product_id, variant_id), FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE, FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-CREATE TABLE IF NOT EXISTS api_wishlist (id INT AUTO_INCREMENT PRIMARY KEY, customer_id INT NOT NULL, product_id INT NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE KEY uq_wish (customer_id, product_id), FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE, FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
+SET FOREIGN_KEY_CHECKS=0;
+CREATE TABLE IF NOT EXISTS `admin_users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(100) NOT NULL,
+  `pass_hash` varchar(255) NOT NULL,
+  `salt` varchar(64) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `api_cart` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `customer_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `variant_id` int(11) NOT NULL DEFAULT 0,
+  `qty` int(11) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_cart` (`customer_id`,`product_id`,`variant_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `api_cart_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `api_cart_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `api_tokens` (
+  `token` varchar(128) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `expires_at` datetime NOT NULL,
+  PRIMARY KEY (`token`),
+  KEY `customer_id` (`customer_id`),
+  CONSTRAINT `api_tokens_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `api_wishlist` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `customer_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_wish` (`customer_id`,`product_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `api_wishlist_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `api_wishlist_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `auth_activity` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `panel` varchar(10) NOT NULL,
+  `username` varchar(120) NOT NULL,
+  `device` varchar(300) NOT NULL,
+  `result` varchar(30) NOT NULL,
+  `created_at` bigint(20) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `auth_attempts` (
+  `k` char(64) NOT NULL,
+  `cnt` int(11) NOT NULL DEFAULT 0,
+  `window_at` bigint(20) NOT NULL,
+  `locked_until` bigint(20) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`k`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `auth_challenges` (
+  `token_hash` char(64) NOT NULL,
+  `panel` varchar(10) NOT NULL,
+  `principal` varchar(120) NOT NULL,
+  `username` varchar(120) NOT NULL,
+  `remember` tinyint(4) NOT NULL DEFAULT 0,
+  `expires_at` bigint(20) NOT NULL,
+  `attempts` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`token_hash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `auth_sessions` (
+  `token_hash` char(64) NOT NULL,
+  `panel` varchar(10) NOT NULL,
+  `principal` varchar(120) NOT NULL,
+  `username` varchar(120) NOT NULL,
+  `expires_at` bigint(20) NOT NULL,
+  `last_seen` bigint(20) NOT NULL,
+  `created_at` bigint(20) NOT NULL,
+  PRIMARY KEY (`token_hash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `auth_totp` (
+  `panel` varchar(10) NOT NULL,
+  `principal` varchar(120) NOT NULL,
+  `secret` text NOT NULL,
+  `enabled` tinyint(4) NOT NULL DEFAULT 0,
+  `last_step` bigint(20) NOT NULL DEFAULT -1,
+  `recovery` text NOT NULL,
+  PRIMARY KEY (`panel`,`principal`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `banners` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(300) NOT NULL DEFAULT '',
+  `subtitle` text NOT NULL,
+  `image` varchar(500) NOT NULL DEFAULT '',
+  `link` varchar(300) NOT NULL DEFAULT '/products.php',
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `active` tinyint(4) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `brands` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) NOT NULL,
+  `slug` varchar(200) NOT NULL,
+  `description` text NOT NULL DEFAULT '',
+  `image` varchar(500) NOT NULL DEFAULT '',
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `active` tinyint(4) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `cart_leads` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `phone` varchar(60) NOT NULL,
+  `items` text NOT NULL,
+  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `reminded` tinyint(4) NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `phone` (`phone`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) NOT NULL,
+  `slug` varchar(200) NOT NULL,
+  `description` text NOT NULL,
+  `image` varchar(500) NOT NULL DEFAULT '',
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `active` tinyint(4) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `cities` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(120) NOT NULL,
+  `fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `active` tinyint(4) NOT NULL DEFAULT 1,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `control_sessions` (
+  `token` varchar(128) NOT NULL,
+  `control_id` int(11) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  PRIMARY KEY (`token`),
+  KEY `control_id` (`control_id`),
+  CONSTRAINT `control_sessions_ibfk_1` FOREIGN KEY (`control_id`) REFERENCES `control_users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `control_users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(100) NOT NULL,
+  `pass_hash` varchar(255) NOT NULL,
+  `salt` varchar(64) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `coupons` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(60) NOT NULL,
+  `kind` varchar(20) NOT NULL DEFAULT 'percent',
+  `value` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `min_total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `active` tinyint(4) NOT NULL DEFAULT 1,
+  `expires_at` varchar(40) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `max_uses` int(11) NOT NULL DEFAULT 0,
+  `used_count` int(11) NOT NULL DEFAULT 0,
+  `customer_id` int(11) DEFAULT NULL,
+  `starts_at` varchar(40) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `customer_sessions` (
+  `token` varchar(128) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  PRIMARY KEY (`token`),
+  KEY `customer_id` (`customer_id`),
+  CONSTRAINT `customer_sessions_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `customers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) NOT NULL,
+  `email` varchar(200) NOT NULL,
+  `phone` varchar(60) NOT NULL DEFAULT '',
+  `pass_hash` varchar(255) NOT NULL,
+  `salt` varchar(64) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `blocked` tinyint(4) NOT NULL DEFAULT 0,
+  `last_login` datetime DEFAULT NULL,
+  `city` varchar(100) NOT NULL DEFAULT '',
+  `address` varchar(300) NOT NULL DEFAULT '',
+  `must_change` tinyint(4) NOT NULL DEFAULT 0,
+  `points` int(11) NOT NULL DEFAULT 0,
+  `vip_override` tinyint(4) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `hero_slides` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(300) NOT NULL DEFAULT '',
+  `subtitle` text NOT NULL,
+  `cta_text` varchar(100) NOT NULL DEFAULT 'تسوق الآن',
+  `cta_link` varchar(300) NOT NULL DEFAULT '/products.php',
+  `image` varchar(500) NOT NULL DEFAULT '',
+  `theme` varchar(10) NOT NULL DEFAULT 'dark',
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `active` tinyint(4) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `login_attempts` (
+  `k` varchar(190) NOT NULL,
+  `cnt` int(11) NOT NULL DEFAULT 0,
+  `reset_at` datetime NOT NULL,
+  PRIMARY KEY (`k`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `order_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL,
+  `product_id` int(11) DEFAULT NULL,
+  `name` varchar(300) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `qty` int(11) NOT NULL DEFAULT 1,
+  `variant_id` int(11) DEFAULT NULL,
+  `variant_label` varchar(300) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`),
+  CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `order_status_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL,
+  `status` varchar(20) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`),
+  CONSTRAINT `order_status_log_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `orders` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(40) NOT NULL,
+  `customer_name` varchar(200) NOT NULL,
+  `phone` varchar(60) NOT NULL,
+  `city` varchar(120) NOT NULL,
+  `address` text NOT NULL,
+  `notes` text NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `discount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `coupon_code` varchar(60) NOT NULL DEFAULT '',
+  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `status` varchar(20) NOT NULL DEFAULT 'new',
+  `customer_id` int(11) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `points_used` int(11) NOT NULL DEFAULT 0,
+  `points_discount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `points_awarded` int(11) NOT NULL DEFAULT 0,
+  `points_refunded` tinyint(4) NOT NULL DEFAULT 0,
+  `admin_notes` text DEFAULT NULL,
+  `email` varchar(200) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`),
+  KEY `status` (`status`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `page_views` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `path` varchar(500) NOT NULL,
+  `referrer` varchar(500) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `points_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `customer_id` int(11) NOT NULL,
+  `delta` int(11) NOT NULL,
+  `reason` varchar(200) NOT NULL DEFAULT '',
+  `order_id` int(11) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `customer_id` (`customer_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `product_variants` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `label` varchar(300) NOT NULL DEFAULT '',
+  `options` text NOT NULL,
+  `price` decimal(10,2) DEFAULT NULL,
+  `stock` int(11) NOT NULL DEFAULT 0,
+  `image` varchar(500) NOT NULL DEFAULT '',
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_variant` (`product_id`,`label`(120)),
+  CONSTRAINT `product_variants_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `products` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(300) NOT NULL,
+  `slug` varchar(300) NOT NULL,
+  `category_id` int(11) DEFAULT NULL,
+  `brand_id` int(11) DEFAULT NULL,
+  `description` mediumtext NOT NULL,
+  `price` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `old_price` decimal(10,2) DEFAULT NULL,
+  `stock` int(11) NOT NULL DEFAULT 0,
+  `image` varchar(500) NOT NULL DEFAULT '',
+  `images` text NOT NULL,
+  `options` text DEFAULT NULL,
+  `badge` varchar(100) NOT NULL DEFAULT '',
+  `featured` tinyint(4) NOT NULL DEFAULT 0,
+  `active` tinyint(4) NOT NULL DEFAULT 1,
+  `rating` decimal(2,1) NOT NULL DEFAULT 4.8,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`),
+  KEY `category_id` (`category_id`),
+  KEY `brand_id` (`brand_id`),
+  CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `products_ibfk_2` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `reviews` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `customer_name` varchar(200) NOT NULL,
+  `rating` int(11) NOT NULL DEFAULT 5,
+  `comment` text NOT NULL,
+  `reply` text DEFAULT NULL,
+  `phone` varchar(60) NOT NULL,
+  `order_code` varchar(40) NOT NULL,
+  `approved` tinyint(4) NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `sessions` (
+  `token` varchar(128) NOT NULL,
+  `admin_id` int(11) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  PRIMARY KEY (`token`),
+  KEY `admin_id` (`admin_id`),
+  CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `admin_users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `settings` (
+  `key` varchar(100) NOT NULL,
+  `value` text NOT NULL,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `stock_alerts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `contact` varchar(200) NOT NULL,
+  `notified` tinyint(4) NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_alert` (`product_id`,`contact`),
+  CONSTRAINT `stock_alerts_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+SET FOREIGN_KEY_CHECKS=1;
 
 INSERT INTO `settings` (`key`,`value`) VALUES
 ('store_name','آي ستور'),
-('site_url','https://istore-vzrb.onrender.com'),
+('site_url',''),
 ('store_tagline','وجهتك الأولى لإكسسوارات ومنتجات Apple الأصلية في ليبيا'),
 ('announcement','توصيل سريع لكل المدن الليبية — الدفع عند الاستلام'),
 ('currency','د.ل'),

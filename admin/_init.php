@@ -165,6 +165,7 @@ function redirect_admin(string $path): void {
 function handle_image_upload(string $field): string {
     if (empty($_FILES[$field]) || $_FILES[$field]['error'] !== UPLOAD_ERR_OK) return '';
     $f = $_FILES[$field];
+    if(!valid_image_upload($f))return '';
     if ($f['size'] > 4 * 1024 * 1024) return '';
     $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
     if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'], true)) return '';
@@ -173,4 +174,13 @@ function handle_image_upload(string $field): string {
     if (!is_dir($dir)) mkdir($dir, 0775, true);
     if (move_uploaded_file($f['tmp_name'], $dir . '/' . $name)) return 'uploads/' . $name;
     return '';
+}
+
+function valid_image_upload(array $f): bool {
+ if(($f['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK || ($f['size']??0)>4*1024*1024)return false;
+ $ext=strtolower(pathinfo($f['name']??'',PATHINFO_EXTENSION));
+ $types=['jpg'=>IMAGETYPE_JPEG,'jpeg'=>IMAGETYPE_JPEG,'png'=>IMAGETYPE_PNG,'webp'=>IMAGETYPE_WEBP,'gif'=>IMAGETYPE_GIF];
+ if(defined('IMAGETYPE_AVIF'))$types['avif']=IMAGETYPE_AVIF;
+ $info=@getimagesize($f['tmp_name']??'');
+ return $info && isset($types[$ext]) && $info[2]===$types[$ext] && $info[0]*$info[1]<=40000000;
 }

@@ -12,6 +12,7 @@ function tg_config(): array {
 }
 
 function tg_send(string $text): bool {
+    if(getenv('ISTORE_DISABLE_NOTIFICATIONS')==='1')return false;
     [$token, $chatId] = tg_config();
     if ($token === '' || $chatId === '') return false;
     try {

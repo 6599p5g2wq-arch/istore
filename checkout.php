@@ -45,9 +45,9 @@ function renderSummary() {
   document.getElementById('sum-total').textContent = window.fmtPrice(Math.max(total, 0));
   var items = document.getElementById('sum-items');
   items.innerHTML = Cart.items.map(function (i) {
-    return '<div class="flex items-center gap-3 text-sm"><img src="' + i.image + '" class="h-12 w-12 rounded-xl object-cover" alt="">'
-      + '<span class="flex-1 line-clamp-1">' + i.name + (i.variant_label ? ' · ' + i.variant_label : '') + ' <span class="text-[var(--text-faint)]">× ' + i.qty + '</span></span>'
-      + '<b>' + window.fmtPrice(i.price * i.qty) + '</b></div>';
+    return '<div class="flex items-center gap-3 text-sm"><img src="' + window.safeImageUrl(i.image) + '" class="h-12 w-12 rounded-xl object-cover" alt="">'
+      + '<span class="flex-1 line-clamp-1">' + window.escapeHtml(i.name) + (i.variant_label ? ' · ' + window.escapeHtml(i.variant_label) : '') + ' <span class="text-[var(--text-faint)]">× ' + i.qty + '</span></span>'
+      + '<b>' + window.escapeHtml(window.fmtPrice(i.price * i.qty)) + '</b></div>';
   }).join('');
 }
 
@@ -123,7 +123,7 @@ window.initCheckoutPage = function () {
     + '<label class="block text-sm font-bold">الاسم الكامل<input id="f-name" required placeholder="مثال: محمد أحمد" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20"></label>'
     + '<label class="block text-sm font-bold">رقم الهاتف<input id="f-phone" required dir="ltr" inputmode="tel" placeholder="09XXXXXXXX" onblur="captureLead()" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20"></label>'
     + '<label class="block text-sm font-bold">المدينة<select id="f-city" required onchange="renderSummary()" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 outline-none transition focus:border-[var(--accent)]"><option value="">اختر مدينتك</option>'
-    + CITIES.map(function (c) { return '<option value="' + c.name + '">' + c.name + '</option>'; }).join('')
+    + CITIES.map(function (c) { return '<option value="' + window.escapeHtml(c.name) + '">' + window.escapeHtml(c.name) + '</option>'; }).join('')
     + '</select></label>'
     + '<label class="block text-sm font-bold sm:col-span-2">البريد الإلكتروني (اختياري — نرسل لك تأكيد الطلب وتحديثاته)<input id="f-email" type="email" dir="ltr" placeholder="name@example.com" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20"></label>'
     + '<label class="block text-sm font-bold">العنوان بالتفصيل<input id="f-address" placeholder="الحي، الشارع، أقرب معلم" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20"></label>'

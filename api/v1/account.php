@@ -12,6 +12,8 @@ if ($m === 'PUT') {
     $b = api_body();
 foreach (['name','phone','new_password','current_password'] as $field) { if (isset($b[$field]) && !is_string($b[$field])) json_response(['ok'=>false,'error'=>'بيانات غير صالحة'],400); }
     if (isset($b['new_password'])) {
+        if(strlen($b['new_password'])>1024 || strlen($b['current_password']??'')>1024)api_fail('بيانات غير صالحة');
+        if(rate_limited('mobile-password:'.$c['id'],10))api_fail('محاولات كثيرة، حاول لاحقا',429);
         if (!password_verify((string)($b['current_password'] ?? ''), qone('SELECT pass_hash FROM customers WHERE id = ?', [(int)$c['id']])['pass_hash']))
             api_fail('كلمة المرور الحالية غير صحيحة', 403);
         if (mb_strlen((string)$b['new_password']) < 8) api_fail('كلمة المرور 8 أحرف على الأقل');

@@ -1,5 +1,6 @@
 <?php
 require dirname(__DIR__) . '/includes/bootstrap.php';
+if(rate_limited('coupon:'.client_ip(),30))json_response(['error'=>'محاولات كثيرة، حاول لاحقا'],429);
 require APP_ROOT . '/includes/auth.php';
 $b = read_json_body();
 foreach (['code'] as $field) { if (isset($b[$field]) && !is_string($b[$field])) json_response(['ok'=>false,'error'=>'بيانات غير صالحة'],400); }

@@ -2,6 +2,9 @@
 (function () {
   'use strict';
 
+  window.escapeHtml = function (value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); };
+  window.safeImageUrl = function(value) { var s=String(value||''); if(/[\u0000-\u0020]/.test(s))return ''; if(/^https?:\/\//i.test(s)||/^\/(?!\/)/.test(s)||/^(?:images|uploads)\//.test(s))return window.escapeHtml(s);return ''; };
+  function cleanCartItem(i) {if(!i||!Number.isSafeInteger(Number(i.id))||Number(i.id)<1)return null;return {id:Number(i.id),variant_id:Math.max(0,Math.floor(Number(i.variant_id)||0)),name:String(i.name||''),variant_label:String(i.variant_label||''),price:Math.max(0,Number(i.price)||0),qty:Math.max(1,Math.min(99,Math.floor(Number(i.qty)||1))),stock:Math.max(0,Math.floor(Number(i.stock)||0)),image:String(i.image||''),slug:String(i.slug||'')};}
   // ---------- الثيم (ليلي/نهاري) ----------
   window.applyTheme = function (t) {
     document.documentElement.classList.toggle('light', t === 'light');
@@ -25,11 +28,12 @@
   }
 
   var Cart = {
-    items: readStore('istore-cart'),
+    items: (Array.isArray(readStore('istore-cart'))?readStore('istore-cart'):[]).map(cleanCartItem).filter(Boolean),
     save: function () { writeStore('istore-cart', this.items); this.renderBadge(); },
-    key: function (i) { return i.id + ':' + (i.variant_id || 0); },
+    key: function (i) { return Number(i.id) + ':' + (Number(i.variant_id) || 0); },
     add: function (p, qty) {
-      qty = qty || 1;
+      p=cleanCartItem(p);if(!p)return;
+      qty = Math.max(1,Math.min(99,Math.floor(Number(qty)||1)));
       var k = this.key(p);
       var found = null;
       this.items.forEach(function (i) { if (Cart.key(i) === k) found = i; });
@@ -82,9 +86,9 @@
       } else {
         box.innerHTML = this.items.map(function (i) {
           return '<div class="flex gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3">'
-            + '<a href="' + window.BASE + '/product.php?slug=' + encodeURIComponent(i.slug) + '" class="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-[var(--surface-2)]"><img src="' + i.image + '" alt="" class="h-full w-full object-cover"></a>'
+            + '<a href="' + window.BASE + '/product.php?slug=' + encodeURIComponent(i.slug) + '" class="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-[var(--surface-2)]"><img src="' + window.safeImageUrl(i.image) + '" alt="" class="h-full w-full object-cover"></a>'
             + '<div class="flex flex-1 flex-col">'
-            + '<div class="flex items-start justify-between gap-2"><p class="line-clamp-2 text-sm font-bold">' + i.name + (i.variant_label ? ' <span class="text-xs font-bold text-[var(--text-faint)]">' + i.variant_label + '</span>' : '') + '</p>'
+            + '<div class="flex items-start justify-between gap-2"><p class="line-clamp-2 text-sm font-bold">' + window.escapeHtml(i.name) + (i.variant_label ? ' <span class="text-xs font-bold text-[var(--text-faint)]">' + window.escapeHtml(i.variant_label) + '</span>' : '') + '</p>'
             + '<button onclick="Cart.remove(\'' + Cart.key(i) + '\')" aria-label="حذف" class="text-[var(--text-faint)] hover:text-red-400">✕</button></div>'
             + '<div class="mt-auto flex items-center justify-between pt-2">'
             + '<div class="flex items-center gap-2 rounded-full border border-[var(--border)] px-2 py-1">'
@@ -92,7 +96,7 @@
             + '<span class="min-w-6 text-center text-sm font-bold">' + i.qty + '</span>'
             + '<button onclick="Cart.setQty(\'' + Cart.key(i) + '\',' + (i.qty - 1) + ')" class="grid h-6 w-6 place-items-center rounded-full hover:bg-[var(--chip)]">−</button>'
             + '</div>'
-            + '<span class="text-sm font-extrabold">' + fmt(i.price * i.qty) + '</span>'
+            + '<span class="text-sm font-extrabold">' + window.escapeHtml(fmt(i.price * i.qty)) + '</span>'
             + '</div></div></div>';
         }).join('');
       }
