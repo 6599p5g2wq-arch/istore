@@ -70,7 +70,7 @@ admin_header('الزبائن', 'customers.php');
     </div>
   </div>
 <?php endif; ?>
-<div class="mt-5 flex flex-wrap gap-2">
+<div class="mt-6 flex flex-wrap gap-2">
   <a href="<?= e(admin_url('customers.php')) ?>" class="rounded-full px-4 py-1.5 text-sm font-bold <?= $tab === 'accounts' ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-600' ?>">حسابات مسجلة (<?= $accCount ?>)</a>
   <a href="<?= e(admin_url('customers.php?tab=guests')) ?>" class="rounded-full px-4 py-1.5 text-sm font-bold <?= $tab === 'guests' ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-600' ?>">عملاء بدون حساب (<?= $guestCount ?>)</a>
 </div>
@@ -78,20 +78,20 @@ admin_header('الزبائن', 'customers.php');
   <input id="cust-q" oninput="filterCustomers(this.value)" placeholder="ابحث بالاسم أو الهاتف<?= $tab === 'accounts' ? ' أو البريد' : '' ?>…" autocomplete="off" class="admin-input max-w-md">
   <div class="flex gap-2 text-xs font-bold">
     <?php foreach ($activeSorts as $k => $v): ?>
-      <a href="<?= e(admin_url('customers.php?tab=' . $tab . '&sort=' . $k . ($tab === 'accounts' && $f !== 'all' ? '&f=' . $f : ''))) ?>" class="rounded-full px-3 py-1.5 <?= $sort === $k ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-500' ?>"><?= e($v[0]) ?></a>
+      <a href="<?= e(admin_url('customers.php?tab=' . $tab . '&sort=' . $k . ($tab === 'accounts' && $f !== 'all' ? '&f=' . $f : ''))) ?>" class="rounded-full px-3 py-1.5 <?= $sort === $k ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-500 shadow-sm' ?>"><?= e($v[0]) ?></a>
     <?php endforeach; ?>
   </div>
 </div>
 <?php if ($tab === 'accounts'): ?>
 <div class="mt-3 flex flex-wrap gap-2 text-xs font-bold">
   <?php foreach (['all' => 'الكل', 'vip' => 'VIP', 'blocked' => 'موقوف', 'active' => 'نشط'] as $k => $label): ?>
-    <a href="<?= e(admin_url('customers.php?sort=' . $sort . ($k === 'all' ? '' : '&f=' . $k))) ?>" class="rounded-full px-3 py-1.5 <?= $f === $k ? 'bg-violet-700 text-white' : 'bg-white text-neutral-500' ?>"><?= e($label) ?></a>
+    <a href="<?= e(admin_url('customers.php?sort=' . $sort . ($k === 'all' ? '' : '&f=' . $k))) ?>" class="rounded-full px-3 py-1.5 <?= $f === $k ? 'bg-violet-700 text-white' : 'bg-white text-neutral-500 shadow-sm' ?>"><?= e($label) ?></a>
   <?php endforeach; ?>
 </div>
 <?php endif; ?>
 
 <?php if ($tab === 'accounts'): ?>
-  <?php if (!$accounts): ?><div class="admin-card mt-4 py-10 text-center text-neutral-400"><?= $f === 'all' ? 'لا توجد حسابات مسجلة بعد' : 'لا يوجد زبائن ضمن هذا الفلتر' ?></div><?php endif; ?>
+  <?php if (!$accounts): ?><p class="mt-4 rounded-3xl bg-white py-12 text-center text-sm text-neutral-400 shadow-sm"><?= $f === 'all' ? 'لا توجد حسابات مسجلة بعد' : 'لا يوجد زبائن ضمن هذا الفلتر' ?></p><?php endif; ?>
   <!-- بطاقات الجوال -->
   <div class="mt-4 space-y-3 lg:hidden">
     <?php foreach ($accounts as $c): ?>
