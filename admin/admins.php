@@ -16,13 +16,13 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   elseif($action==='password'){
    if(mb_strlen($password)<6){$err='كلمة المرور 6 أحرف على الأقل';$field='password';}
    elseif($password!==$confirmation){$err='كلمتا المرور غير متطابقتين';$field='confirm_password';}
-   else{q('UPDATE admin_users SET pass_hash=? WHERE id=?',[password_hash($password,PASSWORD_DEFAULT),$targetId]);q('DELETE FROM sessions WHERE admin_id=?',[$targetId]);
+   else{q('UPDATE admin_users SET pass_hash=? WHERE id=?',[password_hash($password,PASSWORD_DEFAULT),$targetId]);q('DELETE FROM sessions WHERE admin_id=?',[$targetId]);auth_revoke_principal('admin',(string)$targetId);
     if($targetId===(int)$me['id']){admin_logout();admin_header('تسجيل الدخول مجدداً','admins.php');echo '<div role="status" class="admin-card p-6"><h1 class="text-xl font-bold">تم تغيير كلمة مرورك وإنهاء كل جلساتك</h1><p class="mt-3">سجّل الدخول بكلمة المرور الجديدة للمتابعة.</p><a class="admin-btn mt-4" href="'.e(admin_url('login.php')).'">تسجيل الدخول مجدداً</a></div>';admin_footer();exit;}
     $_SESSION['admin_row_success']=['id'=>$targetId,'message'=>'تم تغيير كلمة مرور '.$target['username'].' وإنهاء جلساته'];redirect_admin('admins.php');}
   }else{
    if($targetId===(int)$me['id'])$err='لا يمكنك حذف حسابك الحالي';
    elseif((int)qone('SELECT COUNT(*) c FROM admin_users')['c']<=1)$err='يجب أن يبقى مشرف واحد على الأقل';
-   else{q('DELETE FROM sessions WHERE admin_id=?',[$targetId]);q('DELETE FROM admin_users WHERE id=?',[$targetId]);flash('تم حذف المشرف '.$target['username']);redirect_admin('admins.php');}
+   else{q('DELETE FROM sessions WHERE admin_id=?',[$targetId]);auth_revoke_principal('admin',(string)$targetId);q('DELETE FROM admin_users WHERE id=?',[$targetId]);flash('تم حذف المشرف '.$target['username']);redirect_admin('admins.php');}
   }
  }else{$err='عملية غير صالحة';}
  if($err)http_response_code(422);

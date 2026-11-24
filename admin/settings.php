@@ -63,6 +63,7 @@ $mq = marquee_cfg(); $mqRows = $mq['items'];
 if($posted) { $mqRows=[];foreach((array)($_POST['mq_text']??[]) as $i=>$text) $mqRows[]=['icon'=>$_POST['mq_icon'][$i]??'star','text'=>$text]; }
 if(!$mqRows) $mqRows=[['icon'=>'star','text'=>'']];
 admin_header('الإعدادات', 'settings.php');
+$secPanel='admin';require APP_ROOT.'/includes/security-settings.php';
 ?>
 <div class="max-w-3xl">
   <h1 class="text-2xl font-black sm:text-3xl">الإعدادات</h1>

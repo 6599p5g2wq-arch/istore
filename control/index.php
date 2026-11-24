@@ -108,13 +108,15 @@ $storeName = setting('store_name', 'آي ستور');
     </div>
   </div>
 </header>
+<?php $guardPanel='control';require APP_ROOT.'/includes/session-guard.php'; ?>
 <main class="mx-auto max-w-5xl px-4 py-8">
   <h1 class="text-2xl font-black sm:text-3xl">إعدادات الموقع</h1>
   <p class="mt-1 text-sm text-neutral-500">كل ما يخص هوية الموقع ومعلوماته يتعدل من هنا ويتطبق على المتجر مباشرة</p>
   <?php if ($formErr !== ''): ?><div class="mt-5 rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700"><?= e($formErr) ?></div><?php endif; ?>
   <?php if ($saved): ?><div class="mt-5 rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-700">تم حفظ الإعدادات بنجاح ✓</div><?php endif; ?>
   <?php if ($tgTest !== null): ?><div class="mt-5 rounded-2xl p-4 text-sm font-bold <?= $tgTest ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' ?>"><?= $tgTest ? 'وصلت الرسالة التجريبية إلى تيليجرام ✓' : 'فشل الإرسال — راجع التوكن ومعرف المحادثة' ?></div><?php endif; ?>
-  <form method="post" enctype="multipart/form-data" class="mt-8 space-y-6">
+  <?php $secPanel='control';require APP_ROOT.'/includes/security-settings.php'; ?>
+<form method="post" enctype="multipart/form-data" class="mt-8 space-y-6">
     <?php $ic = intro_cfg(); $icRaw = settings(); ?>
     <div class="rounded-3xl bg-white p-6 shadow-sm">
       <h2 class="mb-1 text-lg font-extrabold">القسم الافتتاحي (أول شاشة)</h2>

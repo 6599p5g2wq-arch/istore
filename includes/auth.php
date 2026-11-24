@@ -9,34 +9,10 @@ function admin_bootstrap(): void {
     }
 }
 
-function admin_login(string $username, string $password): bool {
-    admin_bootstrap();
-    $u = qone('SELECT * FROM admin_users WHERE username = ?', [$username]);
-    if (!$u || !password_verify($password, $u['pass_hash'])) return false;
-    $token = random_token();
-    q('INSERT INTO sessions (token, admin_id, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))', [$token, $u['id']]);
-    setcookie('istore_admin', $token, [
-        'expires' => time() + 30 * 86400, 'path' => '/', 'httponly' => true,
-        'samesite' => 'Lax', 'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-    ]);
-    $_SESSION['istore_admin'] = $token;
-    return true;
-}
-
-function admin_user() {
-    $token = $_COOKIE['istore_admin'] ?? ($_SESSION['istore_admin'] ?? '');
-    if (!$token) return null;
-    return qone(
-        'SELECT a.id, a.username FROM sessions s JOIN admin_users a ON a.id = s.admin_id WHERE s.token = ? AND s.expires_at > NOW()',
-        [$token]);
-}
-
-function admin_logout(): void {
-    $token = $_COOKIE['istore_admin'] ?? ($_SESSION['istore_admin'] ?? '');
-    if ($token) q('DELETE FROM sessions WHERE token = ?', [$token]);
-    unset($_SESSION['istore_admin']);
-    setcookie('istore_admin', '', time() - 3600, '/');
-}
+require_once __DIR__.'/security.php';
+function admin_login(string $username,string $password):bool {return !empty(auth_login_flow('admin',['username'=>$username,'password'=>$password])['ok']);}
+function admin_user() {$s=auth_read_session('admin',(string)($_COOKIE['istore_admin']??''));return $s?qone('SELECT id,username FROM admin_users WHERE id=?',[$s['principal']]):null;}
+function admin_logout():void {auth_revoke((string)($_COOKIE['istore_admin']??''));unset($_SESSION['istore_admin']);setcookie('istore_admin','',time()-3600,'/');}
 
 function require_admin(): array {
     $u = admin_user();
@@ -53,34 +29,9 @@ function control_bootstrap(): void {
     }
 }
 
-function control_login(string $username, string $password): bool {
-    control_bootstrap();
-    $u = qone('SELECT * FROM control_users WHERE username = ?', [$username]);
-    if (!$u || !password_verify($password, $u['pass_hash'])) return false;
-    $token = random_token();
-    q('INSERT INTO control_sessions (token, control_id, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))', [$token, $u['id']]);
-    setcookie('istore_control', $token, [
-        'expires' => time() + 30 * 86400, 'path' => '/', 'httponly' => true,
-        'samesite' => 'Lax', 'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-    ]);
-    $_SESSION['istore_control'] = $token;
-    return true;
-}
-
-function control_user() {
-    $token = $_COOKIE['istore_control'] ?? ($_SESSION['istore_control'] ?? '');
-    if (!$token) return null;
-    return qone(
-        'SELECT c.id, c.username FROM control_sessions s JOIN control_users c ON c.id = s.control_id WHERE s.token = ? AND s.expires_at > NOW()',
-        [$token]);
-}
-
-function control_logout(): void {
-    $token = $_COOKIE['istore_control'] ?? ($_SESSION['istore_control'] ?? '');
-    if ($token) q('DELETE FROM control_sessions WHERE token = ?', [$token]);
-    unset($_SESSION['istore_control']);
-    setcookie('istore_control', '', time() - 3600, '/');
-}
+function control_login(string $username,string $password):bool{return !empty(auth_login_flow('control',['username'=>$username,'password'=>$password])['ok']);}
+function control_user(){$s=auth_read_session('control',(string)($_COOKIE['istore_control']??''));return $s?qone('SELECT id,username FROM control_users WHERE id=?',[$s['principal']]):null;}
+function control_logout():void{auth_revoke((string)($_COOKIE['istore_control']??''));unset($_SESSION['istore_control']);setcookie('istore_control','',time()-3600,'/');}
 
 function require_control(): array {
     $u = control_user();

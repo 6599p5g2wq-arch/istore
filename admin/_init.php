@@ -61,6 +61,7 @@ function admin_header(string $title, string $active = ''): void {
 </style>
 </head>
 <body>
+<?php $guardPanel='admin';require APP_ROOT.'/includes/session-guard.php'; ?>
 <div class="flex min-h-screen">
   <aside id="admin-side" class="fixed inset-y-0 right-0 z-40 w-64 translate-x-full bg-neutral-900 p-4 text-white transition-transform lg:static lg:translate-x-0">
     <div class="mb-6 flex items-center justify-between px-2 pt-2">
