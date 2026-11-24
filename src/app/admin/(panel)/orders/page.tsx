@@ -1,4 +1,5 @@
 import React from "react";
+import OrdersExport from "@/components/admin/OrdersExport";
 import Link from "next/link";
 import { getDb } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
@@ -87,6 +88,7 @@ export default function AdminOrders({ searchParams }: { searchParams: { status?:
             className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400" />
           <button className="shrink-0 rounded-full bg-neutral-900 px-4 py-1.5 text-xs font-bold text-white">بحث</button>
         </form>
+        <OrdersExport status={st} />
         <div className="flex gap-1.5">
           {PERIODS.map((p) => (
             <Link key={p.key} href={qs({ period: p.key, page: "" })}
