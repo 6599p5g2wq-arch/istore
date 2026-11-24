@@ -139,11 +139,13 @@ document.getElementById('back-btn').addEventListener('click', function () {
 </div>
 
 <!-- نافذة البحث -->
-<div id="search-overlay" class="search-overlay fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onclick="if(event.target===this)toggleSearch(false)">
-  <div class="search-box mx-auto mt-24 max-w-xl px-4">
-    <form action="<?= e(url('products.php')) ?>" method="get" class="flex overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl backdrop-blur-xl">
-      <input name="q" type="search" placeholder="ابحث عن منتج..." class="w-full bg-transparent px-5 py-4 text-lg text-[var(--text)] outline-none placeholder:text-[var(--text-faint)]">
-      <button class="glow-btn px-6 font-bold">بحث</button>
-    </form>
-  </div>
+<div id="search-overlay" class="search-overlay fixed inset-0 z-50 bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="بحث المنتجات" onclick="if(event.target===this)toggleSearch(false)">
+ <div class="search-box mx-auto mt-20 w-full max-w-2xl overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl backdrop-blur-xl">
+  <form id="live-search-form" action="<?=e(url('products.php'))?>" method="get" class="flex items-center gap-3 border-b border-[var(--border)] px-5 py-4">
+   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 text-[var(--text-faint)]" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+   <input id="live-search-input" name="q" type="text" maxlength="120" autocomplete="off" aria-label="ابحث عن منتج" aria-controls="live-search-results" placeholder="ابحث عن منتج… آيفون، سماعة، شاحن" class="min-w-0 flex-1 bg-transparent text-lg text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]">
+   <button type="button" onclick="toggleSearch(false)" aria-label="إغلاق البحث" class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[var(--text-dim)] hover:bg-[var(--chip)]">✕</button>
+  </form>
+  <div id="live-search-results" class="live-search-results" aria-live="polite" aria-busy="false"></div>
+ </div>
 </div>

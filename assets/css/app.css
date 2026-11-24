@@ -165,3 +165,13 @@ html.light .intro-title { background-image: linear-gradient(90deg, #171b33, #5b2
 .sheet-scroll { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .sheet-pad-b { padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)) !important; }
 @media (hover: none) and (pointer: coarse) { .sheet-pad-b { padding-bottom: calc(6rem + env(safe-area-inset-bottom)) !important; } }
+
+/* Inline header search: spaced rows and viewport-bounded scrolling. */
+.live-search-results{display:flex;flex-direction:column;gap:8px;padding:12px;max-height:min(60dvh,420px);overflow-y:auto;overscroll-behavior:contain}
+.live-search-results:empty{display:none}
+.live-search-hit{display:flex;align-items:center;gap:12px;flex-shrink:0;border-radius:16px;padding:14px 12px;color:var(--text);text-decoration:none;background:var(--card)}
+.live-search-hit:hover,.live-search-hit:focus-visible{background:var(--card)}
+.live-search-hit img{width:56px;height:56px;object-fit:cover;border-radius:12px;flex-shrink:0;background:var(--surface-2)}
+.live-search-name{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.65}
+.live-search-price{flex-shrink:0;white-space:nowrap;font-size:14px;font-weight:700;color:var(--accent)}
+.live-search-message{padding:16px;font-size:14px;color:var(--text-faint)}

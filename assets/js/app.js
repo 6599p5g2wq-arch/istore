@@ -190,13 +190,19 @@
   };
 
   // ---------- نافذة البحث ----------
+  var searchTimer,searchController,searchSeq=0,searchFocus;
+  function clearSearch(){clearTimeout(searchTimer);searchSeq++;if(searchController)searchController.abort();var r=document.getElementById('live-search-results');if(r){r.replaceChildren();r.setAttribute('aria-busy','false');}}
   window.toggleSearch = function (open) {
-    var ov = document.getElementById('search-overlay');
-    if (ov) {
-      ov.classList.toggle('open', open);
-      if (open) { var inp = ov.querySelector('input'); if (inp) setTimeout(function () { inp.focus(); }, 60); }
-    }
+    var ov=document.getElementById('search-overlay');if(!ov)return;
+    ov.classList.toggle('open',open);document.body.style.overflow=open?'hidden':'';
+    if(open){searchFocus=document.activeElement;var inp=ov.querySelector('input');if(inp)setTimeout(function(){inp.focus();},60);}else{clearSearch();ov.querySelector('input').value='';if(searchFocus)searchFocus.focus();}
   };
+  function initLiveSearch(){var input=document.getElementById('live-search-input'),results=document.getElementById('live-search-results'),form=document.getElementById('live-search-form');if(!input||!results)return;
+    function message(text){results.replaceChildren();var el=document.createElement('p');el.className='live-search-message';el.textContent=text;results.append(el);}
+    input.addEventListener('input',function(e){clearSearch();if(e.isComposing)return;var q=input.value.trim();if(!q)return;var seq=searchSeq;searchTimer=setTimeout(async function(){searchController=new AbortController();results.setAttribute('aria-busy','true');message('جاري البحث…');try{var response=await fetch(window.BASE+'/api/search.php?q='+encodeURIComponent(q),{signal:searchController.signal});if(!response.ok)throw Error('search');var data=await response.json();if(seq!==searchSeq)return;results.replaceChildren();var hits=Array.isArray(data.results)?data.results:[];if(!hits.length){message('لا نتائج مطابقة لـ «'+q+'»');return;}hits.slice(0,8).forEach(function(h){if(!h||typeof h.slug!=='string')return;var row=document.createElement('a');row.className='live-search-hit';row.href=window.BASE+'/product.php?slug='+encodeURIComponent(h.slug);var img=document.createElement('img'),url=String(h.image||'');try{var parsed=new URL(url,location.href);if(['http:','https:'].includes(parsed.protocol))img.src=parsed.href;}catch{}img.alt='';var name=document.createElement('span');name.className='live-search-name';name.textContent=String(h.name||'');var price=document.createElement('span');price.className='live-search-price';price.textContent=(Number.isFinite(Number(h.price))?Number(h.price).toLocaleString('en-US'):'0')+' د.ل';row.append(img,name,price);results.append(row);});}catch(err){if(err.name!=='AbortError'&&seq===searchSeq)message('تعذر البحث الآن. اضغط Enter لفتح صفحة المنتجات.');}finally{if(seq===searchSeq)results.setAttribute('aria-busy','false');}},250);});
+    input.addEventListener('compositionend',function(){input.dispatchEvent(new Event('input'));});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.getElementById('search-overlay').classList.contains('open'))toggleSearch(false);});
+  }
 
   // ---------- سلايدر الهيرو ----------
   // Hero motion is loaded as a dedicated module on the home page.
@@ -219,7 +225,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    initReveal(); initTilt(); initHeader(); initBackToTop();
+    initLiveSearch(); initReveal(); initTilt(); initHeader(); initBackToTop();
     Cart.renderBadge(); Cart.renderDrawer();
     Wish.renderBadge();
     initAnalytics();
