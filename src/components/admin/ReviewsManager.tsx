@@ -124,7 +124,7 @@ export default function ReviewsManager({ reviews, stats, topProducts, bottomProd
         {filtered.length === 0 && <p className="rounded-3xl bg-white p-10 text-center text-sm text-neutral-400 shadow-sm">{reviews.length === 0 ? "لا توجد تقييمات بعد" : "لا نتائج مطابقة"}</p>}
         {filtered.map((r) => (
           <div key={r.id} className={`rounded-3xl bg-white p-5 shadow-sm ${r.approved ? "" : "opacity-70"}`}>
-            <div className="flex flex-wrap items-start gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
               <Stars n={r.rating} />
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-2 font-extrabold">
@@ -150,7 +150,7 @@ export default function ReviewsManager({ reviews, stats, topProducts, bottomProd
                 )}
                 <p className="mt-1 text-xs text-neutral-400"><span dir="ltr">{r.order_code}</span> — {formatDate(r.created_at)}</p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex items-center gap-2 sm:shrink-0">
                 <button onClick={() => { setReplyFor(replyFor === r.id ? null : r.id); setReplyText(r.reply || ""); }} title={r.reply ? "تعديل الرد" : "رد على التقييم"}
                   className="grid h-9 w-9 place-items-center rounded-full border border-neutral-200 text-neutral-500 transition hover:border-black hover:text-black">
                   <MessageSquareReply size={15} />
