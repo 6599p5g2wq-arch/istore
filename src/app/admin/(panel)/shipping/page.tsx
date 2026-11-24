@@ -13,8 +13,8 @@ export default function AdminShipping() {
   return (
     <div>
       <h1 className="text-2xl font-black sm:text-3xl">التوصيل والمدن</h1>
-      <p className="mt-1 text-sm text-neutral-500">رسوم التوصيل لكل مدينة — الشحن مجاني فوق {s.free_shipping_threshold} {s.currency} (يُعدَّل من الإعدادات)</p>
-      <CitiesManager cities={cities} />
+      <p className="mt-1 text-sm text-neutral-500">إدارة المدن والرسوم والترتيب وحد الشحن المجاني</p>
+      <CitiesManager cities={cities} threshold={s.free_shipping_threshold || "0"} currency={s.currency} />
     </div>
   );
 }
