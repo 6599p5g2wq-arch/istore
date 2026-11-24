@@ -71,7 +71,8 @@ admin_header('الإعدادات', 'settings.php');
   <?php $secPanel='admin';require APP_ROOT.'/includes/security-settings.php';admin_msg(); ?>
   <nav id="settings-nav" class="mt-4 flex flex-wrap gap-2"><?php foreach(['الإعلانات','العملة','شرائح المقدمة','المميزات','الشحن'] as $i=>$lbl): ?><a class="rounded-full border bg-white px-3 py-2 text-xs font-bold" href="#settings-<?= $i ?>"><?= $lbl ?></a><?php endforeach; ?></nav>
   <?php if($err): ?><p role="alert" class="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700"><?= e($err) ?>، احتفظنا بكل القيم التي أدخلتها.</p><?php endif; ?>
-  <form id="site-settings-form" method="post" class="mt-6 space-y-5 pb-28">
+  <style>#site-settings-form select.admin-input{background-color:#efefef}</style>
+<form id="site-settings-form" method="post" class="mt-6 space-y-5 pb-28">
     <div class="admin-card p-6">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -147,7 +148,7 @@ admin_header('الإعدادات', 'settings.php');
         <p class="mt-1 text-xs text-neutral-500">تظهر بجانب السعر كقيمة تقريبية، مثل ≈ 28.85 $. للعرض فقط: الدفع والطلبات تبقى بالعملة الأساسية. اترك الحقلين فارغين لإيقافها.</p>
         <div class="mt-3 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
           <label class="block text-sm font-bold">رمز العملة الثانية<input name="currency2_symbol" maxlength="10" placeholder="$" value="<?= e(settings_value('currency2_symbol', '')) ?>" class="admin-input mt-1"></label>
-          <label class="block text-sm font-bold">سعر الصرف (كم وحدة من عملتك الأساسية تساوي 1 من الثانية)<input name="currency2_rate" dir="ltr" inputmode="decimal" placeholder="5.2" value="<?= e(settings_value('currency2_rate', '')) ?>" class="admin-input mt-1 text-left"></label>
+          <label class="block text-sm font-bold"><span id="rate-label">سعر الصرف (كم <?= e(settings_value('currency', '') ?: 'د.ل') ?> يساوي 1 <?= e(settings_value('currency2_symbol', '') ?: 'من الثانية') ?>)</span><input name="currency2_rate" dir="ltr" inputmode="decimal" placeholder="5.2" value="<?= e(settings_value('currency2_rate', '')) ?>" class="admin-input mt-1 text-left"></label>
         </div>
       </div>
     </div>
