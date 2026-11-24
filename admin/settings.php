@@ -67,7 +67,7 @@ admin_header('الإعدادات', 'settings.php');
 ?>
 <div class="max-w-3xl">
   <h1 class="text-2xl font-black sm:text-3xl">الإعدادات</h1>
-  <p class="mt-1 text-sm text-neutral-500">تحكم بالعملة والأسعار وشريط الإعلانات وشرائح المقدمة وشريط المميزات</p>
+  <p class="mt-1 text-sm text-neutral-500">الشحن والعملة والأسعار وشريط الإعلانات وشرائح المقدمة وشريط المميزات</p>
   <?php $secPanel='admin';require APP_ROOT.'/includes/security-settings.php';admin_msg(); ?>
   <nav id="settings-nav" class="mt-4 flex flex-wrap gap-2"><?php foreach(['الإعلانات','العملة','شرائح المقدمة','المميزات','الشحن'] as $i=>$lbl): ?><a class="rounded-full border bg-white px-3 py-2 text-xs font-bold" href="#settings-<?= $i ?>"><?= $lbl ?></a><?php endforeach; ?></nav>
   <?php if($err): ?><p role="alert" class="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700"><?= e($err) ?>، احتفظنا بكل القيم التي أدخلتها.</p><?php endif; ?>
