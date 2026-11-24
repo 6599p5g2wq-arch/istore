@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "id": "559a23512c5807e4afe6df1c6726666f",
+  "username_hash": "scrypt$131072$8$1$1bb596cb10cccf4aa3fcdd176ea59c7a$1587f5fa793a78d66dd3dec5d965eb463b0e801279fe1b17c2fa6bea9b60c9d2",
+  "password_hash": "scrypt$131072$8$1$dae3531d138347d02c7e16c686d072ad$0df4d61f4fb8afd84b1321d50daa34a06ca2797e00ad9b6b63ba8f995cda0f3f",
+  "starter": true
+}
