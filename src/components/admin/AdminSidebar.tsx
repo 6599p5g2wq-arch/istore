@@ -23,8 +23,14 @@ const LINKS = [
   { href: "/admin/admins", label: "المشرفون", icon: Users },
 ];
 
-export default function AdminSidebar({ storeName, username, newOrders = 0, lowStock = 0 }: { storeName: string; username: string; newOrders?: number; lowStock?: number }) {
-  const badges: Record<string, number> = { "/admin/orders": newOrders, "/admin/products": lowStock };
+const badgeMeta: Record<string, { title: string; cls: string }> = {
+  "/admin/orders": { title: "طلبات جديدة", cls: "bg-red-500" },
+  "/admin/products": { title: "منتجات مخزونها منخفض", cls: "bg-amber-500" },
+  "/admin/reviews": { title: "تقييمات منخفضة معروضة", cls: "bg-red-500" },
+};
+
+export default function AdminSidebar({ storeName, username, newOrders = 0, lowStock = 0, lowReviews = 0 }: { storeName: string; username: string; newOrders?: number; lowStock?: number; lowReviews?: number }) {
+  const badges: Record<string, number> = { "/admin/orders": newOrders, "/admin/products": lowStock, "/admin/reviews": lowReviews };
   const totalAlerts = newOrders + lowStock;
   const pathname = usePathname();
   const router = useRouter();
@@ -59,7 +65,7 @@ export default function AdminSidebar({ storeName, username, newOrders = 0, lowSt
               className={`mb-1 flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-bold transition ${active ? "bg-white text-black" : "text-white/70 hover:bg-white/10 hover:text-white"}`}>
               <l.icon size={17} /> <span className="flex-1">{l.label}</span>
               {(badges[l.href] ?? 0) > 0 && (
-                <span title={l.href === "/admin/orders" ? "طلبات جديدة" : "منتجات مخزونها منخفض"} className={`grid min-w-[1.4rem] place-items-center rounded-full px-1.5 py-0.5 text-[11px] font-extrabold leading-none text-white ${l.href === "/admin/orders" ? "bg-red-500" : "bg-amber-500"}`}>{badges[l.href] > 99 ? "99+" : badges[l.href]}</span>
+                <span title={badgeMeta[l.href]?.title} className={`grid min-w-[1.4rem] place-items-center rounded-full px-1.5 py-0.5 text-[11px] font-extrabold leading-none text-white ${badgeMeta[l.href]?.cls ?? "bg-amber-500"}`}>{badges[l.href] > 99 ? "99+" : badges[l.href]}</span>
               )}
             </Link>
           );

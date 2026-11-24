@@ -145,6 +145,11 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
                   <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400"><BadgeCheck size={12} /> مشترٍ موثق</span>
                 </div>
                 {r.comment && <p className="mt-3 text-sm leading-7 text-[var(--text-dim)]">{r.comment}</p>}
+                {r.reply && (
+                  <p className="mt-3 rounded-xl bg-[var(--card-hover,var(--card))] px-4 py-3 text-sm leading-7 text-[var(--text-dim)]">
+                    <span className="font-extrabold text-white">رد المتجر: </span>{r.reply}
+                  </p>
+                )}
               </div>
             ))}
           </div>

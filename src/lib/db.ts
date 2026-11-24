@@ -166,6 +166,7 @@ function initSchema(db: Database.Database) {
     phone TEXT NOT NULL,
     order_code TEXT NOT NULL,
     approved INTEGER NOT NULL DEFAULT 0,
+    reply TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE TABLE IF NOT EXISTS cart_leads (
@@ -234,6 +235,7 @@ function initSchema(db: Database.Database) {
     "ALTER TABLE orders ADD COLUMN points_refunded INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE orders ADD COLUMN admin_notes TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE brands ADD COLUMN description TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE reviews ADD COLUMN reply TEXT NOT NULL DEFAULT ''",
   ]) {
     try { db.exec(stmt); } catch { /* column already exists */ }
   }
