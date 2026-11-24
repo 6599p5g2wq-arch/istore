@@ -62,6 +62,7 @@ admin_header('الطلبات', 'orders.php');
     <input name="q" value="<?= e($q) ?>" placeholder="ابحث برقم الطلب، اسم العميل، أو الهاتف…" class="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400">
     <button class="shrink-0 rounded-full bg-neutral-900 px-4 py-1.5 text-xs font-bold text-white">بحث</button>
   </form>
+  <?php require __DIR__.'/_orders-export-ui.php'; ?>
   <div class="flex gap-1.5">
     <?php foreach ($periods as $k => $label): ?>
       <a href="<?= e(orders_url(['period' => $k, 'page' => ''])) ?>" class="rounded-full px-3.5 py-2 text-xs font-bold <?= $period === $k ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-500 shadow-sm' ?>"><?= e($label) ?></a>
