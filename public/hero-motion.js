@@ -44,7 +44,7 @@ export function initHeroMotion(root) {
       });
     });
   });
-  const label = i => { cta.textContent = copies[i].dataset.label; cta.setAttribute('href', copies[i].dataset.href); };
+  const label = i => { let span=cta.querySelector('span'); if(!span){span=document.createElement('span');cta.textContent='';cta.appendChild(span);} span.textContent=copies[i].dataset.label; cta.setAttribute('href',copies[i].dataset.href); return span; };
   const mark = i => dots.forEach((dot, k) => { dot.classList.toggle('active', k === i); dot.setAttribute('aria-current', k === i ? 'true' : 'false'); });
   const finish = () => {
     clearTimeout(finishTimer); clearTimeout(labelTimer); busy = false; position = n > 1 ? index + 1 : 0; place();
@@ -63,14 +63,16 @@ export function initHeroMotion(root) {
     animations.splice(0).forEach(a => a.cancel());
     const run = (copy, enter) => copy.querySelectorAll('h1,h2,p').forEach(el => {
       el.querySelectorAll('.hp-unit').forEach(unit => {
-        const delay = Math.min(Number(unit.dataset.unit) * (el.tagName === 'P' ? 18 : 24), 450);
-        const a = unit.animate(enter ? [{opacity:0,transform:'translateY(18px)'},{opacity:1,transform:'translateY(0)'}] : [{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-16px)'}], {duration:reduced ? 0 : enter ? 420 : 300, delay:reduced ? 0 : delay + (enter ? 320 : 0), fill:'both', easing:'ease-out'});
+        const delay = Math.min(Number(unit.dataset.unit) * (el.tagName === 'P' ? 22 : 28), 450);
+        const a = unit.animate(enter ? [{opacity:0,transform:'translateY(18px)'},{opacity:1,transform:'translateY(0)'}] : [{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-16px)'}], {duration:reduced ? 0 : enter ? 650 : 500, delay:reduced ? 0 : delay + (enter ? 500 : 0), fill:'both', easing:'cubic-bezier(.333,0,.667,1)'});
         animations.push(a);
       });
     });
     run(outgoing, false); run(incoming, true); zooms.splice(0).forEach(a=>a.cancel()); zoom(position); place(true); mark(next);
-    labelTimer = setTimeout(() => label(next), reduced ? 0 : 420);
-    finishTimer = setTimeout(finish, reduced ? 10 : 1250);
+    const oldLabel=cta.querySelector('span');
+    if(oldLabel) animations.push(oldLabel.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-4px)'}],{duration:reduced?0:250,fill:'both',easing:'cubic-bezier(.333,0,.667,1)'}));
+    labelTimer = setTimeout(() => {const span=label(next);animations.push(span.animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:reduced?0:400,fill:'both',easing:'cubic-bezier(.333,0,.667,1)'}));}, reduced ? 0 : 500);
+    finishTimer = setTimeout(finish, reduced ? 10 : 1650);
   };
   const handlers = [];
   const on = (el, event, fn, opts) => { el.addEventListener(event, fn, opts); handlers.push(() => el.removeEventListener(event, fn, opts)); };
