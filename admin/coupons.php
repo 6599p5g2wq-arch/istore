@@ -69,7 +69,7 @@ admin_header('أكواد الخصم', 'coupons.php');
 <div class="mt-4 grid gap-6 lg:grid-cols-3">
   <div class="order-2 admin-card h-fit p-6 lg:sticky lg:top-8">
     <h2 class="font-extrabold"><?= $edit ? 'تعديل الكوبون ' . e($edit['code']) : 'إنشاء كود خصم' ?></h2>
-    <form method="post" class="mt-4 space-y-3">
+    <form method="post" class="mt-4 space-y-4">
       <input type="hidden" name="action" value="save"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">
       <label class="block text-sm font-bold">الكود *<input name="code" required dir="ltr" value="<?= e($edit['code'] ?? '') ?>" class="mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 outline-none focus:border-black text-left uppercase" placeholder="ISTORE10"></label>
       <div class="grid grid-cols-2 gap-3">

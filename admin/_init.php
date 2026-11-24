@@ -61,8 +61,8 @@ function admin_header(string $title, string $active = ''): void {
   .badge { display: inline-block; border-radius: 9999px; padding: .15rem .7rem; font-size: .72rem; font-weight: 800; }
 
 .dashboard-stat {display:flex;flex-direction:column;align-items:flex-start}
-.dashboard-stat > div{display:flex;flex-direction:column;width:100%;margin-top:18px}
-.dashboard-label{order:2;font-size:14px;color:#a3a3a3;margin-top:2px;font-weight:400}
+.dashboard-stat > div{display:flex;flex-direction:column;width:100%;margin-top:16px}
+.dashboard-label{order:2;font-size:14px;line-height:20px;color:#a3a3a3;margin-top:0;font-weight:400}
 .dashboard-value{order:1;font-size:24px;font-weight:900;line-height:32px}
 .dashboard-stat > div > :not(.dashboard-value):not(.dashboard-label){order:3}
 .dashboard-stat > span{height:44px;width:44px;margin-bottom:0}
@@ -130,21 +130,27 @@ function handle_program_post(string $backPage): bool {
 }
 
 // بطاقة إعدادات: $fields = [[key, label, hint, step], ...]
-function program_panel(string $group, string $title, string $desc, bool $enabled, array $fields): void {
+function program_panel(string $group, string $title, string $desc, bool $enabled, array $fields, bool $hints = false): void {
     ?>
     <form method="post" class="admin-card p-6">
       <input type="hidden" name="action" value="program"><input type="hidden" name="group" value="<?= e($group) ?>">
       <div class="flex items-start justify-between gap-4"><div><h2 class="font-extrabold"><?= e($title) ?></h2><p class="mt-1 text-xs text-neutral-500"><?= e($desc) ?></p></div><label class="shrink-0"><input type="checkbox" name="enabled" value="1" <?= $enabled ? 'checked' : '' ?> class="panel-switch" aria-label="مفعّل"></label></div><p class="mt-2 text-xs font-bold text-neutral-400"><?=$enabled?'مفعّل':'متوقف'?></p>
       <div class="mt-4 grid gap-3 sm:grid-cols-2">
-        <?php foreach ($fields as [$key, $label, $hint, $step]): ?>
+        <?php foreach ($fields as $fld): [$key, $label, $hint, $step] = $fld; ?>
           <label class="block text-sm font-bold"><?= e($label) ?>
-            <input type="number" name="<?= e($key) ?>" step="<?= e((string)$step) ?>" min="0" required value="<?= e(rtrim(rtrim(number_format((float)setting($key, (string)$hint), 2, '.', ''), '0'), '.')) ?>" class="admin-input mt-1.5">
+            <input type="number" name="<?= e($key) ?>" step="<?= e((string)$step) ?>" min="0" required value="<?= e(rtrim(rtrim(number_format((float)setting($key, (string)$hint), 2, '.', ''), '0'), '.')) ?>" class="admin-input mt-1.5"><?php if ($hints): ?><span class="mt-1 block text-[11px] font-normal text-neutral-400">الافتراضي: <?= e($fld[4] ?? (string)$hint) ?></span><?php endif; ?>
           </label>
         <?php endforeach; ?>
       </div>
       <button class="admin-btn !text-sm !py-2.5 mt-4"><?= icon('save', 16) ?> حفظ</button>
     </form>
     <?php
+}
+
+function admin_ar_ly_date(?string $utc): string {
+    if (!$utc) return '';
+    try { $d = new DateTime($utc, new DateTimeZone('UTC')); $d->setTimezone(new DateTimeZone('Africa/Tripoli')); } catch (Throwable $e) { return $utc; }
+    return $d->format('j/n/Y') . ', ' . $d->format('g:i') . ' ' . ($d->format('A') === 'AM' ? 'ص' : 'م');
 }
 
 function flash(string $msg, bool $error = false): void {

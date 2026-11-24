@@ -49,7 +49,7 @@ $periodTotal = array_sum(array_column($days, 'total'));
 $BAR_MAX = 110;
 
 $months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-$todayStr = $weekdays[date('w')] . ' ' . date('j') . ' ' . $months[date('n') - 1] . ' ' . date('Y');
+$todayStr = $weekdays[date('w')] . '، ' . date('j') . ' ' . $months[date('n') - 1] . ' ' . date('Y');
 
 function delta_html(float $now, float $prev, string $label): string {
     if ($prev <= 0) {
@@ -64,26 +64,26 @@ function delta_html(float $now, float $prev, string $label): string {
 admin_header('لوحة المعلومات', 'index.php');
 ?>
 <h1 class="text-2xl font-black sm:text-3xl">مرحباً بك 👋</h1>
-<p class="mt-1 text-neutral-500">نظرة سريعة على أداء متجرك — <?= e($todayStr) ?></p>
+<p class="mt-1 text-neutral-500" style="line-height:1.5rem">نظرة سريعة على أداء متجرك — <?= e($todayStr) ?></p>
 <?php admin_msg(); ?>
 
 <div class="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-  <div class="admin-card p-5"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-emerald-500 text-white"><?= icon('banknote', 22) ?></span><div><p class="dashboard-label">مبيعات اليوم</p><p class="dashboard-value"><?= e(format_price((float)$today['t'])) ?></p><?= delta_html((float)$today['t'], (float)$yesterday['t'], 'عن أمس') ?></div></div></div>
-  <div class="admin-card p-5"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-blue-500 text-white"><?= icon('shopping-cart', 22) ?></span><div><p class="dashboard-label">طلبات اليوم</p><p class="dashboard-value"><?= (int)$today['c'] ?></p><?= delta_html((float)$today['c'], (float)$yesterday['c'], 'عن أمس') ?></div></div></div>
-  <a href="<?= e(admin_url('orders.php?status=new')) ?>" class="admin-card block p-5 transition hover:-translate-y-0.5 hover:shadow-md"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-500 text-white"><?= icon('clock', 22) ?></span><div><p class="dashboard-label">طلبات جديدة</p><p class="dashboard-value"><?= $totals['newOrders'] ?></p><p class="mt-1 text-[11px] font-bold text-violet-700">اضغط للعرض والمعالجة ←</p></div></div></a>
-  <div class="admin-card p-5"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-violet-500 text-white"><?= icon('percent', 22) ?></span><div><p class="dashboard-label">معدل التحويل (زيارة ← طلب) هذا الأسبوع</p><p class="dashboard-value"><?= number_format($convWeek, 1) ?>%</p><?= delta_html(round($convWeek * 10), round($convPrevWeek * 10), 'عن الأسبوع الماضي') ?></div></div></div>
+  <div class="admin-card p-5"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-emerald-500 text-white"><?= icon('banknote', 20) ?></span><div><p class="dashboard-label">مبيعات اليوم</p><p class="dashboard-value"><?= e(format_price((float)$today['t'])) ?></p><?= delta_html((float)$today['t'], (float)$yesterday['t'], 'عن أمس') ?></div></div></div>
+  <div class="admin-card p-5"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-blue-500 text-white"><?= icon('shopping-cart', 20) ?></span><div><p class="dashboard-label">طلبات اليوم</p><p class="dashboard-value"><?= (int)$today['c'] ?></p><?= delta_html((float)$today['c'], (float)$yesterday['c'], 'عن أمس') ?></div></div></div>
+  <a href="<?= e(admin_url('orders.php?status=new')) ?>" class="admin-card block p-5 transition hover:-translate-y-0.5 hover:shadow-md"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-500 text-white"><?= icon('clock', 20) ?></span><div><p class="dashboard-label">طلبات جديدة</p><p class="dashboard-value"><?= $totals['newOrders'] ?></p><p class="mt-1 text-[11px] font-bold" style="color:#00c6ff">اضغط للعرض والمعالجة ←</p></div></div></a>
+  <div class="admin-card p-5"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-violet-500 text-white"><?= icon('trending-up', 20) ?></span><div><p class="dashboard-label">معدل التحويل (زيارة ← طلب) هذا الأسبوع</p><p class="dashboard-value"><?= number_format($convWeek, 1) ?>%</p><?= delta_html(round($convWeek * 10), round($convPrevWeek * 10), 'عن الأسبوع الماضي') ?></div></div></div>
 </div>
 
 <div class="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
-  <div class="admin-card p-5"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-emerald-600 text-white"><?= icon('banknote', 22) ?></span><div><p class="dashboard-label">إجمالي المبيعات</p><p class="dashboard-value"><?= e(format_price($totals['revenue'])) ?></p></div></div></div>
-  <a href="<?= e(admin_url('orders.php')) ?>" class="admin-card block p-5 transition hover:-translate-y-0.5 hover:shadow-md"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white"><?= icon('shopping-cart', 22) ?></span><div><p class="dashboard-label">كل الطلبات</p><p class="dashboard-value"><?= $totals['orders'] ?></p><p class="mt-1 text-[11px] font-bold text-violet-700">اضغط للعرض ←</p></div></div></a>
-  <a href="<?= e(admin_url('products.php')) ?>" class="admin-card block p-5 transition hover:-translate-y-0.5 hover:shadow-md"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-purple-500 text-white"><?= icon('package', 22) ?></span><div><p class="dashboard-label">المنتجات</p><p class="dashboard-value"><?= $totals['products'] ?></p><p class="mt-1 text-[11px] font-bold text-violet-700">اضغط للإدارة ←</p></div></div></a>
-  <div class="admin-card p-5"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sky-500 text-white"><?= icon('eye', 22) ?></span><div><p class="dashboard-label">زيارات اليوم (<?= $viewsWeek ?> هذا الأسبوع)</p><p class="dashboard-value"><?= $viewsToday ?></p></div></div></div>
+  <div class="admin-card p-5"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-emerald-600 text-white"><?= icon('banknote', 20) ?></span><div><p class="dashboard-label">إجمالي المبيعات</p><p class="dashboard-value"><?= e(format_price($totals['revenue'])) ?></p></div></div></div>
+  <a href="<?= e(admin_url('orders.php')) ?>" class="admin-card block p-5 transition hover:-translate-y-0.5 hover:shadow-md"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white"><?= icon('shopping-cart', 20) ?></span><div><p class="dashboard-label">كل الطلبات</p><p class="dashboard-value"><?= $totals['orders'] ?></p><p class="mt-1 text-[11px] font-bold" style="color:#00c6ff">اضغط للعرض ←</p></div></div></a>
+  <a href="<?= e(admin_url('products.php')) ?>" class="admin-card block p-5 transition hover:-translate-y-0.5 hover:shadow-md"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-purple-500 text-white"><?= icon('package', 20) ?></span><div><p class="dashboard-label">المنتجات</p><p class="dashboard-value"><?= $totals['products'] ?></p><p class="mt-1 text-[11px] font-bold" style="color:#00c6ff">اضغط للإدارة ←</p></div></div></a>
+  <div class="admin-card p-5"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sky-500 text-white"><?= icon('eye', 20) ?></span><div><p class="dashboard-label">زيارات اليوم (<?= $viewsWeek ?> هذا الأسبوع)</p><p class="dashboard-value"><?= $viewsToday ?></p></div></div></div>
 </div>
 
 <div class="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
-  <a href="<?= e(admin_url('leads.php')) ?>" class="admin-card block p-5 transition hover:-translate-y-0.5 hover:shadow-md"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-orange-500 text-white"><?= icon('shopping-bag', 22) ?></span><div><p class="dashboard-label">سلات مهجورة بانتظار التذكير</p><p class="dashboard-value"><?= $leadsCount ?></p><p class="mt-1 text-[11px] font-bold text-violet-700">اضغط للتذكير ←</p></div></div></a>
-  <a href="<?= e(admin_url('customers.php')) ?>" class="admin-card block p-5 transition hover:-translate-y-0.5 hover:shadow-md"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-indigo-500 text-white"><?= icon('users', 22) ?></span><div><p class="dashboard-label">حسابات الزبائن</p><p class="dashboard-value"><?= $customersCount ?></p><p class="mt-1 text-[11px] font-bold text-violet-700">اضغط للعرض ←</p></div></div></a>
+  <a href="<?= e(admin_url('leads.php')) ?>" class="admin-card block p-5 transition hover:-translate-y-0.5 hover:shadow-md"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-orange-500 text-white"><?= icon('shopping-bag', 20) ?></span><div><p class="dashboard-label">سلات مهجورة بانتظار التذكير</p><p class="dashboard-value"><?= $leadsCount ?></p><p class="mt-1 text-[11px] font-bold" style="color:#00c6ff">اضغط للتذكير ←</p></div></div></a>
+  <a href="<?= e(admin_url('customers.php')) ?>" class="admin-card block p-5 transition hover:-translate-y-0.5 hover:shadow-md"><div class="dashboard-stat"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-indigo-500 text-white"><?= icon('users', 20) ?></span><div><p class="dashboard-label">حسابات الزبائن</p><p class="dashboard-value"><?= $customersCount ?></p><p class="mt-1 text-[11px] font-bold" style="color:#00c6ff">اضغط للعرض ←</p></div></div></a>
   <div class="admin-card p-5 lg:col-span-2">
     <h2 class="mb-2 text-sm font-extrabold">أكثر الصفحات زيارة (7 أيام)</h2>
     <?php if ($topPages): ?>
@@ -106,8 +106,8 @@ admin_header('لوحة المعلومات', 'index.php');
     <div class="mt-6 flex h-44 items-end justify-between gap-2">
       <?php foreach ($days as $idx => $d): $h = max(3, (int)round($d['total'] / $maxDay * $BAR_MAX)); $isToday = $idx === count($days) - 1; ?>
         <div class="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
-          <span class="text-[10px] font-bold text-neutral-500"><?= $range === 7 && $d['total'] > 0 ? e(format_price($d['total'])) : '' ?></span>
-          <div class="w-full max-w-10 rounded-t-lg <?= $isToday ? 'bg-emerald-500' : 'bg-gradient-to-t from-violet-600 to-fuchsia-400' ?>" style="height: <?= $h ?>px" title="<?= e(format_price($d['total'])) ?> · <?= $d['count'] ?> طلب"></div>
+          <span class="text-[10px] font-bold text-neutral-400"><?= $range === 7 && $d['total'] > 0 ? e(format_price($d['total'])) : '' ?></span>
+          <div class="w-full max-w-10 rounded-t-lg <?= $isToday ? 'bg-emerald-500' : '' ?>" style="height: <?= $h ?>px;<?= $isToday ? '' : 'background:rgba(0,198,255,.9)' ?>" title="<?= e(format_price($d['total'])) ?> · <?= $d['count'] ?> طلب"></div>
           <span class="text-[10px] font-bold text-neutral-500"><?= $d['show'] ? e($d['day']) : '' ?></span>
         </div>
       <?php endforeach; ?>
@@ -117,7 +117,7 @@ admin_header('لوحة المعلومات', 'index.php');
     </p>
   </div>
   <div class="admin-card p-6 lg:col-span-2">
-    <h2 class="flex items-center gap-2 font-extrabold"><?= icon('package', 18, 'text-violet-500') ?> الطلبات حسب الحالة (هذا الشهر)</h2>
+    <h2 class="flex items-center gap-2 font-extrabold"><?= icon('pie-chart', 18, 'text-violet-500') ?> الطلبات حسب الحالة (هذا الشهر)</h2>
     <div class="mt-4 space-y-3">
       <?php foreach ($statusKeys as $k): $c = $statusMap[$k] ?? 0; ?>
         <a href="<?= e(admin_url('orders.php?status=' . $k)) ?>" class="group flex items-center gap-3">
@@ -129,7 +129,7 @@ admin_header('لوحة المعلومات', 'index.php');
         </a>
       <?php endforeach; ?>
     </div>
-    <p class="mt-4 text-[11px] font-bold text-violet-700">كل حالة رابط يفتح قائمة الطلبات مفلترة عليها</p>
+    <p class="mt-4 text-[11px] font-bold" style="color:#00c6ff">كل حالة رابط يفتح قائمة الطلبات مفلترة عليها</p>
   </div>
 </div>
 
@@ -139,7 +139,7 @@ admin_header('لوحة المعلومات', 'index.php');
     <?php if ($topProducts): ?>
       <ul class="mt-4 space-y-2 text-sm">
         <?php foreach ($topProducts as $i => $p): ?>
-          <li class="flex items-center gap-3 rounded-xl bg-neutral-50 px-4 py-2.5">
+          <li class="flex items-center gap-3 rounded-xl bg-[#f5f5f7] px-4 py-2.5">
             <span class="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-neutral-900 text-xs font-black text-white"><?= $i + 1 ?></span>
             <span class="line-clamp-1 flex-1 font-bold"><?= e($p['name']) ?></span>
             <span class="shrink-0 text-xs font-extrabold text-emerald-600"><?= (int)$p['qty'] ?> قطعة · <?= e(format_price((float)$p['rev'])) ?></span>
@@ -152,30 +152,31 @@ admin_header('لوحة المعلومات', 'index.php');
     <h2 class="flex items-center gap-2 font-extrabold"><?= icon('alert-triangle', 18, 'text-amber-500') ?> مخزون منخفض</h2>
     <ul class="mt-4 space-y-2 text-sm">
       <?php foreach ($lowStock as $p): ?>
-        <li><a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2 transition hover:bg-neutral-200/60"><span class="line-clamp-1"><?= e($p['name']) ?></span><b class="<?= $p['stock'] <= 0 ? 'text-red-600' : 'text-amber-600' ?>"><?= (int)$p['stock'] ?></b></a></li>
+        <li><a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="flex items-center justify-between rounded-xl bg-[#f5f5f7] px-4 py-2.5 text-sm transition hover:bg-neutral-200/60"><span class="line-clamp-1 font-bold"><?= e($p['name']) ?></span><span class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-extrabold <?= $p['stock'] <= 0 ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700' ?>"><?= $p['stock'] <= 0 ? 'نفد' : (int)$p['stock'] ?></span></a></li>
       <?php endforeach; ?>
-      <?php if (!$lowStock): ?><li class="py-6 text-center text-neutral-400">المخزون بحالة جيدة</li><?php endif; ?>
+      <?php if (!$lowStock): ?><li class="py-6 text-center text-neutral-400">كل المنتجات بمخزون جيد 👍</li><?php endif; ?>
     </ul>
   </div>
 </div>
 
-<div class="admin-card mt-6 overflow-x-auto p-2">
-  <div class="flex items-center justify-between p-4"><h2 class="font-extrabold">أحدث الطلبات</h2><a href="<?= e(admin_url('orders.php')) ?>" class="text-sm font-bold text-violet-700 hover:underline">كل الطلبات</a></div>
-  <table class="admin-table w-full">
-    <thead><tr><th>الطلب</th><th>العميل</th><th>المدينة</th><th>الإجمالي</th><th>الحالة</th><th></th></tr></thead>
+<div class="admin-card mt-6 p-6">
+  <div class="mb-4 flex items-center justify-between"><h2 class="font-extrabold">أحدث الطلبات</h2><a href="<?= e(admin_url('orders.php')) ?>" class="flex items-center gap-1 text-sm font-bold" style="color:#00c6ff">كل الطلبات <?= icon('chevron-left', 15) ?></a></div>
+  <?php if (!$recent): ?><p class="py-8 text-center text-sm text-neutral-400">لا توجد طلبات بعد</p><?php else: ?>
+  <div class="overflow-x-auto"><table class="w-full min-w-[640px] text-sm">
+    <thead><tr class="border-b text-right text-xs text-neutral-400"><th class="pb-3 font-bold">رقم الطلب</th><th class="pb-3 font-bold">العميل</th><th class="pb-3 font-bold">المدينة</th><th class="pb-3 font-bold">الإجمالي</th><th class="pb-3 font-bold">الحالة</th><th class="pb-3 font-bold">التاريخ</th></tr></thead>
     <tbody>
     <?php foreach ($recent as $o): ?>
-      <tr>
-        <td dir="ltr" class="font-bold"><?= e($o['code']) ?></td>
-        <td><?= e($o['customer_name']) ?></td>
-        <td><?= e($o['city']) ?></td>
-        <td class="font-bold"><?= e(format_price((float)$o['total'])) ?></td>
-        <td><span class="badge <?= order_status_class($o['status']) ?>"><?= e(order_status_label($o['status'])) ?></span></td>
-        <td><a href="<?= e(admin_url('order.php?id=' . (int)$o['id'])) ?>" class="font-bold text-violet-700 hover:underline">عرض</a></td>
+      <tr class="border-b border-neutral-50 last:border-0 hover:bg-neutral-50/60">
+        <td class="py-3"><a href="<?= e(admin_url('order.php?id=' . (int)$o['id'])) ?>" dir="ltr" class="font-extrabold" style="color:#00c6ff"><?= e($o['code']) ?></a></td>
+        <td class="py-3 font-bold"><?= e($o['customer_name']) ?></td>
+        <td class="py-3 text-neutral-500"><?= e($o['city']) ?></td>
+        <td class="py-3 font-bold"><?= e(format_price((float)$o['total'])) ?></td>
+        <td class="py-3"><span class="rounded-full px-3 py-1 text-xs font-bold <?= order_status_class($o['status']) ?>"><?= e(order_status_label($o['status'])) ?></span></td>
+        <td class="py-3 text-xs text-neutral-400"><?= e(format_date($o['created_at'])) ?></td>
       </tr>
     <?php endforeach; ?>
-    <?php if (!$recent): ?><tr><td colspan="6" class="py-10 text-center text-neutral-400">لا طلبات بعد</td></tr><?php endif; ?>
     </tbody>
-  </table>
+  </table></div>
+  <?php endif; ?>
 </div>
 <?php admin_footer(); ?>

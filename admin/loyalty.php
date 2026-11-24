@@ -26,10 +26,10 @@ admin_header('الولاء و VIP', 'loyalty.php');
 <div class="mt-6 grid max-w-4xl gap-5 lg:grid-cols-2">
   <div class="space-y-3">
     <?php program_panel('loyalty', 'نقاط الولاء', 'تُمنح النقاط عند تحويل الطلب إلى «تم التوصيل»، ويستبدلها الزبون عند إتمام الطلب.', $p['loyalty_enabled'], [
-        ['loyalty_per_lyd', 'نقاط لكل 1 د.ل', 1, 0.01],
+        ['loyalty_per_lyd', 'نقاط لكل 1 د.ل', 1, 0.01, '1'],
         ['loyalty_redeem_points', 'عدد النقاط للاستبدال', 100, 1],
-        ['loyalty_redeem_value', 'قيمة الخصم (د.ل)', 5, 0.01],
-    ]); ?>
+        ['loyalty_redeem_value', 'قيمة الخصم (د.ل)', 5, 0.01, '5 د.ل مقابل 100 نقطة'],
+    ], true); ?>
     <div class="rounded-3xl bg-neutral-50 p-5">
       <p class="flex items-center gap-2 text-sm font-extrabold"><?= icon('sliders', 15) ?> جرّب الحسبة</p>
       <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
@@ -45,7 +45,7 @@ admin_header('الولاء و VIP', 'loyalty.php');
   </div>
   <?php program_panel('vip', 'زبون VIP', 'يُوسم الزبون تلقائياً عند بلوغ حد الإنفاق (طلبات غير ملغاة)، ويمكنك تفعيله أو إلغاءه يدوياً من صفحة الزبون.', $p['vip_enabled'], [
       ['vip_threshold', 'حد الإنفاق (د.ل)', 2000, 1],
-  ]); ?>
+  ], true); ?>
 </div>
 <div class="mt-6 grid gap-5 lg:grid-cols-2">
   <div class="admin-card p-6">
