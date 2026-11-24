@@ -246,6 +246,44 @@ function notify_new_order(array $o): void {
     curl_close($ch);
 }
 
+// بريد "توفر مجدداً" لزبون سجّل بريده على منتج نافد (يعمل فقط إذا ضبطت المفتاح في config.php)
+function send_stock_alert_email(string $to, string $productName, string $productUrl): void {
+    if (!defined('RESEND_API_KEY') || !RESEND_API_KEY) return;
+    $html = '<div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:520px;margin:auto;background:#f7f7f9;padding:24px;border-radius:16px">'
+        . '<h2 style="margin:0 0 8px">خبر سار 🎉</h2>'
+        . '<p>المنتج <b>' . e($productName) . '</b> الذي سجلت اهتمامك به أصبح متوفراً الآن في المتجر.</p>'
+        . '<p style="text-align:center;margin:20px 0"><a href="' . e($productUrl) . '" style="background:#0071e3;color:#fff;padding:12px 28px;border-radius:99px;text-decoration:none;font-weight:bold">اطلبه الآن</a></p>'
+        . '<p style="color:#999;font-size:12px">الكمية محدودة — سارع بالطلب قبل نفادها.</p></div>';
+    $payload = json_encode([
+        'from' => 'آي ستور <onboarding@resend.dev>',
+        'to' => [$to],
+        'subject' => '✅ توفر مجدداً: ' . $productName,
+        'html' => $html,
+    ], JSON_UNESCAPED_UNICODE);
+    $ch = curl_init('https://api.resend.com/emails');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . RESEND_API_KEY, 'Content-Type: application/json'],
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_TIMEOUT => 8,
+    ]);
+    @curl_exec($ch);
+    curl_close($ch);
+}
+
+// عند عودة مخزون منتج من صفر: أرسل بريداً لكل مسجّل ببريد إلكتروني وعلّمه فقط.
+// أرقام الهواتف تبقى "بانتظار" لتُشعَر يدوياً بواتساب من لوحة التحكم.
+function notify_stock_restocked(int $productId, string $productName, string $slug): void {
+    $waiting = qall("SELECT id, contact FROM stock_alerts WHERE product_id = ? AND notified = 0 AND contact LIKE '%@%'", [$productId]);
+    if (!$waiting) return;
+    $url = rtrim(setting('site_url', ''), '/') . url('product.php?slug=' . rawurlencode($slug));
+    foreach ($waiting as $w) {
+        send_stock_alert_email($w['contact'], $productName, $url);
+        q('UPDATE stock_alerts SET notified = 1 WHERE id = ?', [(int)$w['id']]);
+    }
+}
+
 // تسجيل زيارة صفحة (إحصائيات لوحة التحكم)
 function track_view(): void {
     $path = substr($_SERVER['REQUEST_URI'] ?? '/', 0, 490);

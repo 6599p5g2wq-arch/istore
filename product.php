@@ -112,7 +112,7 @@ require APP_ROOT . '/includes/store-header.php';
       </div>
       <?php endif; ?>
 
-      <?php if ($waMsg): ?>
+      <?php if ($waMsg && (int)$p['stock'] > 0): ?>
       <a href="<?= e($waMsg) ?>" target="_blank" rel="noreferrer" class="mt-3 flex items-center justify-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 py-3.5 font-bold text-emerald-400 transition hover:bg-emerald-500/20">
         <?= icon('whatsapp', 18) ?> اطلب عبر واتساب
       </a>

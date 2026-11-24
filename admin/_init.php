@@ -29,7 +29,8 @@ function admin_header(string $title, string $active = ''): void {
     $badgeNew = (int)(qone("SELECT COUNT(*) c FROM orders WHERE status = 'new'")['c'] ?? 0);
     $badgeLow = (int)(qone("SELECT COUNT(*) c FROM products WHERE active = 1 AND stock <= 5")['c'] ?? 0);
     $badgeLowRev = (int)(qone("SELECT COUNT(*) c FROM reviews WHERE approved = 1 AND rating <= 2")['c'] ?? 0);
-    $badges = ['orders.php' => [$badgeNew, 'bg-red-500', 'طلبات جديدة'], 'products.php' => [$badgeLow, 'bg-amber-500', 'منتجات مخزونها منخفض'], 'reviews.php' => [$badgeLowRev, 'bg-red-500', 'تقييمات منخفضة معروضة']];
+    $badgeWaitAlerts = (int)(qone("SELECT COUNT(*) c FROM stock_alerts WHERE notified = 0")['c'] ?? 0);
+    $badges = ['orders.php' => [$badgeNew, 'bg-red-500', 'طلبات جديدة'], 'products.php' => [$badgeLow, 'bg-amber-500', 'منتجات مخزونها منخفض'], 'reviews.php' => [$badgeLowRev, 'bg-red-500', 'تقييمات منخفضة معروضة'], 'stock-alerts.php' => [$badgeWaitAlerts, 'bg-amber-500', 'طلبات إشعار منتظرة']];
     $badgeTotal = $badgeNew + $badgeLow;
     ?>
 <!doctype html>

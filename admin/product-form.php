@@ -57,6 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             q('UPDATE products SET name=?, slug=?, category_id=?, brand_id=?, description=?, price=?, old_price=?, stock=?, image=?, images=?, options=?, badge=?, featured=?, active=? WHERE id=?',
               [$name, $slug, $categoryId, $brandId, $description, $price, $oldPrice, $stock, $image, json_encode($images, JSON_UNESCAPED_UNICODE), $options, $badge, $featured, $active, $id]);
             replace_variants($id, $options, $variantInputs);
+            $newStock = (int)(qone('SELECT stock FROM products WHERE id = ?', [$id])['stock'] ?? 0);
+            if ((int)$p['stock'] <= 0 && $newStock > 0) notify_stock_restocked($id, $name, $slug);
             flash('تم حفظ التعديلات');
         } else {
             q('INSERT INTO products (name, slug, category_id, brand_id, description, price, old_price, stock, image, images, options, badge, featured, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
