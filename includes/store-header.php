@@ -148,3 +148,4 @@ document.getElementById('back-btn').addEventListener('click', function () {
   <div id="live-search-results" class="live-search-results" aria-live="polite" aria-busy="false"></div>
  </div>
 </div>
+<main class="min-h-[60vh]">

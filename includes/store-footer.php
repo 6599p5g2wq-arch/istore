@@ -3,6 +3,7 @@ $s = settings();
 $cats = categories();
 $year = date('Y');
 ?>
+</main>
 <footer class="on-dark mt-24 border-t border-white/10 bg-[#140b30]">
   <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6">
     <div class="grid gap-10 md:grid-cols-4">

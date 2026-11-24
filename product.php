@@ -179,44 +179,46 @@ require APP_ROOT . '/includes/store-header.php';
         </div>
         <?php endforeach; ?>
       </div>
-      <div>
-        <form onsubmit="return submitReview(event)" class="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
-          <h3 class="mb-1 font-black">قيّم هذا المنتج</h3>
-          <p class="mb-4 text-xs text-[var(--text-faint)]">التقييم متاح فقط بعد استلام طلبك — نتحقق من رقم الطلب وهاتفك</p>
+      <div id="rv-wrap">
+        <button type="button" id="rv-open" class="rounded-full border border-[var(--border-strong)] px-6 py-2.5 text-sm font-bold text-[var(--text)] transition hover:bg-[var(--chip)]">اكتب تقييمك</button>
+        <form id="rv-form" hidden onsubmit="return submitReview(event)" class="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
           <input type="hidden" name="product_id" value="<?= (int)$p['id'] ?>">
-          <input name="name" required placeholder="اسمك" class="mb-2 w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm outline-none rv-field">
-          <div class="mb-2 flex items-center gap-1" id="rating-stars">
+          <div class="flex items-center gap-1" id="rating-stars">
             <?php for ($n = 1; $n <= 5; $n++): ?>
-            <button type="button" onclick="setRating(<?= $n ?>)" data-star="<?= $n ?>" class="text-amber-400"><?= icon('star', 22, 'fill-current') ?></button>
+            <button type="button" data-star="<?= $n ?>" aria-label="<?= $n ?> نجوم" class="text-amber-400"><?= icon('star', 26, 'fill-current') ?></button>
             <?php endfor; ?>
             <input type="hidden" name="rating" id="rating-input" value="5">
           </div>
-          <textarea name="comment" rows="3" placeholder="رأيك في المنتج (اختياري)" class="mb-2 w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm outline-none rv-field"></textarea>
-          <input name="phone" required placeholder="رقم هاتفك المستخدم في الطلب" class="mb-2 w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm outline-none rv-field">
-          <input name="order_code" required placeholder="رقم الطلب (مثل IST-ABC123)" class="mb-3 w-full rounded-xl border border-[var(--border)] px-3 py-2.5 text-sm outline-none rv-field" dir="ltr">
-          <button class="glow-btn w-full rounded-xl py-3 font-bold">إرسال التقييم</button>
-          <p class="review-msg mt-2 hidden text-sm font-bold"></p>
+          <input required name="name" placeholder="اسمك" class="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2.5 text-sm text-white outline-none placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)]">
+          <textarea name="comment" rows="3" placeholder="رأيك في المنتج (اختياري)" class="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2.5 text-sm text-white outline-none placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] resize-none"></textarea>
+          <p class="text-xs text-[var(--text-faint)]">التوثيق: التقييم متاح فقط لمن استلم المنتج — أدخل رقم طلبك وهاتفك.</p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <input required dir="ltr" name="order_code" placeholder="IST-XXXXXX" class="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2.5 text-sm text-white outline-none placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] text-left">
+            <input required dir="ltr" name="phone" placeholder="09XXXXXXXX" class="w-full rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2.5 text-sm text-white outline-none placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] text-left">
+          </div>
+          <p class="review-msg hidden rounded-xl bg-red-500/10 px-3 py-2 text-xs font-bold text-red-400"></p>
+          <button class="flex items-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-bold text-black transition hover:bg-neutral-200 disabled:opacity-60">نشر التقييم</button>
         </form>
+        <p id="rv-done" hidden class="flex items-center gap-2 rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-400"><?= icon('badge-check', 17) ?> شكراً! تم نشر تقييمك الموثق.</p>
         <script>
-        function setRating(n) {
-          document.getElementById('rating-input').value = n;
-          document.querySelectorAll('#rating-stars [data-star]').forEach(function (b) {
-            b.classList.toggle('opacity-30', +b.dataset.star > n);
-          });
-        }
+        (function(){
+          var wrap=document.getElementById('rv-wrap'),form=document.getElementById('rv-form'),open=document.getElementById('rv-open');
+          open.addEventListener('click',function(){open.hidden=true;form.hidden=false;});
+          window.setRating=function(n){document.getElementById('rating-input').value=n;document.querySelectorAll('#rating-stars [data-star]').forEach(function(b){b.classList.toggle('text-amber-400',+b.dataset.star<=n);b.classList.toggle('text-[var(--text-faint)]',+b.dataset.star>n);});};
+          document.querySelectorAll('#rating-stars [data-star]').forEach(function(b){b.addEventListener('click',function(){setRating(+b.dataset.star);});});
+        })();
         function submitReview(ev) {
           ev.preventDefault();
-          var f = ev.target, msg = f.querySelector('.review-msg');
+          var f = ev.target, msg = f.querySelector('.review-msg'), btn = f.querySelector('button:last-of-type');
           var body = { product_id: +f.product_id.value, name: f.name.value, rating: +f.rating.value, comment: f.comment.value, phone: f.phone.value, order_code: f.order_code.value };
+          btn.disabled = true; msg.classList.add('hidden');
           fetch(window.BASE + '/api/review.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (r) { return r.json().catch(function(){return {};}).then(function (d) { return { ok: r.ok, d: d }; }); })
             .then(function (res) {
-              msg.classList.remove('hidden');
-              msg.classList.toggle('text-emerald-400', res.ok);
-              msg.classList.toggle('text-red-400', !res.ok);
-              msg.textContent = res.ok ? 'شكراً لك! نُشر تقييمك.' : (res.d.error || 'تعذر إرسال التقييم');
-              if (res.ok) f.reset();
-            });
+              btn.disabled = false;
+              if (res.ok) { f.hidden = true; document.getElementById('rv-done').hidden = false; return; }
+              msg.textContent = res.d.error || 'حدث خطأ، حاول مرة أخرى'; msg.classList.remove('hidden');
+            }).catch(function(){btn.disabled=false;msg.textContent='حدث خطأ، حاول مرة أخرى';msg.classList.remove('hidden');});
           return false;
         }
         </script>

@@ -28,6 +28,7 @@ html.light {
   color-scheme: light;
 }
 .glow-btn { background: linear-gradient(90deg,#00c6ff,#7b2ff7); color: #fff; box-shadow: 0 10px 34px -8px rgba(123,47,247,.55); }
+.glow-btn:disabled { background: #e5e5e5; color: var(--text-dim); }
 @media (hover: hover) {
   .glow-btn:hover { filter: brightness(1.1); }
 }
