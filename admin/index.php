@@ -107,7 +107,7 @@ admin_header('لوحة المعلومات', 'index.php');
       <?php foreach ($days as $idx => $d): $h = max(3, (int)round($d['total'] / $maxDay * $BAR_MAX)); $isToday = $idx === count($days) - 1; ?>
         <div class="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
           <span class="text-[10px] font-bold text-neutral-400"><?= $range === 7 && $d['total'] > 0 ? e(format_price($d['total'])) : '' ?></span>
-          <div class="w-full max-w-10 rounded-t-lg <?= $isToday ? 'bg-emerald-500' : '' ?>" style="height: <?= $h ?>px;<?= $isToday ? '' : 'background:rgba(0,198,255,.9)' ?>" title="<?= e(format_price($d['total'])) ?> · <?= $d['count'] ?> طلب"></div>
+          <div class="w-full max-w-10 rounded-t-lg <?= $isToday ? 'bg-emerald-500' : '' ?>" style="height: <?= $h ?>px;" title="<?= e(format_price($d['total'])) ?> · <?= $d['count'] ?> طلب"></div>
           <span class="text-[10px] font-bold text-neutral-500"><?= $d['show'] ? e($d['day']) : '' ?></span>
         </div>
       <?php endforeach; ?>

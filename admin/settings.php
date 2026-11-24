@@ -154,7 +154,7 @@ admin_header('الإعدادات', 'settings.php');
 
     <div class="admin-card p-6">
       <h2 class="font-extrabold">شرائح العروض (المقدمة الافتتاحية)</h2>
-      <p class="mt-1 text-xs text-neutral-500">الشرائح الصغيرة تحت الوصف في أول شاشة من الصفحة الرئيسية، حتى 6. اترك النص فارغاً لحذف الشريحة. باقي نصوص المقدمة والشعار من /control.</p>
+      <p class="mt-1 text-xs text-neutral-500">الشرائح الصغيرة تحت الوصف في أول شاشة من الصفحة الرئيسية، حتى 6 شرائح. اترك النص فارغاً أو احذف الشريحة لإخفائها. باقي نصوص المقدمة والشعار من /control.</p>
       <div id="intro-rows" class="mt-4 space-y-2">
         <?php foreach ($chipRows as $chip): ?>
         <div class="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 p-2">
