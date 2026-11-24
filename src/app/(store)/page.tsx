@@ -87,9 +87,14 @@ export default function HomePage() {
               <Reveal key={b.id} delay={i * 0.1}>
                 <Link href={b.link} className="group relative flex items-center gap-4 overflow-hidden rounded-3xl border border-[var(--border)] bg-gradient-to-l from-neutral-900 to-neutral-800 p-7 text-white shadow-lg">
                   <div className="absolute -left-10 -top-10 h-36 w-36 rounded-full bg-[var(--accent)] opacity-25 blur-2xl transition group-hover:opacity-40" />
-                  <BadgePercent size={36} className="shrink-0 text-white/80" />
+                  {b.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={b.image} alt={b.title} loading="lazy" className="h-16 w-16 shrink-0 rounded-2xl object-cover ring-1 ring-white/20" />
+                  ) : (
+                    <BadgePercent size={36} className="shrink-0 text-white/80" />
+                  )}
                   <div>
-                    <h3 className="text-xl font-extrabold">{b.title}</h3>
+                    <h3 className="text-xl font-extrabold text-white">{b.title}</h3>
                     <p className="mt-1 text-sm text-white/70">{b.subtitle}</p>
                   </div>
                 </Link>
