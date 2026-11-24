@@ -64,9 +64,9 @@ export default function AnnouncementBar({ config, sig, preview = false }: { conf
   const pill = showCd && <span dir="rtl" className="shrink-0 rounded-full px-2.5 py-0.5 font-extrabold tabular-nums" style={{ background: "rgba(255,255,255,0.18)" }}>{fmt(Math.max(0, (end as number) - (now as number)))}</span>;
 
   return (
-    <div style={{ background: config.bg, color: config.color }} className={`relative py-2.5 text-center text-xs font-bold sm:text-sm ${preview ? "rounded-2xl" : ""}`} role="region" aria-label="إعلان">
+    <div style={{ background: config.bg, color: config.color }} className={`relative overflow-hidden py-2.5 text-center text-xs font-bold sm:text-sm ${preview ? "rounded-2xl" : ""}`} role="region" aria-label="إعلان">
       <style>{ANN_CSS}</style>
-      <div className="mx-auto flex max-w-6xl items-center justify-center gap-x-4 px-10">
+      <div className={eff === "marquee" ? "flex w-full items-center justify-center" : "mx-auto flex max-w-6xl items-center justify-center gap-x-4 px-10"}>
         {eff === "marquee" ? (
           <div dir="ltr" className="ann-ticker min-w-0 flex-1 overflow-hidden">
             <div className="ann-track" style={{ animationDuration: `${dur}s` }}>
@@ -86,7 +86,7 @@ export default function AnnouncementBar({ config, sig, preview = false }: { conf
         ) : (
           <div className="min-w-0 flex-1">{wrap(m, `f${idx}`, "ann-fade inline-block")}</div>
         )}
-        {pill}
+        {eff === "marquee" && pill ? <div className="absolute right-2 top-1/2 -translate-y-1/2" style={{ background: config.bg }}>{pill}</div> : pill}
       </div>
       {config.closable && (
         <button
