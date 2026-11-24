@@ -37,7 +37,7 @@ try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=matchMedia
 <link rel="stylesheet" href="<?= e(url('assets/css/app.css')) ?>">
 <style>body{font-family:'Cairo',ui-sans-serif,system-ui,sans-serif}</style>
 <script>window.BASE=<?= json_encode(BASE_URL) ?>;window.CURRENCY=<?= json_encode($s['currency'] ?? 'د.ل') ?>;window.PRICEFMT=<?= json_encode(['pos' => price_opts()['pos'], 'dec' => price_opts()['dec']]) ?>;</script>
-</head>
+<style>@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}</style><script type="speculationrules"><?php $sb=rtrim((string)parse_url(BASE_URL,PHP_URL_PATH),'/');echo json_encode(['prerender'=>[['where'=>['and'=>[['href_matches'=>$sb.'/*'],['not'=>['href_matches'=>[$sb.'/admin/*',$sb.'/control/*',$sb.'/api/*',$sb.'/checkout*',$sb.'/account*',$sb.'/track*',$sb.'/install*']]],['not'=>['selector_matches'=>'[download],[target=_blank]']]]],'eagerness'=>'moderate']]],JSON_UNESCAPED_SLASHES);?></script></head>
 <body class="min-h-screen">
 
 <?php require_once APP_ROOT . '/includes/announcement.php'; announce_render(); ?>
