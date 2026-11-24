@@ -68,26 +68,28 @@ admin_header('أكواد الخصم', 'coupons.php');
 </div>
 <div class="mt-4 grid gap-6 lg:grid-cols-3">
   <div class="order-2 admin-card h-fit p-6 lg:sticky lg:top-8">
-    <h2 class="font-extrabold"><?= $edit ? 'تعديل كود' : 'إنشاء كود خصم' ?></h2>
+    <h2 class="font-extrabold"><?= $edit ? 'تعديل الكوبون ' . e($edit['code']) : 'إنشاء كود خصم' ?></h2>
     <form method="post" class="mt-4 space-y-3">
       <input type="hidden" name="action" value="save"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">
-      <label class="block text-sm font-bold">الكود<input name="code" required dir="ltr" value="<?= e($edit['code'] ?? '') ?>" class="admin-input mt-1 text-left uppercase" placeholder="ISTORE10"></label>
-      <label class="block text-sm font-bold">النوع<select name="kind" id="kindSelect" class="admin-input mt-1">
-        <option value="percent" <?= ($edit['kind'] ?? '') === 'percent' ? 'selected' : '' ?>>نسبة مئوية %</option>
-        <option value="fixed" <?= ($edit['kind'] ?? '') === 'fixed' ? 'selected' : '' ?>>مبلغ ثابت</option>
-      </select></label>
-      <label class="block text-sm font-bold">القيمة<input name="value" id="valueInput" type="number" step="0.01" min="0" required value="<?= e((string)($edit['value'] ?? '')) ?>" class="admin-input mt-1"><span id="percentHint" class="mt-1 block text-[11px] font-normal text-neutral-400">حتى 90% كحد أقصى</span></label>
-      <label class="block text-sm font-bold">الحد الأدنى للطلب<input name="min_total" type="number" step="0.01" min="0" value="<?= e((string)($edit['min_total'] ?? 0)) ?>" class="admin-input mt-1"></label>
-      <label class="block text-sm font-bold">أقصى عدد استخدامات (0 = بلا حد)<input name="max_uses" type="number" min="0" value="<?= (int)($edit['max_uses'] ?? 0) ?>" class="admin-input mt-1"></label>
-      <label class="block text-sm font-bold">خاص بزبون (اختياري)<select name="customer_id" class="admin-input mt-1">
+      <label class="block text-sm font-bold">الكود *<input name="code" required dir="ltr" value="<?= e($edit['code'] ?? '') ?>" class="mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 outline-none focus:border-black text-left uppercase" placeholder="ISTORE10"></label>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="block text-sm font-bold">النوع<select name="kind" id="kindSelect" class="mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 outline-none focus:border-black">
+          <option value="percent" <?= ($edit['kind'] ?? '') === 'percent' ? 'selected' : '' ?>>نسبة %</option>
+          <option value="fixed" <?= ($edit['kind'] ?? '') === 'fixed' ? 'selected' : '' ?>>مبلغ ثابت</option>
+        </select></label>
+        <label class="block text-sm font-bold">القيمة *<input name="value" id="valueInput" type="number" step="0.01" min="1" required value="<?= e((string)($edit['value'] ?? '')) ?>" class="mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 outline-none focus:border-black"><span id="percentHint" class="mt-1 block text-[11px] font-normal text-neutral-400">حتى 90% كحد أقصى</span></label>
+      </div>
+      <label class="block text-sm font-bold">حد أدنى للطلب (اختياري)<input name="min_total" type="number" step="0.01" min="0" value="<?= $edit ? e((string)($edit['min_total'] ?? 0)) : '' ?>" class="mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 outline-none focus:border-black" placeholder="0"></label>
+      <label class="block text-sm font-bold">أقصى عدد استخدامات (اختياري)<input name="max_uses" type="number" min="0" value="<?= $edit ? (int)($edit['max_uses'] ?? 0) : '' ?>" class="mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 outline-none focus:border-black" placeholder="0 = بلا حد"></label>
+      <label class="block text-sm font-bold">خاص بزبون (اختياري)<select name="customer_id" class="mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 outline-none focus:border-black">
         <option value="">لكل الزبائن</option>
         <?php foreach ($customers as $cu): ?><option value="<?= (int)$cu['id'] ?>" <?= (int)($edit['customer_id'] ?? 0) === (int)$cu['id'] ? 'selected' : '' ?>><?= e($cu['name']) ?><?= $cu['phone'] ? ' — ' . e($cu['phone']) : '' ?></option><?php endforeach; ?>
       </select></label>
-      <label class="block text-sm font-bold">تاريخ البداية (اختياري)<input name="starts_at" type="date" value="<?= e($edit['starts_at'] ?? '') ?>" class="admin-input mt-1"></label>
-      <label class="block text-sm font-bold">تاريخ الانتهاء (اختياري)<input name="expires_at" type="date" value="<?= e($edit['expires_at'] ?? '') ?>" class="admin-input mt-1"></label>
-      <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="active" <?= ($edit['active'] ?? 1) ? 'checked' : '' ?> class="h-4 w-4"> مفعّل</label>
-      <button class="admin-btn w-full justify-center"><?= icon('check', 16) ?> حفظ</button>
-      <?php if ($edit): ?><a href="<?= e(admin_url('coupons.php')) ?>" class="admin-btn-ghost w-full justify-center">إلغاء التعديل</a><?php endif; ?>
+      <label class="block text-sm font-bold">تاريخ البداية (اختياري)<input name="starts_at" type="date" dir="ltr" value="<?= e($edit['starts_at'] ?? '') ?>" class="mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 outline-none focus:border-black text-left"></label>
+      <label class="block text-sm font-bold">تاريخ الانتهاء (اختياري)<input name="expires_at" type="date" dir="ltr" value="<?= e($edit['expires_at'] ?? '') ?>" class="mt-1.5 w-full rounded-xl border border-neutral-200 px-3 py-2.5 outline-none focus:border-black text-left"></label>
+      <?php if (($edit['active'] ?? 1)): ?><input type="hidden" name="active" value="on"><?php endif; ?>
+      <button class="flex w-full items-center justify-center gap-2 rounded-full bg-black py-3 font-bold text-white disabled:opacity-60"><?= icon($edit ? 'check' : 'plus', 16) ?> <?= $edit ? 'حفظ التعديلات' : 'إنشاء' ?></button>
+      <?php if ($edit): ?><a href="<?= e(admin_url('coupons.php')) ?>" class="flex w-full items-center justify-center gap-1 text-xs font-bold text-neutral-400 hover:text-black">إلغاء</a><?php endif; ?>
     </form>
   </div>
 <div class="order-1 space-y-3 lg:col-span-2">
