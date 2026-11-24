@@ -100,79 +100,76 @@ admin_header('طلب ' . $order['code'], 'orders.php');
 }
 </style>
 
-<div class="flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-2xl font-black sm:text-3xl">طلب <span dir="ltr"><?= e($order['code']) ?></span></h1>
-  <div class="no-print flex flex-wrap items-center gap-2">
-    <button onclick="window.print()" class="admin-btn-ghost">طباعة الطلب</button>
-    <form method="post" onsubmit="return confirm('حذف الطلب «<?= e($order['code']) ?>» نهائياً؟')" class="inline">
-      <input type="hidden" name="action" value="delete">
-      <button class="admin-btn-ghost !text-red-600"><?= icon('trash', 16) ?> حذف</button>
-    </form>
-    <a href="<?= e($backUrl) ?>" class="admin-btn-ghost"><?= icon('arrow-left', 16) ?> رجوع للطلبات</a>
-  </div>
+<div class="max-w-3xl">
+<div class="no-print flex flex-wrap items-center gap-3">
+  <a href="<?= e($backUrl) ?>" class="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-6 py-3 font-bold text-neutral-700 shadow-sm transition hover:bg-neutral-100"><?= icon('arrow-right', 18) ?> رجوع للطلبات</a>
+  <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-5 py-2.5 text-sm font-bold text-neutral-700 shadow-sm transition hover:bg-neutral-100"><?= icon('file-text', 16) ?> طباعة الطلب</button>
+  <form method="post" onsubmit="return confirm('حذف «<?= e($order['code']) ?>» نهائياً؟')" class="inline">
+    <input type="hidden" name="action" value="delete">
+    <button aria-label="حذف" class="grid h-9 w-9 place-items-center rounded-full bg-red-50 text-red-500 transition hover:bg-red-500 hover:text-white"><?= icon('trash', 15) ?></button>
+  </form>
 </div>
 <?php admin_msg(); ?>
+<?php $stCls = ['new' => 'bg-amber-100 text-amber-700', 'confirmed' => 'bg-blue-100 text-blue-700', 'shipped' => 'bg-purple-100 text-purple-700', 'delivered' => 'bg-emerald-100 text-emerald-700', 'cancelled' => 'bg-red-100 text-red-700']; ?>
+<div id="print-area">
+  <div class="mt-4 flex flex-wrap items-center justify-between gap-4">
+    <h1 class="text-2xl font-black sm:text-3xl" dir="ltr"><?= e($order['code']) ?></h1>
+    <span class="no-print">
+      <form method="post" id="status-form"><select name="status" onchange="this.form.submit()" class="rounded-full border-0 px-3 py-1.5 text-xs font-extrabold outline-none transition <?= $stCls[$order['status']] ?? 'bg-neutral-100' ?>">
+        <?php foreach ($valid as $v): ?><option value="<?= $v ?>" <?= $order['status'] === $v ? 'selected' : '' ?>><?= e(order_status_label($v)) ?></option><?php endforeach; ?>
+      </select></form>
+    </span>
+  </div>
+  <p class="mt-1 text-sm text-neutral-400"><?= e(format_date($order['created_at'])) ?> · <span class="font-bold text-neutral-500"><?= e(order_status_label($order['status'])) ?></span></p>
 
-<div id="print-area" class="mt-6 grid gap-5 lg:grid-cols-3">
-  <div class="space-y-5 lg:col-span-2">
-    <div class="admin-card p-6">
-      <h2 class="font-extrabold">المنتجات</h2>
-      <table class="admin-table mt-3 w-full">
-        <thead><tr><th>المنتج</th><th>السعر</th><th>الكمية</th><th>المجموع</th></tr></thead>
-        <tbody>
-        <?php foreach ($items as $it): ?>
-          <tr>
-            <td>
-              <span class="flex items-center gap-3">
-                <?php if (!empty($it['pimage'])): ?><img src="<?= e(img_url($it['pimage'])) ?>" class="h-11 w-11 shrink-0 rounded-xl bg-neutral-100 object-cover" alt=""><?php endif; ?>
-                <span><?= e($it['name']) ?><?php if (!empty($it['variant_label'])): ?> <span class="block text-xs font-bold text-[var(--text-faint)]"><?= e($it['variant_label']) ?></span><?php endif; ?></span>
-              </span>
-            </td>
-            <td><?= e(format_price((float)$it['price'])) ?></td><td><?= (int)$it['qty'] ?></td><td class="font-bold"><?= e(format_price((float)$it['price'] * (int)$it['qty'])) ?></td>
-          </tr>
-        <?php endforeach; ?>
-        </tbody>
-      </table>
-      <div class="mt-4 space-y-1.5 border-t border-neutral-100 pt-4 text-sm">
-        <div class="flex justify-between"><span class="text-neutral-500">المجموع الفرعي</span><b><?= e(format_price((float)$order['subtotal'])) ?></b></div>
-        <?php if ((float)$order['discount'] > 0): ?><div class="flex justify-between text-emerald-600"><span>الخصم <?= $order['coupon_code'] ? '(' . e($order['coupon_code']) . ')' : '' ?></span><b>-<?= e(format_price((float)$order['discount'])) ?></b></div><?php endif; ?>
-        <div class="flex justify-between"><span class="text-neutral-500">التوصيل</span><b><?= (float)$order['delivery_fee'] === 0.0 ? 'مجاني' : e(format_price((float)$order['delivery_fee'])) ?></b></div>
-        <div class="flex justify-between border-t border-neutral-100 pt-2 text-lg font-black"><span>الإجمالي</span><span><?= e(format_price((float)$order['total'])) ?></span></div>
+  <div class="mt-6 grid gap-5 sm:grid-cols-2">
+    <div class="rounded-3xl bg-white p-6 shadow-sm">
+      <h2 class="mb-4 font-extrabold">العميل</h2>
+      <p class="font-bold"><?= e($order['customer_name']) ?></p>
+      <p class="mt-2 flex items-center gap-2 text-sm text-neutral-500"><?= icon('phone', 15) ?> <a dir="ltr" href="tel:<?= e($order['phone']) ?>" class="hover:text-[var(--accent)]"><?= e($order['phone']) ?></a></p>
+      <p class="mt-2 flex items-center gap-2 text-sm text-neutral-500"><?= icon('map-pin', 15) ?> <?= e($order['city']) ?><?= $order['address'] ? ' — ' . e($order['address']) : '' ?></p>
+      <?php if ($order['notes']): ?><p class="mt-2 flex items-start gap-2 text-sm text-neutral-500"><span class="mt-0.5 shrink-0"><?= icon('edit', 15) ?></span> <?= e($order['notes']) ?></p><?php endif; ?>
+      <a href="<?= e($waUrl) ?>" target="_blank" rel="noreferrer" class="no-print mt-4 inline-block rounded-full bg-emerald-500 px-5 py-2 text-sm font-bold text-white transition hover:opacity-90">مراسلة واتساب</a>
+    </div>
+    <div class="rounded-3xl bg-white p-6 shadow-sm">
+      <h2 class="mb-4 font-extrabold">الملخص المالي</h2>
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between text-neutral-500"><span>المنتجات</span><span class="font-bold text-black"><?= e(format_price((float)$order['subtotal'])) ?></span></div>
+        <?php if ((float)$order['discount'] > 0): ?><div class="flex justify-between text-emerald-600"><span>الخصم<?= $order['coupon_code'] ? ' (' . e($order['coupon_code']) . ')' : '' ?></span><span class="font-bold">- <?= e(format_price((float)$order['discount'])) ?></span></div><?php endif; ?>
+        <div class="flex justify-between text-neutral-500"><span>التوصيل</span><span class="font-bold text-black"><?= (float)$order['delivery_fee'] === 0.0 ? 'مجاني' : e(format_price((float)$order['delivery_fee'])) ?></span></div>
+        <div class="flex justify-between border-t pt-3 text-base"><span class="font-bold">الإجمالي</span><span class="font-black text-[var(--accent)]"><?= e(format_price((float)$order['total'])) ?></span></div>
       </div>
     </div>
-    <?php if ($order['notes']): ?><div class="admin-card p-6"><h2 class="font-extrabold">ملاحظات العميل</h2><p class="mt-2 text-sm leading-7 text-neutral-600"><?= e($order['notes']) ?></p></div><?php endif; ?>
   </div>
-  <div class="space-y-5">
-    <div class="admin-card p-6">
-      <h2 class="font-extrabold">العميل</h2>
-      <ul class="mt-3 space-y-2 text-sm text-neutral-700">
-        <li class="flex items-center gap-2"><?= icon('user', 16) ?> <?= e($order['customer_name']) ?></li>
-        <li class="flex items-center gap-2" dir="ltr"><?= icon('phone', 16) ?> <?= e($order['phone']) ?></li>
-        <li class="flex items-center gap-2"><?= icon('map-pin', 16) ?> <?= e($order['city']) ?><?= $order['address'] ? ' — ' . e($order['address']) : '' ?></li>
-        <li class="flex items-center gap-2"><?= icon('clock', 16) ?> <?= e(format_date($order['created_at'])) ?></li>
-      </ul>
-      <a href="<?= e($waUrl) ?>" target="_blank" rel="noopener" class="admin-btn-ghost no-print mt-4 w-full justify-center"><?= icon('whatsapp', 16) ?> مراسلة واتساب</a>
-    </div>
-    <div class="admin-card p-6">
-      <h2 class="font-extrabold">حالة الطلب</h2>
-      <p class="mt-2"><span class="badge <?= order_status_class($order['status']) ?>"><?= e(order_status_label($order['status'])) ?></span></p>
-      <form method="post" class="no-print mt-4 flex gap-2">
-        <select name="status" class="admin-input">
-          <?php foreach ($valid as $v): ?><option value="<?= $v ?>" <?= $order['status'] === $v ? 'selected' : '' ?>><?= e(order_status_label($v)) ?></option><?php endforeach; ?>
-        </select>
-        <button class="admin-btn shrink-0">تحديث</button>
-      </form>
-    </div>
+
+  <div class="mt-5 rounded-3xl bg-white p-6 shadow-sm">
+    <h2 class="mb-4 font-extrabold">المنتجات (<?= count($items) ?>)</h2>
+    <table class="w-full text-sm">
+      <thead><tr class="border-b text-right text-xs text-neutral-400"><th class="pb-2 font-bold">المنتج</th><th class="pb-2 font-bold">السعر</th><th class="pb-2 font-bold">الكمية</th><th class="pb-2 font-bold">المجموع</th></tr></thead>
+      <tbody>
+      <?php foreach ($items as $it): ?>
+        <tr class="border-b border-neutral-50 last:border-0">
+          <td class="py-2.5"><span class="flex items-center gap-3">
+            <?php if (!empty($it['pimage'])): ?><img src="<?= e(img_url($it['pimage'])) ?>" alt="" class="h-11 w-11 shrink-0 rounded-xl bg-neutral-100 object-cover"><?php endif; ?>
+            <span class="font-bold"><?= e($it['name']) ?><?php if (!empty($it['variant_label'])): ?><span class="block text-xs font-bold text-neutral-400"><?= e($it['variant_label']) ?></span><?php endif; ?></span>
+          </span></td>
+          <td class="py-2.5 text-neutral-500"><?= e(format_price((float)$it['price'])) ?></td>
+          <td class="py-2.5"><?= (int)$it['qty'] ?></td>
+          <td class="py-2.5 font-bold"><?= e(format_price((float)$it['price'] * (int)$it['qty'])) ?></td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
   </div>
 </div>
 
-<div class="no-print mt-5 grid gap-5 lg:grid-cols-2">
-  <div class="admin-card p-6">
-    <h2 class="flex items-center gap-2 font-extrabold"><?= icon('clock', 18, 'text-violet-500') ?> سجل الحالات</h2>
+<div class="no-print mt-5 grid gap-5 sm:grid-cols-2">
+  <div class="rounded-3xl bg-white p-6 shadow-sm">
+    <h2 class="mb-4 flex items-center gap-2 font-extrabold"><?= icon('clock', 18, 'text-violet-500') ?> سجل الحالات</h2>
     <?php if (!$timeline): ?>
-      <p class="mt-3 text-sm text-neutral-400">لا سجل بعد</p>
+      <p class="text-sm text-neutral-400">لا سجل بعد</p>
     <?php else: ?>
-      <ol class="relative mt-4 space-y-4 border-r-2 border-neutral-100 pr-4">
+      <ol class="relative space-y-4 border-r-2 border-neutral-100 pr-4">
         <?php foreach ($timeline as $t): ?>
           <li class="relative">
             <span class="absolute -right-[23px] top-1 h-3 w-3 rounded-full border-2 border-white <?= $dotCls[$t['status']] ?? 'bg-neutral-300' ?>"></span>
@@ -183,15 +180,16 @@ admin_header('طلب ' . $order['code'], 'orders.php');
       </ol>
     <?php endif; ?>
   </div>
-  <div class="admin-card p-6">
-    <h2 class="flex items-center gap-2 font-extrabold"><?= icon('edit', 18, 'text-amber-500') ?> ملاحظات داخلية</h2>
-    <p class="mt-1 text-xs text-neutral-400">تظهر لك أنت فقط — العميل لا يراها</p>
-    <form method="post" class="mt-3">
+  <div class="rounded-3xl bg-white p-6 shadow-sm">
+    <h2 class="mb-4 flex items-center gap-2 font-extrabold"><?= icon('edit', 18, 'text-amber-500') ?> ملاحظات داخلية</h2>
+    <p class="mb-3 text-xs text-neutral-400">تظهر لك أنت فقط — العميل لا يراها</p>
+    <form method="post">
       <input type="hidden" name="action" value="notes">
-      <textarea name="admin_notes" rows="3" maxlength="2000" placeholder="مثال: اتصل به بعد السادسة مساءً…" class="admin-input w-full"><?= e($order['admin_notes'] ?? '') ?></textarea>
-      <button class="admin-btn mt-2">حفظ الملاحظة</button>
+      <textarea name="admin_notes" rows="3" maxlength="2000" placeholder="مثال: اتصل به بعد السادسة مساءً…" class="w-full rounded-2xl border border-neutral-200 bg-[#f5f5f7] p-3 text-sm outline-none transition focus:border-[var(--accent)] focus:bg-white"><?= e($order['admin_notes'] ?? '') ?></textarea>
+      <div class="mt-2 flex items-center gap-3"><button class="rounded-full bg-neutral-900 px-5 py-2 text-xs font-bold text-white transition hover:opacity-90">حفظ الملاحظة</button></div>
     </form>
   </div>
+</div>
 </div>
 
 <?php admin_footer(); ?>
