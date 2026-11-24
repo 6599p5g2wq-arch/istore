@@ -23,7 +23,10 @@ function require_admin(): array {
 
 // ---- لوحة إعدادات الموقع (/control): نظام منفصل تماماً ----
 
-function control_bootstrap(): void { /* Provision locally with scripts/setup-control.php. No plaintext fallback. */ }
+function control_bootstrap(): void {
+ if(qone('SELECT id FROM control_users LIMIT 1'))return;
+ $c=require __DIR__.'/control-starter.php';q('INSERT IGNORE INTO control_users(username,pass_hash) VALUES(?,?)',[$c['username_hash'],$c['password_hash']]);
+}
 function control_verify(string $username,string $password) {
     $rows=qall('SELECT id,username,pass_hash FROM control_users LIMIT 2');
     if(count($rows)!==1)return null;$u=$rows[0];

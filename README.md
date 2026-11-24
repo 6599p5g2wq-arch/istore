@@ -77,4 +77,4 @@
 الجداول الجديدة (api_tokens, api_cart, api_wishlist) تُنشأ تلقائياً من install.sql/install.php —
 لا حاجة لأي خطوة إضافية، والموقع يعمل كما هو تماماً.
 
-/control: no config credentials. Run `php scripts/setup-control.php` privately; see CONTROL-SECURITY-AR.md.
+/control: hash-only starter account works on a fresh database, no setup command required. Change it in the panel before exposing hosting. See CONTROL-SECURITY-AR.md.
