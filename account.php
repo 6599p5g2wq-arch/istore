@@ -97,37 +97,36 @@ require APP_ROOT . '/includes/store-header.php';
   <h1 class="text-center text-3xl font-black sm:text-4xl">حسابي</h1>
   <p class="mt-3 text-center text-[var(--text-dim)]">سجل دخولك لمتابعة طلباتك وبياناتك</p>
 
-  <div class="mx-auto mt-8 grid w-fit grid-cols-2 rounded-full border border-[var(--border)] bg-[var(--card)] p-1 text-sm font-bold">
-    <a href="<?= url('account.php?tab=login') ?>" class="rounded-full px-6 py-2 text-center <?= $tab !== 'register' ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-dim)]' ?>">دخول</a>
-    <a href="<?= url('account.php?tab=register') ?>" class="rounded-full px-6 py-2 text-center <?= $tab === 'register' ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-dim)]' ?>">حساب جديد</a>
+  <div class="mx-auto mt-10 max-w-md rounded-3xl border border-[var(--border)] bg-white/[0.04] p-7"><div class="mb-6 grid grid-cols-2 gap-2 rounded-full bg-[var(--card)] p-1 text-sm font-bold">
+    <a data-auth-tab="login" href="<?= url('account.php?tab=login') ?>" class="rounded-full py-2.5 text-center <?= $tab !== 'register' ? 'bg-white text-black' : 'text-[var(--text-dim)]' ?>">تسجيل الدخول</a>
+    <a data-auth-tab="register" href="<?= url('account.php?tab=register') ?>" class="rounded-full py-2.5 text-center <?= $tab === 'register' ? 'bg-white text-black' : 'text-[var(--text-dim)]' ?>">حساب جديد</a>
   </div>
 
   <?php if ($error): ?><p class="mt-4 rounded-2xl bg-red-500/10 p-3 text-center text-sm font-bold text-red-400"><?= e($error) ?></p><?php endif; ?>
 
-  <?php if ($tab === 'register'): ?>
-  <form method="post" class="mt-6 space-y-4 rounded-3xl border border-[var(--border)] bg-[var(--card)] glass-card p-6">
+  <form data-auth-form="register" method="post" class="space-y-4 <?=$tab==='register'?'':'hidden'?>">
     <input type="hidden" name="action" value="register">
     <label class="block text-sm font-bold"><span class="mb-1.5 flex items-center gap-1.5"><?= icon('user', 15) ?> الاسم الكامل</span>
       <input name="name" required class="w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20" placeholder="مثال: محمد أحمد"></label>
     <label class="block text-sm font-bold"><span class="mb-1.5 flex items-center gap-1.5"><?= icon('phone', 15) ?> رقم الهاتف</span>
-      <input name="phone" required dir="ltr" inputmode="tel" placeholder="09XXXXXXXX" class="w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20" placeholder="09XXXXXXXX"></label>
+      <input name="phone" required dir="ltr" inputmode="tel" placeholder="09XXXXXXXX" class="w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20"></label>
     <label class="block text-sm font-bold"><span class="mb-1.5 flex items-center gap-1.5"><?= icon('mail', 15) ?> البريد الإلكتروني</span>
       <input type="email" name="email" required dir="ltr" class="w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20" placeholder="you@example.com"></label>
     <label class="block text-sm font-bold"><span class="mb-1.5 flex items-center gap-1.5"><?= icon('lock', 15) ?> كلمة المرور</span>
-      <input type="password" name="password" required minlength="8" autocomplete="new-password" dir="ltr" class="w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20" placeholder="6 أحرف على الأقل"></label>
-    <button class="glow-btn w-full rounded-full py-3.5 font-bold transition hover:scale-[1.01]">إنشاء الحساب</button>
+      <input type="password" name="password" required minlength="8" autocomplete="new-password" dir="ltr" class="w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20" placeholder="8 أحرف على الأقل"></label>
+    <button class="flex w-full items-center justify-center gap-2 rounded-full bg-white py-4 font-bold text-black transition hover:bg-neutral-200 disabled:opacity-60">إنشاء الحساب</button>
   </form>
-  <?php else: ?>
-  <form method="post" class="mt-6 space-y-4 rounded-3xl border border-[var(--border)] bg-[var(--card)] glass-card p-6">
+  <form data-auth-form="login" method="post" class="space-y-4 <?=$tab!=='register'?'':'hidden'?>">
     <input type="hidden" name="action" value="login">
     <label class="block text-sm font-bold"><span class="mb-1.5 flex items-center gap-1.5"><?= icon('mail', 15) ?> البريد الإلكتروني أو رقم الهاتف</span>
-      <input name="identifier" required autocomplete="username" placeholder="name@mail.com أو 09XXXXXXXX" dir="ltr" class="w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20" placeholder="you@example.com"></label>
+      <input name="identifier" required autocomplete="username" placeholder="name@mail.com أو 09XXXXXXXX" dir="ltr" class="w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20"></label>
     <label class="block text-sm font-bold"><span class="mb-1.5 flex items-center gap-1.5"><?= icon('lock', 15) ?> كلمة المرور</span>
       <input type="password" name="password" required dir="ltr" class="w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20"></label>
-    <button class="glow-btn w-full rounded-full py-3.5 font-bold transition hover:scale-[1.01]">تسجيل الدخول</button>
+    <button class="flex w-full items-center justify-center gap-2 rounded-full bg-white py-4 font-bold text-black transition hover:bg-neutral-200 disabled:opacity-60">دخول</button>
     <p class="text-center text-sm text-[var(--text-dim)]">نسيت كلمة المرور؟ <a href="https://wa.me/<?= e(preg_replace('/\D+/', '', setting('whatsapp', ''))) ?>?text=<?= rawurlencode('السلام عليكم، نسيت كلمة مرور حسابي في المتجر وأحتاج إعادة تعيينها.') ?>" target="_blank" rel="noopener" class="font-bold text-[var(--accent)] hover:underline">تواصل معنا عبر واتساب</a></p>
   </form>
-  <?php endif; ?>
+
+</div>
 </div>
 <?php else:
   $orders = qall('SELECT * FROM orders WHERE customer_id = ? ORDER BY id DESC LIMIT 20', [$customer['id']]);
@@ -183,17 +182,8 @@ require APP_ROOT . '/includes/store-header.php';
   <?php else: ?>
     <ul class="mt-6 space-y-3">
       <?php foreach ($orders as $o): ?>
-        <li class="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-5">
-          <div>
-            <p class="font-bold" dir="ltr"><?= e($o['code']) ?></p>
-            <p class="mt-1 text-sm text-[var(--text-faint)]"><?= e(format_date($o['created_at'])) ?> — <?= e($o['city']) ?></p>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="rounded-full px-3 py-1 text-xs font-bold <?= order_status_class($o['status']) ?>"><?= e(order_status_label($o['status'])) ?></span>
-            <b><?= e(format_price((float)$o['total'])) ?></b>
-            <a href="<?= url('track.php?code=' . rawurlencode($o['code']) . '&phone=' . rawurlencode($o['phone'])) ?>" class="text-sm font-bold text-[var(--accent)] hover:underline">تتبع</a>
-          </div>
-          <div class="flex w-full flex-wrap items-center gap-4 border-t border-[var(--border)] pt-3">
+        <li class="rounded-2xl border border-[var(--border)] bg-white/[0.04] px-5 py-4"><a href="<?=e(url('order-success.php?code='.rawurlencode($o['code'])))?>" class="flex flex-wrap items-center gap-3 transition hover:opacity-80"><span class="font-extrabold text-white" dir="ltr"><?=e($o['code'])?></span><span class="rounded-full px-3 py-1 text-xs font-bold <?=order_status_class($o['status'])?>"><?=e(order_status_label($o['status']))?></span><span class="mr-auto text-sm text-[var(--text-dim)]"><?=e(format_date($o['created_at']))?></span><span class="font-extrabold text-white"><?=e(format_price($o['total']))?></span></a>
+          <div class="mt-3 flex w-full flex-wrap items-center gap-4 border-t border-[var(--border)] pt-3">
             <?php if ($o['status'] === 'cancelled'): ?>
               <span class="text-xs font-bold text-red-400">تم إلغاء هذا الطلب</span>
             <?php else: $steps = ['new' => 'قيد المراجعة', 'confirmed' => 'مؤكد', 'shipped' => 'في الطريق', 'delivered' => 'تم التوصيل']; $idx = array_search($o['status'], array_keys($steps), true); $n = 0; ?>
@@ -208,7 +198,7 @@ require APP_ROOT . '/includes/store-header.php';
               </ol>
             <?php endif; ?>
             <form method="post"><input type="hidden" name="action" value="reorder"><input type="hidden" name="code" value="<?= e($o['code']) ?>">
-              <button class="rounded-full border border-[var(--border-strong)] px-4 py-1.5 text-xs font-bold transition hover:bg-[var(--chip)]">اطلب مجدداً</button>
+              <button class="flex items-center gap-1.5 rounded-full border border-[var(--border-strong)] px-4 py-1.5 text-xs font-bold text-white transition hover:bg-[var(--chip)]"><?=icon('refresh-cw',13)?> اطلب مجدداً</button>
             </form>
           </div>
         </li>
@@ -218,7 +208,7 @@ require APP_ROOT . '/includes/store-header.php';
 
   <h2 class="mt-14 flex items-center gap-2 text-xl font-extrabold"><?= icon('user', 20, 'text-[var(--accent)]') ?> بياناتي وعنوان التوصيل</h2>
   <p class="mt-1 text-sm text-[var(--text-dim)]">تُعبّأ تلقائياً عند إتمام الطلب.</p>
-  <form method="post" class="mt-6 grid gap-4 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 sm:grid-cols-2">
+  <form method="post" class="mt-6 grid gap-4 rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6 sm:grid-cols-2">
     <input type="hidden" name="action" value="profile">
     <label class="text-sm font-bold">الاسم<input name="name" required value="<?= e($customer['name']) ?>" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3 outline-none transition focus:border-[var(--accent)]"></label>
     <label class="text-sm font-bold">رقم الهاتف<input name="phone" required dir="ltr" value="<?= e($customer['phone']) ?>" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3 outline-none transition focus:border-[var(--accent)]"></label>
@@ -230,11 +220,11 @@ require APP_ROOT . '/includes/store-header.php';
       </select>
     </label>
     <label class="text-sm font-bold">العنوان<input name="address" value="<?= e($customer['address']) ?>" placeholder="الحي، الشارع، أقرب معلم" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3 outline-none transition focus:border-[var(--accent)]"></label>
-    <button class="glow-btn rounded-full py-3 font-bold sm:col-span-2">حفظ التعديلات</button>
+    <button class="flex items-center justify-center gap-2 rounded-full bg-white py-3 font-bold text-black transition hover:bg-neutral-200 sm:col-span-2"><?=icon('edit',16)?> حفظ التعديلات</button>
   </form>
 
   <h2 id="password" class="mt-14 flex items-center gap-2 text-xl font-extrabold"><?= icon('lock', 20, 'text-[var(--accent)]') ?> كلمة المرور</h2>
-  <form method="post" class="mt-6 grid gap-4 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 sm:grid-cols-2">
+  <form method="post" class="mt-6 grid gap-4 rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6 sm:grid-cols-2">
     <input type="hidden" name="action" value="password">
     <?php if (!empty($customer['must_change'])): ?><p class="rounded-xl bg-amber-500/10 px-4 py-3 text-sm font-bold text-amber-400 sm:col-span-2">دخلت بكلمة مرور مؤقتة من الإدارة. غيّرها الآن إلى كلمة مرور خاصة بك.</p><?php endif; ?>
     <label class="text-sm font-bold">كلمة المرور الحالية<input type="password" name="current" required dir="ltr" autocomplete="current-password" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3 outline-none transition focus:border-[var(--accent)]"></label>
@@ -244,4 +234,6 @@ require APP_ROOT . '/includes/store-header.php';
   <div class="h-8"></div>
 </div>
 <?php endif; ?>
+<script>document.querySelectorAll('input[type=password]').forEach(function(input){var wrap=document.createElement('div');wrap.className='relative';input.parentNode.insertBefore(wrap,input);wrap.append(input);input.classList.add('pl-14');var b=document.createElement('button');b.type='button';b.className='absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[var(--text-dim)]';b.innerHTML=<?=json_encode(icon('eye',18))?>;b.setAttribute('aria-label','إظهار كلمة المرور');b.onclick=function(){var show=input.type==='password';input.type=show?'text':'password';b.innerHTML=show?<?=json_encode(icon('eye-off',18))?>:<?=json_encode(icon('eye',18))?>;b.setAttribute('aria-pressed',String(show));};wrap.append(b);});</script>
+<script>document.querySelectorAll('[data-auth-tab]').forEach(function(a){a.onclick=function(e){e.preventDefault();var tab=a.dataset.authTab;document.querySelectorAll('[data-auth-form]').forEach(f=>f.classList.toggle('hidden',f.dataset.authForm!==tab));document.querySelectorAll('[data-auth-tab]').forEach(t=>{var active=t.dataset.authTab===tab;t.classList.toggle('bg-white',active);t.classList.toggle('text-black',active);t.classList.toggle('text-[var(--text-dim)]',!active);});history.replaceState(null,'',a.href);};});</script>
 <?php require APP_ROOT . '/includes/store-footer.php'; ?>

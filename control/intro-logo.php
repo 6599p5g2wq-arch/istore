@@ -1,0 +1,3 @@
+<?php
+require dirname(__DIR__).'/includes/bootstrap.php';require APP_ROOT.'/includes/auth.php';require_control();require APP_ROOT.'/includes/intro.php';
+if($_SERVER['REQUEST_METHOD']==='POST'){if(!hash_equals($_SESSION['auth_csrf']??'',(string)($_POST['csrf']??'')))json_response(['error'=>'انتهت صلاحية النموذج'],403);if(($_POST['action']??'')==='delete'){intro_delete_logo();set_setting('intro_logo','');json_response(['ok'=>true]);}[$path,$error]=intro_save_logo($_FILES['file']??['error'=>UPLOAD_ERR_NO_FILE]);if($error||!$path)json_response(['error'=>$error?:'لم يتم إرفاق ملف'],400);intro_delete_logo();set_setting('intro_logo',$path);json_response(['ok'=>true,'path'=>img_url($path)]);}json_response(['error'=>'Method not allowed'],405);

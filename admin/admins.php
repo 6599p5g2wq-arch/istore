@@ -38,21 +38,22 @@ function password_fields($id=0){ ?>
 <label class="flex items-center gap-2 text-xs"><input type="checkbox" data-show>إظهار كلمات المرور</label>
 <?php }
 admin_header('المشرفون','admins.php'); ?>
-<h1 class="text-2xl font-black sm:text-3xl">المشرفون</h1>
+<h1 class="text-2xl font-black sm:text-3xl">المشرفون</h1><p class="mt-1 text-sm text-neutral-500">حسابات الدخول للوحة التحكم. غيّر كلمة المرور الافتراضية فوراً.</p>
 <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">كل المشرفين لديهم وصول كامل لإدارة المتجر. حسابات /control منفصلة. أضف الأشخاص الموثوقين فقط.<p class="mt-2 font-bold">عدد المشرفين: <?= count($admins) ?></p></div>
 <div class="mt-4"><?php admin_msg();if($err&&!$field)echo '<p role="alert" class="rounded-xl bg-red-50 p-3 text-sm text-red-700">'.e($err).'</p>'; ?></div>
 <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
- <form method="post" class="admin-card h-fit space-y-4 p-6 lg:sticky lg:top-8"><h2 class="font-extrabold">مشرف جديد</h2><input type="hidden" name="action" value="add">
+ <form method="post" class="order-2 admin-card h-fit space-y-4 p-6 lg:sticky lg:top-8"><h2 class="font-extrabold">مشرف جديد</h2><input type="hidden" name="action" value="add">
  <label class="block text-sm font-bold">اسم المستخدم<input aria-label="اسم المستخدم" name="username" dir="ltr" value="<?= e($username) ?>" required maxlength="100" class="admin-input mt-2" <?= admin_field_bad('username') ?>></label><?php admin_field_error('username');password_fields(); ?>
  <button class="admin-btn w-full justify-center">إضافة مشرف</button><p data-result role="status" class="text-xs text-red-700"></p></form>
- <div class="space-y-4 lg:col-span-2"><?php foreach($admins as $a):$id=(int)$a['id'];$self=$id===(int)$me['id']; ?>
- <article class="admin-card min-w-0 p-5"><div class="flex flex-wrap items-center justify-between gap-3"><div class="min-w-0"><p class="break-all font-extrabold"><bdi><?= e($a['username']) ?></bdi> <?php if($self):?><span class="badge bg-violet-100 text-violet-700">أنت</span><?php endif; ?></p><p class="mt-2 text-xs text-neutral-500">أنشئ <?= e(format_date($a['created_at'])) ?></p></div>
+ <div class="order-1 space-y-4 lg:col-span-2"><?php foreach($admins as $a):$id=(int)$a['id'];$self=$id===(int)$me['id']; ?>
+ <article class="admin-card relative min-w-0 p-5"><div class="flex flex-wrap items-center justify-between gap-3"><div class="min-w-0"><p class="break-all font-extrabold"><bdi><?= e($a['username']) ?></bdi> <?php if($self):?><span class="badge bg-violet-100 text-violet-700">أنت</span><?php endif; ?></p><p class="mt-2 text-xs text-neutral-500">أنشئ <?= e(format_date($a['created_at'])) ?></p></div>
  <form method="post" data-confirm="<?= e('حذف حساب «'.$a['username'].'» نهائياً وإنهاء جلساته؟') ?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= $id ?>"><button <?= $self||count($admins)<=1?'disabled':'' ?> class="admin-btn-ghost admin-btn-danger disabled:opacity-40">حذف المشرف</button><p data-result class="text-xs text-red-700"></p></form></div>
  <?php if($rowSuccess&&$rowSuccess['id']===$id): ?><p role="status" class="mt-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700"><?= e($rowSuccess['message']) ?></p><?php endif; ?>
  <?php if($self||count($admins)<=1): ?><p class="mt-3 text-xs text-neutral-500"><?= $self?'لا يمكنك حذف حسابك الحالي.':'يجب أن يبقى مشرف واحد على الأقل.' ?></p><?php endif; ?>
- <details class="mt-4" <?= $err&&$action==='password'&&$targetId===$id?'open':'' ?>><summary class="inline-block cursor-pointer rounded-full border px-4 py-2 text-xs font-bold">تغيير كلمة المرور</summary><form method="post" data-confirm="<?= e('تغيير كلمة مرور «'.$a['username'].'»؟ سيتم إنهاء كل جلساته'.($self?' وتحتاج لتسجيل الدخول مجدداً':'').'.') ?>" class="mt-4 space-y-3 rounded-2xl bg-neutral-50 p-4"><input type="hidden" name="action" value="password"><input type="hidden" name="id" value="<?= $id ?>"><?php password_fields($id); ?><p class="text-xs text-neutral-500">سيتم إنهاء كل جلسات هذا المشرف بعد الحفظ.</p><button class="admin-btn">حفظ كلمة المرور</button><p data-result role="status" class="text-xs text-red-700"></p></form></details></article>
+ <details class="admin-password-details mt-4" <?= $err&&$action==='password'&&$targetId===$id?'open':'' ?>><summary class="inline-block cursor-pointer rounded-full border px-4 py-2 text-xs font-bold">تغيير كلمة المرور</summary><form method="post" data-confirm="<?= e('تغيير كلمة مرور «'.$a['username'].'»؟ سيتم إنهاء كل جلساته'.($self?' وتحتاج لتسجيل الدخول مجدداً':'').'.') ?>" class="mt-4 space-y-3 rounded-2xl bg-neutral-50 p-4"><input type="hidden" name="action" value="password"><input type="hidden" name="id" value="<?= $id ?>"><?php password_fields($id); ?><p class="text-xs text-neutral-500">سيتم إنهاء كل جلسات هذا المشرف بعد الحفظ.</p><button class="admin-btn">حفظ كلمة المرور</button><p data-result role="status" class="text-xs text-red-700"></p></form></details></article>
  <?php endforeach; ?></div>
 </div>
+<style>@media(min-width:1024px){.admin-password-details{margin-top:0}.admin-password-details>summary{position:absolute;left:130px;top:24px}.admin-password-details[open]{padding-top:16px}}</style>
 <script>
 document.querySelectorAll('form').forEach(form=>{
  const pw=form.querySelector('[name=password]'),cp=form.querySelector('[name=confirm_password]');

@@ -1,13 +1,24 @@
 <?php
 // الطلبات:
 // POST {name, phone, city, address, notes, coupon, items:[{id, qty}]} — إنشاء (زائر أو مسجل، يُربط بالحساب مع توكن)
-// GET (توكن) — طلبات الحساب | GET ?code=&phone= — تتبع زائر
+// GET (توكن) — طلبات الحساب | POST ?action=track {code,phone} — تتبع زائر
 require_once __DIR__ . '/_api.php';
 $m = api_method();
 
 if ($m === 'GET') {
-    $code = strtoupper(trim($_GET['code'] ?? ''));
-    $phone = trim($_GET['phone'] ?? '');
+    if(isset($_GET['phone'])||isset($_GET['code']))api_fail('استخدم POST ?action=track لحماية رقم الهاتف',405);
+    $c = api_require_customer();
+    $orders = qall('SELECT * FROM orders WHERE customer_id = ? ORDER BY id DESC LIMIT 50', [(int)$c['id']]);
+    api_ok(['orders' => array_map(fn($o) => [
+        'code' => $o['code'], 'status' => $o['status'], 'status_label' => order_status_label($o['status']),
+        'city' => $o['city'], 'total' => (float)$o['total'], 'created_at' => $o['created_at'],
+    ], $orders)]);
+}
+
+if ($m === 'POST') {
+    if(($_GET['action']??'')==='track'){ $track=api_body();foreach(['code','phone']as $f)if(!is_string($track[$f]??null))api_fail('بيانات غير صالحة');
+    $code = strtoupper(trim($track['code'] ?? ''));
+    $phone = trim($track['phone'] ?? '');
     if ($code && $phone) {
         if(rate_limited('track-mobile:'.client_ip(),8))api_fail('محاولات كثيرة، حاول لاحقا',429);
         $norm = fn($p) => preg_replace('/^\+?218/', '0', preg_replace('/[^\d+]/', '', $p));
@@ -21,15 +32,8 @@ if ($m === 'GET') {
             'created_at' => $o['created_at'], 'items' => $items,
         ]]);
     }
-    $c = api_require_customer();
-    $orders = qall('SELECT * FROM orders WHERE customer_id = ? ORDER BY id DESC LIMIT 50', [(int)$c['id']]);
-    api_ok(['orders' => array_map(fn($o) => [
-        'code' => $o['code'], 'status' => $o['status'], 'status_label' => order_status_label($o['status']),
-        'city' => $o['city'], 'total' => (float)$o['total'], 'created_at' => $o['created_at'],
-    ], $orders)]);
-}
+api_fail('رقم الطلب ورقم الهاتف مطلوبان');}
 
-if ($m === 'POST') {
     if(rate_limited('checkout-mobile:'.client_ip(),10))api_fail('محاولات كثيرة، حاول لاحقا',429);
     if (maintenance_on()) json_response(['ok' => false, 'error' => setting('maintenance_message', '') ?: 'المتجر مغلق مؤقتاً للصيانة'], 503);
     $b = api_body();
@@ -108,6 +112,7 @@ if (!$name || !$phone || !$city) api_fail('يرجى تعبئة الاسم ورق
     }
     if ($customer) q('DELETE FROM api_cart WHERE customer_id = ?', [(int)$customer['id']]);
     q('DELETE FROM cart_leads WHERE phone = ?', [$phone]);
+after_checkout_response(function()use($code,$name,$phone,$city,$address,$notes,$lines,$subtotal,$discount,$couponCode,$deliveryFee,$email,$orderId){
     try {
         notify_new_order(['code' => $code, 'customer' => $name, 'phone' => $phone, 'city' => $city, 'address' => $address, 'notes' => $notes,
             'items' => $lines, 'subtotal' => $subtotal, 'discount' => $discount, 'couponCode' => $couponCode, 'deliveryFee' => $deliveryFee,
@@ -125,6 +130,8 @@ if (!$name || !$phone || !$city) api_fail('يرجى تعبئة الاسم ورق
         tg_order_alert(['order_id' => $orderId, 'code' => $code, 'customer' => $name, 'phone' => $phone, 'city' => $city,
             'items' => $lines, 'total' => $subtotal - $discount + $deliveryFee]);
     } catch (Throwable $e) { /* ignore */ }
+
+});
     api_ok(['code' => $code, 'total' => $subtotal - $discount + $deliveryFee, 'delivery_fee' => $deliveryFee, 'discount' => $discount], 201);
 }
 api_fail('Method not allowed', 405);

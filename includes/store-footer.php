@@ -55,6 +55,9 @@ $year = date('Y');
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
 </button>
 
+<script>window.CART_DRAWER_ICONS=<?=json_encode(['bag'=>icon('shopping-bag',48),'trash'=>icon('trash',16)],JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?>;</script>
+<script>window.THEME_ICONS=<?=json_encode(['sun'=>icon('sun',18),'moon'=>icon('moon',18)],JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?>;</script>
 <script src="<?= e(url('assets/js/app.js')) ?>"></script>
+<?php require APP_ROOT.'/includes/analytics.php'; ?>
 </body>
 </html>

@@ -26,7 +26,7 @@ define('TELEGRAM_CHAT_ID', ''); // معرف المحادثة مع البوت
 
 // ---- لوحة التحكم (/admin) ----
 define('ADMIN_USERNAME', 'admin');
-define('ADMIN_PASSWORD', 'admin123'); // غيّرها فوراً من لوحة التحكم بعد أول دخول
+define('ADMIN_PASSWORD', 'admin123'); // اضبط كلمة غير افتراضية هنا قبل تشغيل الإنتاج؛ القيم الافتراضية مرفوضة خارج development.
 
 // ---- لوحة إعدادات الموقع (/control) — مستقلة تماماً عن لوحة التحكم ----
 // No control credentials in config. Run: php scripts/setup-control.php

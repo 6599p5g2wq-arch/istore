@@ -1,43 +1,14 @@
 <?php
 require __DIR__ . '/includes/bootstrap.php';
 require APP_ROOT . '/includes/auth.php';
-$page_title = 'سلة التسوق';
-require APP_ROOT . '/includes/store-header.php';
+$page_title='سلة التسوق';require APP_ROOT.'/includes/store-header.php';
 ?>
-<div class="mx-auto max-w-5xl px-4 pt-10 sm:px-6">
-  <h1 class="text-3xl font-black sm:text-4xl">سلة التسوق</h1>
-  <div id="cart-page-root" class="mt-8"></div>
-</div>
+<div class="mx-auto max-w-7xl px-4 pt-10 sm:px-6"><h1 class="text-3xl font-black sm:text-4xl">سلة التسوق</h1><div id="cart-page-root"></div></div>
 <script>
-window.renderCartPage = function () {
-  var root = document.getElementById('cart-page-root');
-  var items = Cart.items, fmt = window.fmtPrice;
-  if (!items.length) {
-    root.innerHTML = '<div class="grid place-items-center rounded-3xl bg-[var(--card)] py-24 text-center">'
-      + '<p class="text-lg font-bold text-[var(--text-dim)]">سلتك فارغة</p>'
-      + '<a href="' + window.BASE + '/products.php" class="glow-btn mt-6 inline-block rounded-full px-8 py-3 font-bold">ابدأ التسوق</a></div>';
-    return;
-  }
-  var rows = items.map(function (i) {
-    return '<div class="flex flex-col gap-4 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-4 sm:flex-row sm:items-center">'
-      + '<a href="' + window.BASE + '/product.php?slug=' + encodeURIComponent(i.slug) + '" class="h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-[var(--surface-2)]"><img src="' + window.safeImageUrl(i.image) + '" alt="" class="h-full w-full object-cover"></a>'
-      + '<div class="flex-1"><a href="' + window.BASE + '/product.php?slug=' + encodeURIComponent(i.slug) + '" class="font-bold leading-snug hover:text-[var(--accent)]">' + window.escapeHtml(i.name) + '</a>'
-      + (i.variant_label ? '<p class="mt-0.5 text-xs font-bold text-[var(--text-faint)]">' + window.escapeHtml(i.variant_label) + '</p>' : '')
-      + '<p class="mt-1 text-sm text-[var(--text-faint)]">' + window.escapeHtml(fmt(i.price)) + '</p></div>'
-      + '<div class="flex items-center gap-3">'
-      + '<div class="flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-1.5">'
-      + '<button onclick="Cart.setQty(\'' + Cart.key(i) + '\',' + (i.qty + 1) + ')" class="grid h-7 w-7 place-items-center rounded-full hover:bg-[var(--chip)]">+</button>'
-      + '<span class="min-w-8 text-center font-bold">' + i.qty + '</span>'
-      + '<button onclick="Cart.setQty(\'' + Cart.key(i) + '\',' + (i.qty - 1) + ')" class="grid h-7 w-7 place-items-center rounded-full hover:bg-[var(--chip)]">−</button>'
-      + '</div>'
-      + '<span class="w-28 text-left text-lg font-extrabold">' + window.escapeHtml(fmt(i.price * i.qty)) + '</span>'
-      + '<button onclick="Cart.remove(\'' + Cart.key(i) + '\')" aria-label="حذف" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text-faint)] hover:bg-red-500/10 hover:text-red-400">✕</button>'
-      + '</div></div>';
-  }).join('');
-  root.innerHTML = '<div class="space-y-4">' + rows + '</div>'
-    + '<div class="mt-6 flex flex-col items-center justify-between gap-4 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 sm:flex-row">'
-    + '<div class="text-xl font-extrabold">الإجمالي: <span class="text-[var(--accent)]">' + fmt(Cart.total()) + '</span></div>'
-    + '<a href="' + window.BASE + '/checkout.php" class="glow-btn rounded-full px-10 py-3.5 font-bold transition hover:scale-[1.02]">إتمام الطلب</a></div>';
-};
+const CART_ICONS=<?=json_encode(array_combine(['bag','plus','minus','trash','arrow'],[icon('shopping-bag',56,'text-neutral-600'),icon('plus',14),icon('minus',14),icon('trash',18),icon('arrow-left',17)]),JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?>;
+window.renderCartPage=function(){const root=document.getElementById('cart-page-root'),items=Cart.items,fmt=window.fmtPrice,E=window.escapeHtml;
+if(!items.length){root.innerHTML='<div class="mt-10 grid place-items-center rounded-3xl bg-[var(--card)] py-24 text-center">'+CART_ICONS.bag+'<p class="mt-4 text-lg font-bold text-[var(--text-dim)]">سلتك فارغة</p><a href="'+BASE+'/products.php" class="mt-6 rounded-full bg-white px-8 py-3 font-bold text-black hover:bg-neutral-200 transition-colors">ابدأ التسوق</a></div>';return;}
+root.innerHTML='<div class="mt-10 grid gap-8 lg:grid-cols-3"><ul class="flex flex-col gap-4 lg:col-span-2">'+items.map(i=>'<li class="flex gap-4 rounded-3xl border border-[var(--border)] bg-white/[0.04] p-4"><a href="'+BASE+'/product.php?slug='+encodeURIComponent(i.slug)+'" class="h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-[var(--surface-2)]"><img src="'+safeImageUrl(i.image)+'" alt="'+E(i.name)+'" class="h-full w-full object-cover"></a><div class="flex min-w-0 flex-1 flex-col"><a href="'+BASE+'/product.php?slug='+encodeURIComponent(i.slug)+'" class="line-clamp-2 font-bold leading-snug text-[var(--text)] hover:text-[var(--accent)]">'+E(i.name)+'</a>'+(i.variant_label?'<span class="mt-0.5 text-xs font-bold text-[var(--text-faint)]">'+E(i.variant_label)+'</span>':'')+'<span class="mt-1 text-sm text-[var(--text-faint)]">'+E(fmt(i.price))+' للقطعة</span><div class="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3"><div class="flex items-center gap-3 rounded-full border border-[var(--border-strong)] px-2 py-1"><button aria-label="زيادة" data-qty="'+(i.qty+1)+'" data-key="'+Cart.key(i)+'" class="grid h-7 w-7 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)]">'+CART_ICONS.plus+'</button><span class="w-6 text-center font-extrabold text-white">'+i.qty+'</span><button aria-label="نقصان" data-qty="'+(i.qty-1)+'" data-key="'+Cart.key(i)+'" class="grid h-7 w-7 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)]">'+CART_ICONS.minus+'</button></div><span class="whitespace-nowrap text-lg font-extrabold text-white">'+E(fmt(i.price*i.qty))+'</span></div></div><button aria-label="حذف" data-remove="'+Cart.key(i)+'" class="self-start text-neutral-600 transition hover:text-red-400">'+CART_ICONS.trash+'</button></li>').join('')+'</ul><div class="h-fit rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 lg:sticky lg:top-24"><h2 class="whitespace-nowrap text-lg font-extrabold text-white">ملخص الطلب</h2><div class="mt-4 space-y-2.5 text-sm"><div class="flex justify-between text-[var(--text-dim)]"><span>المجموع الفرعي</span><span class="font-bold text-white">'+E(fmt(Cart.total()))+'</span></div><div class="flex justify-between text-[var(--text-dim)]"><span>التوصيل</span><span class="font-bold text-white">يُحسب عند إتمام الطلب</span></div></div><div class="mt-4 flex justify-between border-t border-[var(--border)] pt-4 text-lg"><span class="font-bold text-white">الإجمالي التقريبي</span><span class="font-extrabold text-[var(--accent)]">'+E(fmt(Cart.total()))+'</span></div><a href="'+BASE+'/checkout.php" class="glow-btn mt-6 flex items-center justify-center gap-2 rounded-full py-3.5 font-bold transition hover:opacity-90">إتمام الطلب '+CART_ICONS.arrow+'</a><a href="'+BASE+'/products.php" class="mt-3 block text-center text-sm font-bold text-[var(--text-dim)] hover:text-[var(--text)]">متابعة التسوق</a></div></div>';
+root.querySelectorAll('[data-qty]').forEach(b=>b.onclick=()=>Cart.setQty(b.dataset.key,Number(b.dataset.qty)));root.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>Cart.remove(b.dataset.remove));};
 </script>
-<?php require APP_ROOT . '/includes/store-footer.php'; ?>
+<?php require APP_ROOT.'/includes/store-footer.php'; ?>

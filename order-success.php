@@ -1,31 +1,18 @@
 <?php
-require __DIR__ . '/includes/bootstrap.php';
-require APP_ROOT . '/includes/auth.php';
-$code = trim($_GET['code'] ?? '');
-$order = $code ? qone('SELECT * FROM orders WHERE code = ?', [$code]) : null;
-$page_title = 'تم استلام طلبك';
-require APP_ROOT . '/includes/store-header.php';
-$wa = preg_replace('/\D+/', '', setting('whatsapp', ''));
-?>
-<div class="mx-auto max-w-3xl px-4 pt-14 text-center sm:px-6">
-  <div class="reveal mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-500/15 text-emerald-400">
-    <?= icon('check', 40) ?>
-  </div>
-  <h1 class="mt-6 text-3xl font-black sm:text-4xl">شكراً لك! تم استلام طلبك</h1>
-  <p class="mt-3 text-[var(--text-dim)]">سنتواصل معك قريباً لتأكيد الطلب وموعد التوصيل. الدفع عند الاستلام.</p>
-  <?php if ($order): ?>
-    <div class="mt-8 inline-flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-6 py-4">
-      <span class="text-sm text-[var(--text-dim)]">رقم الطلب:</span>
-      <b class="text-xl tracking-wide text-[var(--accent)]" dir="ltr"><?= e($order['code']) ?></b>
-    </div>
-    <p class="mt-4 text-sm text-[var(--text-dim)]">احتفظ برقم الطلب لتتبع حالته في أي وقت.</p>
-    <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-      <a href="<?= url('track.php?code=' . rawurlencode($order['code'])) ?>" class="rounded-full bg-[var(--chip)] px-6 py-3 text-sm font-bold transition hover:bg-[var(--chip-hover)]">تتبع الطلب</a>
-      <?php if ($wa): ?>
-        <a href="https://wa.me/<?= e($wa) ?>?text=<?= rawurlencode('مرحباً، استفسار عن الطلب ' . $order['code']) ?>" target="_blank" rel="noopener" class="rounded-full bg-emerald-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-400">تواصل عبر واتساب</a>
-      <?php endif; ?>
-      <a href="<?= url('products.php') ?>" class="rounded-full border border-[var(--border)] px-6 py-3 text-sm font-bold transition hover:bg-[var(--chip)]">متابعة التسوق</a>
-    </div>
-  <?php endif; ?>
-</div>
-<?php require APP_ROOT . '/includes/store-footer.php'; ?>
+require __DIR__.'/includes/bootstrap.php';require APP_ROOT.'/includes/auth.php';
+$code=is_string($_GET['code']??null)?strtoupper(trim($_GET['code'])):'';
+$order=$code?qone('SELECT * FROM orders WHERE code=?',[$code]):null;
+if(!$order){http_response_code(404);$page_title='الطلب غير موجود';require APP_ROOT.'/includes/store-header.php';echo '<div class="mx-auto max-w-xl px-4 pt-16 text-center"><h1 class="text-3xl font-black">الطلب غير موجود</h1></div>';require APP_ROOT.'/includes/store-footer.php';exit;}
+$error='';
+if($_SERVER['REQUEST_METHOD']==='POST'){
+ if(rate_limited('order-verify:'.client_ip(),8)){$error='محاولات كثيرة، حاول لاحقا';http_response_code(429);}
+ else {$phone=is_string($_POST['phone']??null)?normalize_libyan_phone($_POST['phone']):null;$stored=normalize_libyan_phone($order['phone']);if(!$phone||!$stored||!hash_equals($stored,$phone)){$error='بيانات التحقق غير صحيحة';http_response_code(404);}else $_SESSION['order_access'][$code]=time()+900;}
+}
+$allowed=(int)($_SESSION['order_access'][$code]??0)>time();$page_title='تم استلام طلبك';require APP_ROOT.'/includes/store-header.php';
+if(!$allowed):?>
+<div class="mx-auto max-w-xl px-4 pt-16 sm:px-6"><div class="text-center"><span class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-500/15 text-emerald-400"><?=icon('check',44)?></span><h1 class="mt-6 text-3xl font-black">تم استلام طلبك بنجاح!</h1><p class="mt-3 text-[var(--text-dim)]">لحماية خصوصيتك، أدخل رقم الهاتف المستخدم في الطلب لعرض التفاصيل.</p></div><form method="post" class="mt-8 space-y-5 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6"><div class="flex justify-between text-sm"><span>رقم الطلب</span><b dir="ltr"><?=e($code)?></b></div><label class="block text-sm font-bold">رقم الهاتف المستخدم في الطلب<input required name="phone" type="tel" autocomplete="tel" dir="ltr" placeholder="09XXXXXXXX" class="mt-2 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-3.5 text-left outline-none focus:border-[var(--accent)]"></label><?php if($error):?><p role="alert" class="text-sm text-red-500"><?=e($error)?></p><?php endif;?><button class="glow-btn w-full rounded-full py-3.5 font-bold">عرض تفاصيل الطلب</button><p class="text-center text-xs text-[var(--text-dim)]">لن تظهر بياناتك أو تفاصيل مشترياتك قبل التحقق.</p></form><div class="mt-6 text-center"><a href="<?=e(url('products.php'))?>" class="text-sm font-bold text-[var(--text-dim)]">متابعة التسوق</a></div></div>
+<?php else:$items=qall('SELECT * FROM order_items WHERE order_id=?',[$order['id']]);?>
+<div class="mx-auto max-w-3xl px-4 pt-16 sm:px-6"><div class="reveal text-center"><span class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-500/15 text-emerald-400"><?=icon('check',44)?></span><h1 class="mt-6 text-3xl font-black sm:text-4xl">تم استلام طلبك بنجاح!</h1><p class="mt-3 text-[var(--text-dim)]">شكراً <?=e($order['customer_name'])?>، سنتواصل معك قريباً على <b dir="ltr"><?=e($order['phone'])?></b> لتأكيد الطلب قبل الشحن.</p><div class="mt-6 inline-flex items-center gap-3 rounded-full bg-white px-8 py-3 text-black"><?=icon('package',19)?><span class="font-bold">رقم الطلب:</span><span class="font-extrabold tracking-wider" dir="ltr"><?=e($code)?></span></div></div>
+<div class="reveal mt-10 rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6"><h2 class="text-lg font-extrabold text-white">تفاصيل الطلب</h2><ul class="mt-4 space-y-2.5 text-sm text-[var(--text)]"><?php foreach($items as $it):?><li class="flex justify-between"><span><?=e($it['name'])?><?=!empty($it['variant_label'])?' · '.e($it['variant_label']):''?> <span class="text-[var(--text-dim)]">× <?=(int)$it['qty']?></span></span><span class="font-bold"><?=e(format_price($it['price']*$it['qty']))?></span></li><?php endforeach;?></ul><div class="mt-4 space-y-2 border-t border-[var(--border)] pt-4 text-sm"><div class="flex justify-between text-[var(--text-dim)]"><span>المجموع الفرعي</span><span class="font-bold text-white"><?=e(format_price($order['subtotal']))?></span></div><?php if($order['discount']>0):?><div class="flex justify-between text-emerald-400"><span>الخصم<?=!empty($order['coupon_code'])?' ('.e($order['coupon_code']).')':''?></span><span class="font-bold">- <?=e(format_price($order['discount']))?></span></div><?php endif;?><?php if($order['points_discount']>0):?><div class="flex justify-between text-emerald-400"><span>خصم النقاط</span><span>- <?=e(format_price($order['points_discount']))?></span></div><?php endif;?><div class="flex justify-between text-[var(--text-dim)]"><span>التوصيل · <?=e($order['city'])?></span><span class="font-bold text-white"><?=$order['delivery_fee']==0?'مجاني':e(format_price($order['delivery_fee']))?></span></div><div class="flex justify-between pt-1 text-lg"><span class="font-bold text-white">الإجمالي</span><span class="font-black text-[var(--accent)]"><?=e(format_price($order['total']))?></span></div></div><p class="mt-4 text-xs text-[var(--text-faint)]"><?=e(format_date($order['created_at']))?> · الدفع عند الاستلام</p></div>
+<div class="mt-8 flex flex-wrap justify-center gap-4"><a href="<?=e(url('track.php?code='.rawurlencode($code)))?>" class="glow-btn rounded-full px-8 py-3.5 font-bold transition hover:opacity-90">تتبع طلبك</a><a href="<?=e(url('products.php'))?>" class="rounded-full border border-[var(--border-strong)] px-8 py-3.5 font-bold text-[var(--text)] transition hover:bg-[var(--chip)]">متابعة التسوق</a><?php $wa=preg_replace('/\D+/','',setting('whatsapp',''));if($wa):?><a href="https://wa.me/<?=e($wa)?>?text=<?=rawurlencode('مرحباً، أريد الاستفسار عن طلبي '.$code)?>" target="_blank" rel="noreferrer" class="flex items-center gap-2 rounded-full bg-emerald-500 px-8 py-3.5 font-bold text-white shadow-lg transition hover:opacity-90"><?=icon('phone',17)?> تواصل واتساب</a><?php endif;?></div></div>
+<?php endif;require APP_ROOT.'/includes/store-footer.php';?>

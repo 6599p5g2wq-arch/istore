@@ -21,7 +21,7 @@ if ($code !== '' && $phone !== '') {
         $items = qall('SELECT name, qty, variant_label FROM order_items WHERE order_id = ?', [$order['id']]);
     }
 }
-$statuses = ['new' => 'قيد المراجعة', 'confirmed' => 'تم التأكيد', 'shipped' => 'في الطريق إليك', 'delivered' => 'تم التوصيل'];
+$statusMeta=['new'=>['قيد المراجعة','clock','text-amber-400 bg-amber-500/10'],'confirmed'=>['تم التأكيد','check','text-blue-400 bg-blue-500/10'],'shipped'=>['في الطريق إليك','truck','text-purple-400 bg-purple-500/10'],'delivered'=>['تم التوصيل','check','text-emerald-400 bg-emerald-500/10'],'cancelled'=>['ملغي','x','text-red-400 bg-red-500/10']];
 $page_title = 'تتبع طلبك';
 require APP_ROOT . '/includes/store-header.php';
 ?>
@@ -29,14 +29,14 @@ require APP_ROOT . '/includes/store-header.php';
   <h1 class="text-center text-3xl font-black sm:text-4xl">تتبع طلبك</h1>
   <p class="mt-3 text-center text-[var(--text-faint)]">أدخل رقم الطلب ورقم هاتفك لمعرفة حالة طلبك</p>
 
-  <form method="post" action="<?= url('track.php') ?>" class="mt-8 space-y-4 rounded-3xl border border-[var(--border)] bg-[var(--card)] glass-card p-6">
+  <form method="post" action="<?= url('track.php') ?>" class="mt-10 space-y-4 rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
     <label class="block text-sm font-bold">رقم الطلب
       <input name="code" required dir="ltr" value="<?= e($code) ?>" placeholder="IST-XXXXXX" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20">
     </label>
     <label class="block text-sm font-bold">رقم الهاتف
       <input name="phone" required dir="ltr" inputmode="tel" value="<?= e($phone) ?>" placeholder="09XXXXXXXX" class="mt-1.5 w-full rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] px-4 py-3.5 text-left outline-none transition placeholder:text-[var(--text-dim)] placeholder:opacity-90 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/20">
     </label>
-    <button class="glow-btn w-full rounded-full py-3.5 font-bold transition hover:scale-[1.01]">تتبع</button>
+    <button class="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3.5 font-bold text-black transition hover:bg-neutral-200"><?=icon('search',18)?> تتبع</button>
   </form>
 
   <?php if ($error): ?>
@@ -44,34 +44,9 @@ require APP_ROOT . '/includes/store-header.php';
   <?php endif; ?>
 
   <?php if ($order): ?>
-    <div class="reveal mt-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] glass-card p-6">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p class="text-sm text-[var(--text-faint)]">طلب <b dir="ltr"><?= e($order['code']) ?></b> — <?= e($order['city']) ?></p>
-          <p class="text-sm text-[var(--text-faint)]"><?= e(format_date($order['created_at'])) ?></p>
-        </div>
-        <span class="rounded-full px-4 py-1.5 text-sm font-bold <?= order_status_class($order['status']) ?>"><?= e(order_status_label($order['status'])) ?></span>
-      </div>
-      <?php if ($order['status'] !== 'cancelled'): ?>
-        <div class="mt-8 flex items-center">
-          <?php $keys = array_keys($statuses); $cur = array_search($order['status'], $keys, true); if ($cur === false) $cur = 0; ?>
-          <?php foreach ($statuses as $i => $label): ?>
-            <div class="flex flex-1 flex-col items-center gap-2 text-center">
-              <span class="grid h-9 w-9 place-items-center rounded-full border-2 <?= $i <= $cur ? 'border-[var(--accent)] bg-[var(--accent)] text-white' : 'border-[var(--border)] text-[var(--text-faint)]' ?>">
-                <?= $i < $cur ? icon('check', 16) : '<b class="text-xs">' . ($i + 1) . '</b>' ?>
-              </span>
-              <span class="text-xs font-bold <?= $i <= $cur ? 'text-[var(--text)]' : 'text-[var(--text-faint)]' ?>"><?= e($label) ?></span>
-            </div>
-            <?php if ($i < count($statuses) - 1): ?><div class="h-0.5 flex-1 -translate-y-3.5 rounded <?= $i < $cur ? 'bg-[var(--accent)]' : 'bg-[var(--border)]' ?>"></div><?php endif; ?>
-          <?php endforeach; ?>
-        </div>
-      <?php endif; ?>
-      <div class="mt-8 space-y-2 border-t border-[var(--border)] pt-4 text-sm">
-        <?php foreach ($items as $it): ?>
-          <div class="flex justify-between"><span><?= e($it['name']) ?><?php if (!empty($it['variant_label'])): ?> · <span class="text-[var(--text-faint)]"><?= e($it['variant_label']) ?></span><?php endif; ?> <span class="text-[var(--text-faint)]">× <?= (int)$it['qty'] ?></span></span></div>
-        <?php endforeach; ?>
-        <div class="flex justify-between border-t border-[var(--border)] pt-3 text-lg font-extrabold"><span>الإجمالي</span><span class="text-[var(--accent)]"><?= e(format_price((float)$order['total'])) ?></span></div>
-      </div>
+    <div class="reveal mt-8 rounded-3xl border border-[var(--border)] bg-white/[0.04] p-6">
+      <?php $st=$statusMeta[$order['status']]??$statusMeta['new']; ?><div class="flex items-center gap-3 rounded-2xl p-4 <?=$st[2]?>"><?=icon($st[1],26)?><div><p class="font-extrabold"><?=e($st[0])?></p><p class="text-xs opacity-70">آخر تحديث لحالة طلبك</p></div><span class="mr-auto font-extrabold" dir="ltr"><?=e($order['code'])?></span></div>
+      <ul class="mt-4 space-y-2 text-sm text-[var(--text)]"><?php foreach($items as $it):?><li class="flex items-center gap-2"><?=icon('package',14,'text-[var(--text-faint)]')?><?=e($it['name'])?><?=!empty($it['variant_label'])?' · '.e($it['variant_label']):''?><span class="text-[var(--text-faint)]">× <?=(int)$it['qty']?></span></li><?php endforeach;?></ul><div class="mt-4 flex justify-between border-t border-[var(--border)] pt-4 text-sm"><span class="text-[var(--text-dim)]"><?=e($order['city'])?> · <?=e(format_date($order['created_at']))?></span><span class="font-extrabold text-white"><?=e(format_price($order['total']))?></span></div>
     </div>
   <?php endif; ?>
 </div>

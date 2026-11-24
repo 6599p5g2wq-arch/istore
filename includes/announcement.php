@@ -65,9 +65,10 @@ function announce_active(array $c): bool {
 }
 
 // يرسم الشريط (HTML + JS) إن كان نشطاً
-function announce_render(): void {
-    $c = announce_read();
-    if (!announce_active($c)) return;
+function announce_render(?array $preview = null): void {
+    $c = $preview === null ? announce_read() : announce_sanitize($preview);
+    if ($preview === null && !announce_active($c)) return;
+    if (!$c['messages']) return;
     $sig = substr(md5(json_encode([$c['messages'], $c['start'], $c['end']])), 0, 12);
     $end = announce_ms($c['end']);
     $cfg = ['messages' => $c['messages'], 'interval' => $c['interval'], 'end' => $end, 'start' => announce_ms($c['start']),
@@ -83,7 +84,7 @@ function announce_render(): void {
 @keyframes annM{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.ann-track{animation:none}}
 </style>
-<div id="ann-bar" class="on-dark relative z-40 overflow-hidden <?= $c['effect'] === 'marquee' ? '' : 'px-10' ?> py-2 text-center text-xs font-bold sm:text-sm" style="background:<?= e($c['bg']) ?>;color:<?= e($c['color']) ?>">
+<div id="ann-bar" class="on-dark relative z-40 overflow-hidden <?= $c['effect'] === 'marquee' ? '' : 'px-10' ?> py-2.5 text-center text-xs font-bold sm:text-sm" style="background:<?= e($c['bg']) ?>;color:<?= e($c['color']) ?>">
   <div class="flex items-center justify-center gap-3">
     <div id="ann-wrap" class="min-w-0 flex-1 overflow-hidden"><a id="ann-text" class="inline-block" style="color:inherit"></a></div>
     <span id="ann-cd" dir="rtl" class="<?= $c['effect'] === 'marquee' ? 'absolute right-2 top-1/2 -translate-y-1/2' : '' ?> hidden shrink-0 rounded-full px-2.5 py-0.5 text-xs font-extrabold tabular-nums" style="background:rgba(255,255,255,.2)"></span>

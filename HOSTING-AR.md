@@ -31,3 +31,7 @@ https://www.oxahost.ly/hosting/cpanel-shared-hosting
 https://my.libyacloud.ly/web-hosting/
 
 بعض الباقات الموجهة لليبيا تعرض cPanel/PHP/MySQL/SSL، وأخرى DirectAdmin. الإعلان لا يثبت إصدار PHP أو الإضافات أو قواعد الحماية أو جودة النسخ الاحتياطي لباقتك. اطلب من دعم شركتك تأكيد القائمة أعلاه.
+
+
+## تحديث التقارب 24 نوفمبر
+Tailwind محلي في assets/css/tailwind.css. اضبط site_url على origin الاستضافة الصحيح قبل الاعتماد على canonical وsitemap. روابط Next تتحول عبر .htaccess فيApacheمعmod_rewrite؛ لم يختبر تشغيل القواعد فيApache الحقيقي هنا. راجع PARITY-STATUS-AR.md. تتبع الموبايل يتطلبPOST?action=trackبـcode/phone، وGETالقديم405. لا تعطل شرطadminغيرالافتراضي.

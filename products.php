@@ -37,7 +37,7 @@ $products = qall(
 
 $activeCat = null;
 foreach ($cats as $c) if ($c['slug'] === $cat) $activeCat = $c;
-$page_title = $activeCat ? $activeCat['name'] : ($offers ? 'العروض والتخفيضات' : ($search ? 'نتائج البحث' : 'كل المنتجات'));
+$page_title = $activeCat ? $activeCat['name'] : ($offers ? 'العروض والتخفيضات' : 'كل المنتجات');
 
 function filter_url(array $over): string {
     $q = array_merge([
@@ -55,42 +55,26 @@ require APP_ROOT . '/includes/store-header.php';
   <?php if ($activeCat && $activeCat['description']): ?><p class="mt-2 text-[var(--text-faint)]"><?= e($activeCat['description']) ?></p><?php endif; ?>
   <?php if ($search !== ''): ?><p class="mt-2 text-[var(--text-faint)]">نتائج البحث عن «<?= e($search) ?>»: <?= count($products) ?> منتج</p><?php endif; ?>
 
-  <!-- الفلاتر -->
-  <div class="mt-6 space-y-4">
-    <div class="no-scrollbar flex gap-2 overflow-x-auto pb-1">
-      <a href="<?= e(filter_url(['category' => ''])) ?>" class="shrink-0 rounded-full px-4 py-2 text-sm font-bold transition <?= $cat === '' ? 'bg-white text-black' : 'bg-[var(--chip)] text-[var(--text)] hover:bg-[var(--chip-hover)]' ?>">الكل</a>
-      <?php foreach ($cats as $c): ?>
-      <a href="<?= e(filter_url(['category' => $c['slug']])) ?>" class="shrink-0 rounded-full px-4 py-2 text-sm font-bold transition <?= $cat === $c['slug'] ? 'bg-white text-black' : 'bg-[var(--chip)] text-[var(--text)] hover:bg-[var(--chip-hover)]' ?>"><?= e($c['name']) ?></a>
-      <?php endforeach; ?>
+  <div class="mt-8">
+    <div class="flex flex-wrap items-center gap-2">
+      <a href="<?= e(filter_url(['category'=>''])) ?>" class="rounded-full px-4 py-2 text-sm font-bold transition <?= $cat===''?'bg-white text-black':'bg-[var(--chip)] text-[var(--text)] hover:bg-[var(--chip-hover)]' ?>">الكل</a>
+      <?php foreach($cats as $c): ?><a href="<?=e(filter_url(['category'=>$c['slug']]))?>" class="rounded-full px-4 py-2 text-sm font-bold transition <?=$cat===$c['slug']?'bg-white text-black':'bg-[var(--chip)] text-[var(--text)] hover:bg-[var(--chip-hover)]'?>"><?=e($c['name'])?></a><?php endforeach; ?>
+      <div class="mr-auto flex max-w-full flex-wrap items-center gap-2">
+        <button id="filters-toggle" type="button" aria-expanded="false" onclick="var p=document.getElementById('extra-filters'),open=p.classList.toggle('hidden');this.setAttribute('aria-expanded',String(!open));this.classList.toggle('bg-[var(--accent)]',!open);this.classList.toggle('text-white',!open);this.classList.toggle('bg-[var(--chip)]',open)" class="flex items-center gap-1.5 rounded-full bg-[var(--chip)] px-4 py-2 text-sm font-bold text-[var(--text)] transition hover:bg-[var(--chip-hover)]"><?=icon('sliders',15)?> فلاتر</button>
+        <?php foreach(['brand','sort'] as $select): ?>
+        <select onchange="location.href=this.value" class="min-w-0 max-w-full rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-4 py-2 text-sm font-bold text-[var(--text)] outline-none">
+          <?php if($select==='brand'): ?><option value="<?=e(filter_url(['brand'=>'']))?>">كل الماركات</option><?php foreach($brands as $b): ?><option value="<?=e(filter_url(['brand'=>$b['slug']]))?>" <?=$brand===$b['slug']?'selected':''?>><?=e($b['name'])?></option><?php endforeach; ?>
+          <?php else: foreach(['newest'=>'الأحدث','price-asc'=>'السعر: من الأقل','price-desc'=>'السعر: من الأعلى','name'=>'الاسم'] as $k=>$label): ?><option value="<?=e(filter_url(['sort'=>$k]))?>" <?=$sortKey===$k?'selected':''?>><?=e($label)?></option><?php endforeach; endif; ?>
+        </select><?php endforeach; ?>
+      </div>
     </div>
-    <div class="flex flex-wrap items-center gap-3">
-      <?php if ($brands): ?>
-      <select onchange="location.href=this.value" class="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-bold text-[var(--text)] outline-none">
-        <option value="<?= e(filter_url(['brand' => ''])) ?>">كل الماركات</option>
-        <?php foreach ($brands as $b): ?>
-        <option value="<?= e(filter_url(['brand' => $b['slug']])) ?>" <?= $brand === $b['slug'] ? 'selected' : '' ?>><?= e($b['name']) ?></option>
-        <?php endforeach; ?>
-      </select>
-      <?php endif; ?>
-      <select onchange="location.href=this.value" class="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-bold text-[var(--text)] outline-none">
-        <option value="<?= e(filter_url(['sort' => 'newest'])) ?>" <?= $sortKey === 'newest' ? 'selected' : '' ?>>الأحدث</option>
-        <option value="<?= e(filter_url(['sort' => 'price-asc'])) ?>" <?= $sortKey === 'price-asc' ? 'selected' : '' ?>>السعر: من الأقل</option>
-        <option value="<?= e(filter_url(['sort' => 'price-desc'])) ?>" <?= $sortKey === 'price-desc' ? 'selected' : '' ?>>السعر: من الأعلى</option>
-        <option value="<?= e(filter_url(['sort' => 'name'])) ?>" <?= $sortKey === 'name' ? 'selected' : '' ?>>الاسم</option>
-      </select>
-      <a href="<?= e(filter_url(['offers' => $offers ? '' : '1'])) ?>" class="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-bold transition <?= $offers ? 'bg-red-500/20 text-red-300 border-red-500/30' : 'bg-[var(--card)] text-[var(--text)]' ?>">
-        <?= icon('tag', 15) ?> العروض فقط
-      </a>
-      <form action="<?= e(url('products.php')) ?>" method="get" class="flex items-center gap-2">
-        <?php foreach (['category' => $cat, 'brand' => $brand, 'q' => $search, 'sort' => $sortKey, 'offers' => $offers ? '1' : ''] as $k => $v): if ($v === '' || $v === null) continue; ?>
-        <input type="hidden" name="<?= e($k) ?>" value="<?= e($v) ?>">
-        <?php endforeach; ?>
-        <input name="min" type="number" min="0" placeholder="من" value="<?= e($_GET['min'] ?? '') ?>" class="w-20 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--text)] outline-none">
-        <input name="max" type="number" min="0" placeholder="إلى" value="<?= e($_GET['max'] ?? '') ?>" class="w-20 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--text)] outline-none">
-        <button class="rounded-xl bg-[var(--chip)] px-3 py-2 text-sm font-bold text-[var(--text)] transition hover:bg-[var(--chip-hover)]">السعر</button>
-      </form>
+    <div id="extra-filters" class="mt-4 hidden flex flex-wrap items-end gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
+      <?php foreach(['min'=>'أقل سعر','max'=>'أعلى سعر'] as $k=>$label): ?><label class="text-sm font-bold text-[var(--text)]"><?=e($label)?><input type="number" min="0" value="<?=e($_GET[$k]??'')?>" placeholder="<?=$k==='min'?'0':'بدون حد'?>" onblur="if(this.value===this.defaultValue)return;var u=new URL(location.href);this.value?u.searchParams.set('<?=$k?>',this.value):u.searchParams.delete('<?=$k?>');location.href=u.href" class="mt-1 block w-32 rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-sm text-white outline-none focus:border-[var(--accent)]"></label><?php endforeach; ?>
+      <label class="flex cursor-pointer items-center gap-2 text-sm font-bold text-[var(--text)]"><input type="checkbox" <?=$offers?'checked':''?> onchange="location.href=this.checked?<?=e(json_encode(filter_url(['offers'=>'1'])))?>:<?=e(json_encode(filter_url(['offers'=>''])))?>" class="h-4 w-4 accent-[var(--accent)]">العروض فقط</label>
+      <a href="<?=e(url('products.php'))?>" class="flex items-center gap-1 rounded-full bg-[var(--chip)] px-4 py-2 text-sm font-bold text-red-400 hover:bg-[var(--chip-hover)]"><?=icon('x',14)?> مسح الفلاتر</a>
     </div>
   </div>
+  <script>try{if(sessionStorage.getItem('istore-filters-open')==='1')document.getElementById('filters-toggle').click();document.getElementById('filters-toggle').addEventListener('click',function(){sessionStorage.setItem('istore-filters-open',String(this.getAttribute('aria-expanded')==='true'?1:0));});}catch(e){}</script>
 
   <?php if (!$products): ?>
   <div class="mt-8 grid place-items-center rounded-3xl bg-[var(--card)] py-24 text-center">

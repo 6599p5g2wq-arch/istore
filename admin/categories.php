@@ -54,49 +54,27 @@ admin_header('التصنيفات', 'categories.php');
 ?>
 <h1 class="text-2xl font-black sm:text-3xl">التصنيفات</h1>
 <?php admin_msg(); ?>
-<div class="mt-6 grid gap-5 lg:grid-cols-3">
-  <div class="admin-card h-fit p-6">
-    <h2 class="font-extrabold"><?= $edit ? 'تعديل تصنيف' : 'تصنيف جديد' ?></h2>
-    <form method="post" enctype="multipart/form-data" class="mt-4 space-y-3">
-      <input type="hidden" name="action" value="save"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">
+<div class="mt-6 grid gap-6 lg:grid-cols-3"><div class="lg:col-span-2"><div class="grid gap-4 sm:grid-cols-2">
+<?php foreach ($cats as $i=>$c): ?>
+<div class="flex items-center gap-3 rounded-3xl bg-white p-4 shadow-sm <?= $c['active']?'':'opacity-60' ?>">
+<?php if ($c['image']): ?><img src="<?=e(img_url($c['image']))?>" alt="" class="h-16 w-16 shrink-0 rounded-2xl bg-neutral-100 object-cover"><?php else: ?><span class="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-neutral-100 text-neutral-400"><?=icon('tag',22)?></span><?php endif; ?>
+<div class="min-w-0 flex-1"><p class="font-extrabold"><?=e($c['name'])?></p><a href="<?=e(admin_url('products.php?cat='.(int)$c['id']))?>" class="text-xs font-bold text-violet-700 hover:underline"><?=(int)$c['products_count']?> منتج</a><?php if(!$c['active']): ?><span class="ms-2 text-xs font-bold text-red-400">مخفي</span><?php endif; ?>
+<div class="mt-1.5 flex items-center gap-1.5">
+<?php foreach(['up','down'] as $dir): ?><form method="post"><input type="hidden" name="action" value="move"><input type="hidden" name="id" value="<?=(int)$c['id']?>"><input type="hidden" name="dir" value="<?=$dir?>"><button aria-label="<?=$dir==='up'?'رفع':'خفض'?>" <?=($dir==='up'&&$i===0)||($dir==='down'&&$i===count($cats)-1)?'disabled':''?> class="grid h-7 w-7 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white disabled:opacity-30"><span class="<?=$dir==='up'?'rotate-180':''?>"><?=icon('chevron-down',13)?></span></button></form><?php endforeach; ?>
+<form method="post"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?=(int)$c['id']?>"><button aria-label="<?=$c['active']?'إخفاء':'إظهار'?>" class="relative h-5 w-9 rounded-full transition <?=$c['active']?'bg-emerald-500':'bg-neutral-300'?>"><span class="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all" style="inset-inline-start:<?=$c['active']?'calc(100% - 18px)':'2px'?>"></span></button></form></div></div>
+<a href="<?=e(admin_url('categories.php?edit='.(int)$c['id']))?>" aria-label="تعديل" class="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white"><?=icon('edit',15)?></a>
+<button type="button" aria-label="حذف" class="js-cat-del grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-red-600 hover:text-white" data-id="<?=(int)$c['id']?>" data-name="<?=e($c['name'])?>" data-count="<?=(int)$c['products_count']?>"><?=icon('trash',15)?></button>
+</div><?php endforeach; ?></div><button type="button" id="taxonomy-new" class="mt-5 flex items-center gap-2 rounded-full bg-black px-6 py-3 font-bold text-white transition hover:bg-neutral-800"><?=icon('plus',18)?> تصنيف جديد</button></div>
+    <form method="post" enctype="multipart/form-data" id="taxonomy-form" class="h-fit space-y-4 rounded-3xl bg-white p-6 shadow-sm lg:sticky lg:top-8 <?=!$edit?'hidden':''?>">
+      <div class="flex items-center justify-between"><h2 class="font-extrabold"><?=$edit?'تعديل: '.e($edit['name']):'تصنيف جديد'?></h2><a href="categories.php" aria-label="إغلاق"><?=icon('x',18)?></a></div><input type="hidden" name="action" value="save"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">
       <label class="block text-sm font-bold">الاسم<input id="cat-name" name="name" required value="<?= e($edit['name'] ?? '') ?>" class="admin-input mt-1"></label>
       <label class="block text-sm font-bold">الرابط (slug)<input id="cat-slug" name="slug" dir="ltr" value="<?= e($edit['slug'] ?? '') ?>" class="admin-input mt-1 text-left" placeholder="تلقائي"></label>
       <label class="block text-sm font-bold">الوصف<textarea name="description" rows="2" class="admin-input mt-1 resize-none"><?= e($edit['description'] ?? '') ?></textarea></label>
-      <label class="block text-sm font-bold">رابط الصورة<input name="image" dir="ltr" value="<?= e($edit['image'] ?? '') ?>" class="admin-input mt-1 text-left"></label>
-      <label class="block text-sm font-bold">أو رفع<input type="file" name="image_file" accept="image/*" class="admin-input mt-1"></label>
+      <div data-image-picker><span class="text-sm font-bold">صورة التصنيف</span><div class="mt-1.5 flex items-center gap-3"><div class="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-neutral-200" hidden><img alt="" class="h-full w-full object-cover"><button type="button" data-remove aria-label="إزالة" class="absolute left-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white"><?=icon('x',12)?></button></div><label class="flex cursor-pointer items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-bold shadow-sm hover:bg-neutral-50"><?=icon('upload',16)?> رفع صورة<input type="file" accept="image/*" class="hidden"></label></div><input name="image" dir="ltr" value="<?=e($edit['image']??'')?>" placeholder="/images/example.jpg أو رابط خارجي" class="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-left text-xs text-neutral-500"><p role="status" class="mt-2 text-xs text-red-600"></p></div>
       <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="active" <?= ($edit['active'] ?? 1) ? 'checked' : '' ?> class="h-4 w-4"> ظاهر</label>
       <button class="admin-btn w-full justify-center"><?= icon('check', 16) ?> حفظ</button>
       <?php if ($edit): ?><a href="<?= e(admin_url('categories.php')) ?>" class="admin-btn-ghost w-full justify-center">إلغاء التعديل</a><?php endif; ?>
     </form>
-  </div>
-  <div class="admin-card overflow-x-auto lg:col-span-2">
-    <table class="admin-table w-full">
-      <thead><tr><th>التصنيف</th><th>المنتجات</th><th>الترتيب</th><th>ظاهر</th><th></th></tr></thead>
-      <tbody>
-      <?php foreach ($cats as $i => $c): ?>
-        <tr class="<?= $c['active'] ? '' : 'opacity-50' ?>">
-          <td class="font-bold"><?= e($c['name']) ?></td>
-          <td><a href="<?= e(admin_url('products.php?cat=' . (int)$c['id'])) ?>" class="font-bold text-violet-700 hover:underline"><?= (int)$c['products_count'] ?></a></td>
-          <td class="whitespace-nowrap">
-            <form method="post" class="inline"><input type="hidden" name="action" value="move"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>"><input type="hidden" name="dir" value="up"><button <?= $i === 0 ? 'disabled' : '' ?> class="inline-block text-neutral-400 hover:text-violet-700 disabled:opacity-20" title="رفع"><span class="inline-block rotate-180"><?= icon('chevron-down', 16) ?></span></button></form>
-            <form method="post" class="inline"><input type="hidden" name="action" value="move"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>"><input type="hidden" name="dir" value="down"><button <?= $i === count($cats) - 1 ? 'disabled' : '' ?> class="inline-block text-neutral-400 hover:text-violet-700 disabled:opacity-20" title="خفض"><?= icon('chevron-down', 16) ?></button></form>
-          </td>
-          <td>
-            <form method="post" class="inline"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
-              <button title="<?= $c['active'] ? 'إخفاء' : 'إظهار' ?>" class="relative inline-block h-5 w-9 rounded-full transition <?= $c['active'] ? 'bg-emerald-500' : 'bg-neutral-300' ?>">
-                <span class="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all" style="inset-inline-start: <?= $c['active'] ? 'calc(100% - 18px)' : '2px' ?>"></span>
-              </button>
-            </form>
-          </td>
-          <td class="whitespace-nowrap">
-            <a href="<?= e(admin_url('categories.php?edit=' . (int)$c['id'])) ?>" class="mr-2 inline-block text-neutral-500 hover:text-violet-700"><?= icon('edit', 17) ?></a>
-            <button type="button" class="js-cat-del text-neutral-400 hover:text-red-600" data-id="<?= (int)$c['id'] ?>" data-name="<?= e($c['name']) ?>" data-count="<?= (int)$c['products_count'] ?>"><?= icon('trash', 17) ?></button>
-          </td>
-        </tr>
-      <?php endforeach; ?>
-      </tbody>
-    </table>
-  </div>
 </div>
 
 <div id="cat-del-modal" class="fixed inset-0 z-50 hidden place-items-center bg-black/50 p-4">
@@ -157,3 +135,7 @@ admin_header('التصنيفات', 'categories.php');
 })();
 </script>
 <?php admin_footer(); ?>
+
+<script>document.getElementById('taxonomy-new').onclick=()=>{document.getElementById('taxonomy-form').classList.remove('hidden');document.getElementById('taxonomy-form').scrollIntoView({behavior:'smooth',block:'nearest'});};</script>
+
+<script src="<?=e(url('assets/image-picker.js'))?>"></script>

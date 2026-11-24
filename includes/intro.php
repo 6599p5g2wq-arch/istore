@@ -45,7 +45,7 @@ function intro_cfg(): array {
         'logo' => $s['intro_logo'] ?? '',
         'opacity' => $op,
         'chips' => $chips,
-        'cta_text' => trim($s['intro_cta_text'] ?? '') ?: 'تسوق الآن',
+        'cta_text' => array_key_exists('intro_cta_text',$s) ? trim($s['intro_cta_text']) : 'تسوق الآن',
         'cta_link' => intro_safe_link($s['intro_cta_link'] ?? '/products.php'),
     ];
 }
@@ -66,12 +66,12 @@ function intro_save_logo(array $f): array {
     $dir = APP_ROOT . '/uploads';
     if (!is_dir($dir)) @mkdir($dir, 0775, true);
     $base = 'intro-logo-' . time() . '-' . bin2hex(random_bytes(3));
-    // SVG: نرفضه إن احتوى سكربت أو أحداث أو مراجع خارجية، وإلا نحفظه كما هو
+    // Never serve uploaded SVG without an isolated rasterizer.
     if (stripos(ltrim($raw), '<') === 0 && stripos($raw, '<svg') !== false) {
         return [null, 'استخدم شعار PNG أو JPG أو WebP بدلاً من SVG'];
     }
     $info = @getimagesizefromstring($raw);
-    if (!$info || $info[0]*$info[1]>40000000 || !in_array($info[2], [IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_WEBP], true)) return [null, 'الصيغة غير مدعومة (PNG / JPG / WebP / SVG)'];
+    if (!$info || $info[0]*$info[1]>40000000 || !in_array($info[2], [IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_WEBP], true)) return [null, 'الصيغة غير مدعومة (PNG / JPG / WebP)'];
     $ext = $info[2] === IMAGETYPE_PNG ? 'png' : ($info[2] === IMAGETYPE_WEBP ? 'webp' : 'jpg');
     if (function_exists('imagecreatefromstring')) {
         $im = @imagecreatefromstring($raw);

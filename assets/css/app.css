@@ -175,3 +175,14 @@ html.light .intro-title { background-image: linear-gradient(90deg, #171b33, #5b2
 .live-search-name{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.65}
 .live-search-price{flex-shrink:0;white-space:nowrap;font-size:14px;font-weight:700;color:var(--accent)}
 .live-search-message{padding:16px;font-size:14px;color:var(--text-faint)}
+
+/* Hidden must win over utility display rules, including grid and flex. */
+[hidden]{display:none!important}
+@keyframes header-in{from{transform:translateY(-80px);opacity:0}to{transform:none;opacity:1}}
+#site-header{animation:header-in .6s cubic-bezier(.22,1,.36,1)}
+
+/* Pale accent panels need dark text in light mode. */
+html.light [class*="bg-[var(--accent)]/10"] .text-white{color:var(--text)}
+
+[class*="bg-[var(--card)]"], [class*="bg-[var(--surface)]"] { backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+#cart-drawer-items:has(> div + div){display:flex;flex-direction:column;gap:16px}

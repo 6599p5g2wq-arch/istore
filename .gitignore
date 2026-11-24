@@ -1,0 +1,10 @@
+# Keep only the upload guard files in source control.
+/uploads/*
+!/uploads/.htaccess
+!/uploads/index.html
+/SHA256SUMS.txt
+/config.local.php
+/.private/
+*.log
+*.zip
+.env*

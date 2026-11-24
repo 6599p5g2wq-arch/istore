@@ -43,10 +43,11 @@ require APP_ROOT . '/includes/store-header.php';
   <div class="grid gap-10 lg:grid-cols-2">
     <div class="reveal in">
       <div class="relative">
-        <div class="group relative overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface-2)]">
-          <img id="main-img" src="<?= e(img_url($gallery[0] ?? '')) ?>" alt="<?= e($p['name']) ?>" class="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105">
-          <?php if ($p['badge']): ?><span class="absolute right-4 top-4 rounded-full px-3.5 py-1.5 text-xs font-bold text-white shadow <?= $p['badge'] === 'خصم' ? 'bg-red-500' : ($p['badge'] === 'جديد' ? 'bg-emerald-500' : 'bg-[var(--accent)]') ?>"><?= e($p['badge']) ?></span><?php endif; ?>
-          <?php if ($discount): ?><span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-black">خصم <?= $discount ?>%</span><?php endif; ?>
+        <div id="product-viewer" class="relative select-none overflow-hidden rounded-[2rem] bg-[var(--surface-2)] ring-1 ring-white/10 cursor-grab" style="perspective:1100px">
+          <img id="main-img" src="<?= e(img_url($gallery[0] ?? '')) ?>" alt="<?= e($p['name']) ?>" draggable="false" class="aspect-square w-full object-cover" style="transition:transform .35s cubic-bezier(.22,1,.36,1);transform-style:preserve-3d">
+          <?php if ($p['badge']): ?><span class="absolute right-4 top-4 rounded-full px-3.5 py-1.5 text-xs font-bold text-white shadow bg-white !text-black"><?= e($p['badge']) ?></span><?php endif; ?>
+          <?php if ($discount): ?><span class="absolute left-4 top-4 rounded-full bg-red-500 px-4 py-1.5 text-xs font-bold text-white">خصم <?= $discount ?>%</span><?php endif; ?>
+          <span class="pointer-events-none absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white backdrop-blur"><?=icon('refresh-cw',13)?> اسحب للتدوير 360°</span>
         </div>
         <button onclick='Wish.toggle(<?= htmlspecialchars(json_encode(['id' => (int)$p['id']]), ENT_QUOTES) ?>)' data-wish-btn="<?= (int)$p['id'] ?>" aria-label="المفضلة" class="absolute bottom-4 left-4 z-10 grid h-11 w-11 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"><?= icon('heart', 18) ?></button>
       </div>
@@ -68,21 +69,12 @@ require APP_ROOT . '/includes/store-header.php';
         <span class="flex items-center gap-1 text-amber-400"><?= icon('star', 15, 'fill-current') ?><b><?= number_format($avg, 1) ?></b><?php if ($reviews): ?><span class="text-[var(--text-faint)]">(<?= count($reviews) ?>)</span><?php endif; ?></span>
       </div>
       <h1 class="mt-4 text-3xl font-black leading-snug text-white sm:text-4xl"><?= e($p['name']) ?></h1>
+      <p class="mt-6 whitespace-pre-line leading-8 text-[var(--text-dim)]"><?= e($p['description']) ?></p>
+
       <div class="mt-5 flex items-baseline gap-3">
         <span id="price-main" class="text-4xl font-black text-[var(--accent)]"><?= e(format_price($p['price'])) ?></span>
         <?php if (format_secondary($p['price'])): ?><span class="text-base font-bold text-[var(--text-dim)]"><?= e(format_secondary($p['price'])) ?></span><?php endif; ?>
         <?php if ($old): ?><span class="text-xl text-[var(--text-faint)] line-through"><?= e(format_price($old)) ?></span><?php endif; ?>
-      </div>
-      <p class="mt-6 whitespace-pre-line leading-8 text-[var(--text-dim)]"><?= e($p['description']) ?></p>
-
-      <div class="mt-6" id="stock-badge-box">
-        <?php if ((int)$p['stock'] <= 0): ?>
-        <span class="inline-block rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400">نفدت الكمية — قريباً</span>
-        <?php elseif ((int)$p['stock'] <= 5): ?>
-        <span class="inline-block rounded-full bg-orange-500/10 px-4 py-2 text-sm font-bold text-orange-400">باقي <?= (int)$p['stock'] ?> فقط — اطلب الآن</span>
-        <?php else: ?>
-        <span class="inline-block rounded-full bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-400">متوفر في المخزون</span>
-        <?php endif; ?>
       </div>
 
       <?php if ($options): ?>
@@ -92,38 +84,50 @@ require APP_ROOT . '/includes/store-header.php';
           <p class="mb-2 text-sm font-bold text-[var(--text-dim)]"><?= e($opt['name']) ?></p>
           <div class="flex flex-wrap gap-2" data-opt-group="<?= $oi ?>">
             <?php foreach ($opt['values'] as $v): ?>
-            <button type="button" data-opt-value="<?= e($v) ?>" class="rounded-full border border-[var(--border-strong)] bg-[var(--card)] px-4 py-2 text-sm font-bold transition hover:border-[var(--accent)]"><?= e($v) ?></button>
+            <button type="button" data-opt-value="<?= e($v) ?>" class="rounded-full border border-[var(--border-strong)] px-4 py-2 text-sm font-bold transition hover:border-[var(--accent)]"><?= e($v) ?></button>
             <?php endforeach; ?>
           </div>
         </div>
         <?php endforeach; ?>
-        <p id="variant-hint" class="text-xs font-bold text-amber-400">اختر <?= e(implode(' و', array_column($options, 'name'))) ?> أولاً</p>
+        <p id="variant-hint" hidden class="text-xs font-bold text-amber-400">اختر <?= e(implode(' و', array_column($options, 'name'))) ?> أولاً</p>
       </div>
       <?php endif; ?>
 
+      <?php if(!$options):?>      <div class="mt-6" id="stock-badge-box">
+        <?php if ((int)$p['stock'] <= 0): ?>
+        <span class="inline-block rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400">نفدت الكمية — قريباً</span>
+        <?php elseif ((int)$p['stock'] <= 5): ?>
+        <span class="inline-block rounded-full bg-orange-500/10 px-4 py-2 text-sm font-bold text-orange-400">باقي <?= (int)$p['stock'] ?> فقط — اطلب الآن</span>
+        <?php else: ?>
+        <span class="inline-block rounded-full bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-400">متوفر في المخزون</span>
+        <?php endif; ?>
+      </div>
+
+<?php else:?><div id="stock-badge-box" class="mt-6"><span class="inline-block rounded-full bg-[var(--chip)] px-4 py-2 text-sm font-bold text-[var(--text-dim)]">اختر <?=e(implode(' و',array_column($options,'name')))?> أولاً</span></div><?php endif;?>
       <?php if ((int)$p['stock'] > 0): ?>
-      <div class="mt-6 flex items-center gap-3">
-        <div class="flex items-center gap-3 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2.5">
-          <button id="qty-inc" onclick="var q=document.getElementById('qty');q.value=Math.min(window._maxQty||<?= (int)$p['stock'] ?>,+q.value+1)" class="grid h-8 w-8 place-items-center rounded-full hover:bg-[var(--chip)]"><?= icon('plus', 16) ?></button>
-          <input id="qty" type="text" value="1" readonly class="w-10 bg-transparent text-center text-lg font-extrabold outline-none">
-          <button id="qty-dec" onclick="var q=document.getElementById('qty');q.value=Math.max(1,+q.value-1)" class="grid h-8 w-8 place-items-center rounded-full hover:bg-[var(--chip)]"><?= icon('minus', 16) ?></button>
+      <div class="mt-8 flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-3 rounded-full border-2 border-[var(--border-strong)] px-2 py-1.5">
+          <button id="qty-inc" aria-label="زيادة" onclick="var q=document.getElementById('qty');q.value=Math.min(window._maxQty||<?=(int)$p['stock']?>,+q.value+1)" class="grid h-8 w-8 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)] disabled:opacity-40"><?=icon('plus',16)?></button>
+          <input id="qty" type="text" value="1" readonly class="w-8 bg-transparent text-center text-lg font-extrabold text-white outline-none">
+          <button id="qty-dec" aria-label="نقصان" onclick="var q=document.getElementById('qty');q.value=Math.max(1,+q.value-1)" class="grid h-8 w-8 place-items-center rounded-full text-[var(--text)] hover:bg-[var(--chip)] disabled:opacity-40"><?=icon('minus',16)?></button>
         </div>
-        <button id="add-btn" onclick='Cart.add(<?= $jsData ?>, +document.getElementById("qty").value)' class="glow-btn flex-1 rounded-full py-3.5 text-center font-bold transition hover:scale-[1.02] active:scale-95">أضف إلى السلة</button>
+        <button id="add-btn" onclick='Cart.add(<?=$jsData?>,+document.getElementById("qty").value)' class="flex flex-1 items-center justify-center gap-2 rounded-full bg-[var(--text)] py-4 font-bold text-[var(--bg)] shadow-lg transition hover:opacity-85 disabled:cursor-not-allowed disabled:bg-[var(--chip)] disabled:text-neutral-600 sm:flex-none sm:px-10"><?=icon('shopping-bag',19)?> أضف إلى السلة</button>
+        <button id="buy-now-btn" onclick="document.getElementById('add-btn').click();location.href=<?=e(json_encode(url('checkout.php')))?>" class="glow-btn flex items-center justify-center gap-2 rounded-full px-8 py-4 font-bold shadow-lg transition hover:opacity-90 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-[var(--text-dim)]"><?=icon('zap',19)?> اشترِ الآن</button>
       </div>
       <?php endif; ?>
 
       <?php if ($waMsg && (int)$p['stock'] > 0): ?>
-      <a href="<?= e($waMsg) ?>" target="_blank" rel="noreferrer" class="mt-3 flex items-center justify-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 py-3.5 font-bold text-emerald-400 transition hover:bg-emerald-500/20">
+      <a href="<?= e($waMsg) ?>" target="_blank" rel="noreferrer" class="mt-3 flex items-center justify-center gap-2 rounded-full bg-emerald-500 py-4 font-bold text-white shadow-lg transition hover:bg-emerald-600">
         <?= icon('whatsapp', 18) ?> اطلب عبر واتساب
       </a>
       <?php endif; ?>
 
       <?php if ((int)$p['stock'] <= 0): ?>
       <form onsubmit="return submitStockAlert(event, <?= (int)$p['id'] ?>)" class="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
-        <p class="mb-2 text-sm font-bold">نبّهني عند التوفر</p>
-        <div class="flex gap-2">
-          <input name="contact" required placeholder="رقم هاتفك أو بريدك" class="w-full rounded-xl border border-[var(--border)] bg-transparent px-3 py-2.5 text-sm outline-none">
-          <button class="glow-btn shrink-0 rounded-xl px-4 text-sm font-bold">تنبيه</button>
+        <p class="flex items-center gap-2 text-sm font-bold text-[var(--text)]"><?=icon('bell',16,'text-[var(--accent)]')?> نفدت الكمية؟ سجل وسنعلمك عند توفره</p>
+        <div class="mt-3 flex gap-2">
+          <input name="contact" required placeholder="بريدك الإلكتروني أو رقم هاتفك" class="min-w-0 flex-1 rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2.5 text-sm text-white outline-none placeholder:text-[var(--text-dim)] focus:border-[var(--accent)]">
+          <button class="glow-btn shrink-0 rounded-xl px-5 py-2.5 text-sm font-bold disabled:opacity-60">أعلمني</button>
         </div>
         <p class="stock-alert-msg mt-2 hidden text-sm font-bold text-emerald-400">تم التسجيل، سنخبرك فور توفره</p>
       </form>
@@ -132,8 +136,9 @@ require APP_ROOT . '/includes/store-header.php';
         ev.preventDefault();
         var f = ev.target, c = f.contact.value.trim();
         if (!c) return false;
+        var button=f.querySelector('button');button.disabled=true;button.textContent='جاري التسجيل…';
         fetch(window.BASE + '/api/stock-alert.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id: pid, contact: c }) })
-          .then(function () { f.querySelector('.stock-alert-msg').classList.remove('hidden'); f.contact.value = ''; });
+          .then(async function(r){var d=await r.json().catch(function(){return {}});if(!r.ok||!d.ok)throw Error(d.error||'حدث خطأ، حاول مرة أخرى');f.innerHTML='<p class="flex items-center gap-2 rounded-2xl bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-400">✓ تم! سنخبرك أول ما يتوفر المنتج.</p>';}).catch(function(err){var el=f.querySelector('.stock-alert-msg');el.className='stock-alert-msg mt-2 text-xs font-bold text-red-400';el.textContent=err.message||'تعذر الاتصال بالخادم';}).finally(function(){button.disabled=false;button.textContent='أعلمني'});
         return false;
       }
       </script>
@@ -149,7 +154,7 @@ require APP_ROOT . '/includes/store-header.php';
           <p class="mt-2 text-sm font-bold text-[var(--text)]">منتج أصلي</p><p class="text-xs text-[var(--text-faint)]">مع ضمان</p>
         </div>
         <div class="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
-          <span class="mx-auto block w-fit text-[var(--accent)]"><?= icon('settings', 22) ?></span>
+          <span class="mx-auto block w-fit text-[var(--accent)]"><?= icon('refresh-cw', 22) ?></span>
           <p class="mt-2 text-sm font-bold text-[var(--text)]">استبدال سهل</p><p class="text-xs text-[var(--text-faint)]">خلال 7 أيام</p>
         </div>
       </div>
@@ -238,6 +243,7 @@ require APP_ROOT . '/includes/store-header.php';
   var selected = {};
   var currentVariant = null;
   var addBtn = document.getElementById('add-btn');
+  var buyBtn=document.getElementById('buy-now-btn');
   var hint = document.getElementById('variant-hint');
   var priceMain = document.getElementById('price-main');
   var badgeBox = document.getElementById('stock-badge-box');
@@ -271,7 +277,7 @@ require APP_ROOT . '/includes/store-header.php';
         chip.classList.toggle('bg-[var(--accent)]', active);
         chip.classList.toggle('!text-white', active);
         chip.classList.toggle('opacity-40', !avail && !active);
-        chip.classList.toggle('line-through', !avail && !active);
+        chip.classList.toggle('line-through', !avail && !active);chip.disabled=!avail&&!active;
       });
     });
   }
@@ -287,6 +293,7 @@ require APP_ROOT . '/includes/store-header.php';
       return;
     }
     currentVariant = v;
+    if(!v){if(addBtn)addBtn.disabled=true;if(buyBtn)buyBtn.disabled=true;return;}
     if (hint) hint.classList.add('hidden');
     priceMain.textContent = window.fmtPrice(v.price !== null ? v.price : BASE_DATA.price);
     if (badgeBox) {
@@ -301,7 +308,7 @@ require APP_ROOT . '/includes/store-header.php';
       addBtn.classList.toggle('pointer-events-none', !ok);
     }
     if (qtyInput) qtyInput.value = '1';
-    if (v.image) { var mi = document.getElementById('main-img'); if (mi) mi.src = v.image; }
+    var mi=document.getElementById('main-img');if(mi)mi.src=v.image||BASE_DATA.image;
   }
 
   document.querySelectorAll('[data-opt-group]').forEach(function (group) {
@@ -331,8 +338,15 @@ require APP_ROOT . '/includes/store-header.php';
   // حد أقصى للكمية حسب مخزون التوليفة
   window._maxQty = BASE_DATA.stock;
   var _origUpdate = update;
-  update = function () { _origUpdate(); window._maxQty = currentVariant ? currentVariant.stock : BASE_DATA.stock; };
+  update = function () { _origUpdate(); window._maxQty = currentVariant ? currentVariant.stock : BASE_DATA.stock;const unavailable=!currentVariant||currentVariant.stock<=0;if(buyBtn)buyBtn.disabled=unavailable;for(const id of ['qty-inc','qty-dec']){const b=document.getElementById(id);if(b)b.disabled=unavailable;}if(!currentVariant&&badgeBox)badgeBox.innerHTML='<span class="inline-block rounded-full bg-[var(--chip)] px-4 py-2 text-sm font-bold text-[var(--text-dim)]">اختر '+window.escapeHtml(OPTIONS.filter(o=>!selected[o.name]).map(o=>o.name).join(' و'))+' أولاً</span>';};
+  if(buyBtn)buyBtn.disabled=true;
+  document.addEventListener('DOMContentLoaded',update);
+
 })();
 </script>
 <?php endif; ?>
+
+
+<script>(()=>{const w=document.getElementById('product-viewer'),img=document.getElementById('main-img');if(!w||!img)return;let drag=false;w.addEventListener('pointerdown',e=>{drag=true;w.setPointerCapture(e.pointerId);w.classList.add('cursor-grabbing');});w.addEventListener('pointermove',e=>{if(!drag)return;const r=w.getBoundingClientRect();img.style.transform='rotateX('+(((e.clientY-r.top)/r.height-.5)*-32)+'deg) rotateY('+(((e.clientX-r.left)/r.width-.5)*55)+'deg) scale(1.05)';});const reset=()=>{drag=false;img.style.transform='';w.classList.remove('cursor-grabbing');};w.addEventListener('pointerup',reset);w.addEventListener('pointercancel',reset);})();</script>
+
 <?php require APP_ROOT . '/includes/store-footer.php'; ?>

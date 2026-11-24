@@ -142,13 +142,13 @@ admin_header('المنتجات', 'products.php');
   <a href="<?= e(admin_url('product-form.php')) ?>" class="admin-btn"><?= icon('plus', 16) ?> منتج جديد</a>
 </div>
 <?php admin_msg(); ?>
-<form id="products-filters" class="mt-5 flex flex-wrap items-center gap-2" method="get">
-  <input id="products-search" name="q" value="<?= e($search) ?>" placeholder="ابحث بالاسم، الـ slug، التصنيف أو الماركة…" autocomplete="off" class="admin-input max-w-xs">
-  <select name="cat" class="admin-input w-auto">
+<form id="products-filters" class="mt-6 flex flex-wrap gap-2" method="get">
+  <input id="products-search" name="q" value="<?= e($search) ?>" placeholder="ابحث بالاسم، الـ slug، التصنيف أو الماركة…" autocomplete="off" class="admin-input !w-full max-w-md !px-4 !py-3">
+  <select name="cat" class="admin-input !w-auto !px-3 !py-3 !font-bold">
     <option value="">كل التصنيفات</option>
     <?php foreach ($cats as $c): ?><option value="<?= (int)$c['id'] ?>" <?= $cat === (int)$c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?></option><?php endforeach; ?>
   </select>
-  <select name="sort" class="admin-input w-auto">
+  <select name="sort" class="admin-input !w-auto !px-3 !py-3 !font-bold">
     <option value="new" <?= $sort === 'new' ? 'selected' : '' ?>>ترتيب: الأحدث</option>
     <option value="sold" <?= $sort === 'sold' ? 'selected' : '' ?>>الأكثر مبيعاً</option>
     <option value="price" <?= $sort === 'price' ? 'selected' : '' ?>>السعر: الأعلى</option>
@@ -185,7 +185,7 @@ admin_header('المنتجات', 'products.php');
       <img src="<?= e(img_url($p['image'])) ?>" class="h-16 w-16 shrink-0 rounded-2xl bg-neutral-100 object-cover" alt="">
       <div class="min-w-0 flex-1">
         <a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="block truncate font-bold hover:text-violet-700"><?= e($p['name']) ?></a>
-        <p class="mt-0.5 text-xs text-neutral-400"><?= e($p['cat'] ?? '—') ?><?= $p['badge'] ? ' · ' . e($p['badge']) : '' ?></p>
+        <p class="mt-0.5 flex items-center gap-1 text-xs text-neutral-400"><?=icon('star',11,'text-amber-400')?> <?=number_format((float)$p['rating'],1)?><?php if($p['badge']): ?><span class="mr-1 rounded bg-neutral-100 px-1.5 py-0.5"><?=e($p['badge'])?></span><?php endif; ?></p>
         <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
           <span class="font-extrabold"><?= e(format_price((float)$p['price'])) ?></span>
           <span class="rounded-full px-2.5 py-0.5 text-xs font-extrabold <?= $p['stock'] == 0 ? 'bg-red-100 text-red-600' : ($p['stock'] <= LOW_STOCK ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700') ?>"><?= (int)$p['stock'] ?></span>
@@ -193,15 +193,16 @@ admin_header('المنتجات', 'products.php');
         </div>
       </div>
     </div>
-    <div class="mt-3 flex items-center justify-between border-t border-[var(--border)] pt-3">
+    <div class="mt-3 flex items-center justify-between border-t border-neutral-100 pt-3">
       <div class="flex items-center gap-2">
-        <form method="post" class="inline"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="<?= $p['active'] ? 'text-emerald-600' : 'text-neutral-300' ?>" title="إظهار/إخفاء"><?= icon('eye', 18) ?></button></form>
-        <form method="post" class="inline"><input type="hidden" name="action" value="toggle_featured"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="<?= $p['featured'] ? 'text-amber-500' : 'text-neutral-300' ?>" title="تمييز"><?= icon('star', 18) ?></button></form>
+        <span class="text-[11px] font-bold text-neutral-500">ظاهر</span><form method="post" class="inline"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="relative h-6 w-11 rounded-full transition <?= $p['active'] ? 'bg-emerald-500' : 'bg-neutral-300' ?>" title="إظهار/إخفاء"><span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow" style="inset-inline-start:<?=$p['active']?'calc(100% - 22px)':'2px'?>"></span></button></form>
+        <form method="post" class="inline"><input type="hidden" name="action" value="toggle_featured"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="relative h-6 w-11 rounded-full transition <?= $p['featured'] ? 'bg-emerald-500' : 'bg-neutral-300' ?>" title="تمييز"><span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow" style="inset-inline-start:<?=$p['featured']?'calc(100% - 22px)':'2px'?>"></span></button></form>
       </div>
       <div class="flex items-center gap-2">
-        <a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="text-neutral-500 hover:text-violet-700" title="تعديل"><?= icon('edit', 17) ?></a>
-        <form method="post" class="inline" onsubmit="return confirm('نسخ المنتج بكل بياناته؟')"><input type="hidden" name="action" value="duplicate"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="text-neutral-500 hover:text-violet-700" title="نسخ المنتج"><?= icon('plus', 17) ?></button></form>
-        <form method="post" class="inline" onsubmit="return confirm('حذف المنتج نهائياً؟')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="text-neutral-400 hover:text-red-600" title="حذف"><?= icon('trash', 17) ?></button></form>
+        <a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="تعديل"><?= icon('edit', 17) ?></a>
+        <a href="<?=e(url('product.php?slug='.rawurlencode($p['slug'])))?>" target="_blank" class="inline-grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="عرض"><?=icon('eye',17)?></a>
+        <form method="post" class="inline" onsubmit="return confirm('نسخ المنتج بكل بياناته؟')"><input type="hidden" name="action" value="duplicate"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="نسخ المنتج"><?= icon('copy', 17) ?></button></form>
+        <form method="post" class="inline" onsubmit="return confirm('حذف المنتج نهائياً؟')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="inline-grid h-9 w-9 place-items-center rounded-full bg-red-50 text-red-500 transition hover:bg-red-600 hover:text-white" title="حذف"><?= icon('trash', 17) ?></button></form>
       </div>
     </div>
   </div>
@@ -210,25 +211,25 @@ admin_header('المنتجات', 'products.php');
 </div>
 
 <!-- جدول سطح المكتب -->
-<div class="admin-card mt-4 hidden overflow-x-auto lg:block">
+<div class="admin-card mt-4 hidden overflow-x-auto p-4 lg:block">
   <table class="admin-table w-full min-w-[960px]">
-    <thead><tr><th class="w-8"><input type="checkbox" class="js-bulk-all" title="تحديد الكل"></th><th>المنتج</th><th>التصنيف</th><th>الماركة</th><th>السعر</th><th>المخزون</th><th>المبيعات</th><th>مميز</th><th>ظاهر</th><th></th></tr></thead>
+    <thead><tr><th class="w-8"><input type="checkbox" class="js-bulk-all" title="تحديد الكل"></th><th>المنتج</th><th>التصنيف</th><th>السعر</th><th>المخزون</th><th>المبيعات</th><th>مميز</th><th>ظاهر</th><th></th></tr></thead>
     <tbody>
     <?php foreach ($products as $p): ?>
       <tr class="js-product-row <?= $p['active'] ? '' : 'opacity-50' ?>">
         <td><input type="checkbox" class="js-bulk" value="<?= (int)$p['id'] ?>" title="تحديد"></td>
-        <td><div class="flex items-center gap-3"><img src="<?= e(img_url($p['image'])) ?>" class="h-11 w-11 rounded-xl object-cover" alt=""><a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="max-w-[220px] truncate font-bold hover:text-violet-700"><?= e($p['name']) ?></a></div></td>
+        <td><div class="flex items-center gap-3"><img src="<?= e(img_url($p['image'])) ?>" class="h-11 w-11 rounded-xl object-cover" alt=""><div class="min-w-0"><a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="block max-w-[220px] truncate font-bold hover:text-violet-700"><?= e($p['name']) ?></a><p class="mt-0.5 text-xs text-neutral-400"><?=number_format((float)$p['rating'],1)?> <?=icon('star',10,'inline text-amber-400')?></p></div></div></td>
         <td><?= e($p['cat'] ?? '—') ?></td>
-        <td><?= e($p['brand'] ?? '—') ?></td>
-        <td class="font-bold"><?= e(format_price((float)$p['price'])) ?><?php if ($p['old_price']): ?><span class="block text-xs font-normal text-neutral-400 line-through"><?= e(format_price((float)$p['old_price'])) ?></span><?php endif; ?></td>
+        <td class="whitespace-nowrap font-bold"><?= e(format_price((float)$p['price'])) ?><?php if ($p['old_price']): ?><span class="block text-xs font-normal text-neutral-400 line-through"><?= e(format_price((float)$p['old_price'])) ?></span><?php endif; ?></td>
         <td><span class="rounded-full px-2.5 py-1 text-xs font-extrabold <?= $p['stock'] == 0 ? 'bg-red-100 text-red-600' : ($p['stock'] <= LOW_STOCK ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700') ?>"><?= (int)$p['stock'] ?></span></td>
         <td><span class="font-extrabold"><?= (int)$p['sold'] ?></span><?php if ($p['revenue'] > 0): ?><span class="block text-xs font-normal text-neutral-400"><?= e(format_price((float)$p['revenue'])) ?></span><?php endif; ?></td>
-        <td><form method="post" class="inline"><input type="hidden" name="action" value="toggle_featured"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="<?= $p['featured'] ? 'text-amber-500' : 'text-neutral-300' ?>" title="تمييز"><?= icon('star', 18) ?></button></form></td>
-        <td><form method="post" class="inline"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="<?= $p['active'] ? 'text-emerald-600' : 'text-neutral-300' ?>" title="إظهار/إخفاء"><?= icon('eye', 18) ?></button></form></td>
+        <td><form method="post" class="inline"><input type="hidden" name="action" value="toggle_featured"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="relative h-6 w-11 rounded-full transition <?= $p['featured'] ? 'bg-emerald-500' : 'bg-neutral-300' ?>" title="تمييز"><span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow" style="inset-inline-start:<?=$p['featured']?'calc(100% - 22px)':'2px'?>"></span></button></form></td>
+        <td><form method="post" class="inline"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="relative h-6 w-11 rounded-full transition <?= $p['active'] ? 'bg-emerald-500' : 'bg-neutral-300' ?>" title="إظهار/إخفاء"><span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow" style="inset-inline-start:<?=$p['active']?'calc(100% - 22px)':'2px'?>"></span></button></form></td>
         <td class="whitespace-nowrap">
-          <a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="mr-2 inline-block text-neutral-500 hover:text-violet-700" title="تعديل"><?= icon('edit', 17) ?></a>
-          <form method="post" class="inline" onsubmit="return confirm('نسخ المنتج بكل بياناته؟')"><input type="hidden" name="action" value="duplicate"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="mr-2 text-neutral-500 hover:text-violet-700" title="نسخ المنتج"><?= icon('plus', 17) ?></button></form>
-          <form method="post" class="inline" onsubmit="return confirm('حذف المنتج نهائياً؟')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="text-neutral-400 hover:text-red-600" title="حذف"><?= icon('trash', 17) ?></button></form>
+          <a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="inline-grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="تعديل"><?= icon('edit', 17) ?></a>
+          <a href="<?=e(url('product.php?slug='.rawurlencode($p['slug'])))?>" target="_blank" class="inline-grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="عرض"><?=icon('eye',17)?></a>
+        <form method="post" class="inline" onsubmit="return confirm('نسخ المنتج بكل بياناته؟')"><input type="hidden" name="action" value="duplicate"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="inline-grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="نسخ المنتج"><?= icon('copy', 17) ?></button></form>
+          <form method="post" class="inline" onsubmit="return confirm('حذف المنتج نهائياً؟')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="inline-grid h-9 w-9 place-items-center rounded-full bg-red-50 text-red-500 transition hover:bg-red-600 hover:text-white" title="حذف"><?= icon('trash', 17) ?></button></form>
         </td>
       </tr>
     <?php endforeach; ?>

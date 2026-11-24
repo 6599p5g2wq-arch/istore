@@ -1,0 +1,2 @@
+<?php
+require __DIR__.'/_init.php';require_admin();json_response(['orders.php'=>(int)qone("SELECT COUNT(*) c FROM orders WHERE status='new'")['c'],'products.php'=>(int)qone('SELECT COUNT(*) c FROM products WHERE active=1 AND stock<=5')['c'],'reviews.php'=>(int)qone('SELECT COUNT(*) c FROM reviews WHERE approved=1 AND rating<=2')['c'],'stock-alerts.php'=>(int)qone('SELECT COUNT(*) c FROM stock_alerts WHERE notified=0')['c']]);

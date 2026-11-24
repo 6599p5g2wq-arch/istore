@@ -86,9 +86,11 @@ try {
     if ($pdo->inTransaction()) $pdo->rollBack();
     json_response(['ok' => false, 'error' => ($e instanceof PDOException ? 'تعذر إتمام الطلب، حاول لاحقا' : $e->getMessage())], 400);
 }
+$_SESSION['order_access'][$code]=time()+900;
 // اكتمال الطلب: حذف أي سلة مهجورة لهذا الهاتف
 q('DELETE FROM cart_leads WHERE phone = ?', [$phone]);
 // إشعار بريدي دون أن يعطل إتمام الطلب
+after_checkout_response(function()use($code,$name,$phone,$city,$address,$notes,$lines,$subtotal,$discount,$couponCode,$deliveryFee,$email,$orderId,$total){
 try {
     notify_new_order(['code' => $code, 'customer' => $name, 'phone' => $phone, 'city' => $city, 'address' => $address, 'notes' => $notes,
         'items' => $lines, 'subtotal' => $subtotal, 'discount' => $discount, 'couponCode' => $couponCode, 'deliveryFee' => $deliveryFee,
@@ -106,4 +108,6 @@ try {
     tg_order_alert(['order_id' => $orderId, 'code' => $code, 'customer' => $name, 'phone' => $phone, 'city' => $city,
         'items' => $lines, 'total' => $total]);
 } catch (Throwable $e) { /* ignore */ }
+
+});
 json_response(['ok' => true, 'code' => $code]);

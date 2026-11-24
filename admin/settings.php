@@ -63,12 +63,13 @@ $mq = marquee_cfg(); $mqRows = $mq['items'];
 if($posted) { $mqRows=[];foreach((array)($_POST['mq_text']??[]) as $i=>$text) $mqRows[]=['icon'=>$_POST['mq_icon'][$i]??'star','text'=>$text]; }
 if(!$mqRows) $mqRows=[['icon'=>'star','text'=>'']];
 admin_header('الإعدادات', 'settings.php');
-$secPanel='admin';require APP_ROOT.'/includes/security-settings.php';
+
 ?>
 <div class="max-w-3xl">
   <h1 class="text-2xl font-black sm:text-3xl">الإعدادات</h1>
-  <?php admin_msg(); ?>
-  <nav id="settings-nav" class="mt-4 flex flex-wrap gap-2"><?php foreach(['الإعلانات','العملة','شرائح المقدمة','المميزات','الشحن'] as $i=>$lbl): ?><a class="admin-btn-ghost !text-xs" href="#settings-<?= $i ?>"><?= $lbl ?></a><?php endforeach; ?></nav>
+  <p class="mt-1 text-sm text-neutral-500">تحكم بالعملة والأسعار وشريط الإعلانات وشرائح المقدمة وشريط المميزات</p>
+  <?php $secPanel='admin';require APP_ROOT.'/includes/security-settings.php';admin_msg(); ?>
+  <nav id="settings-nav" class="mt-4 flex flex-wrap gap-2"><?php foreach(['الإعلانات','العملة','شرائح المقدمة','المميزات','الشحن'] as $i=>$lbl): ?><a class="rounded-full border bg-white px-3 py-2 text-xs font-bold" href="#settings-<?= $i ?>"><?= $lbl ?></a><?php endforeach; ?></nav>
   <?php if($err): ?><p role="alert" class="mt-4 rounded-xl bg-red-50 p-3 text-sm font-bold text-red-700"><?= e($err) ?>، احتفظنا بكل القيم التي أدخلتها.</p><?php endif; ?>
   <form id="site-settings-form" method="post" class="mt-6 space-y-5 pb-28">
     <div class="admin-card p-6">
@@ -77,7 +78,7 @@ $secPanel='admin';require APP_ROOT.'/includes/security-settings.php';
           <h2 class="font-extrabold">شريط الإعلانات</h2>
           <p class="mt-1 text-xs text-neutral-500">يظهر أعلى كل صفحات المتجر. عند وجود أكثر من رسالة تتبدل تلقائياً.</p>
         </div>
-        <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="enabled" value="1" <?= $c['enabled'] ? 'checked' : '' ?> class="h-4 w-4"> مفعّل</label>
+        <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="enabled" value="1" <?= $c['enabled'] ? 'checked' : '' ?> class="panel-switch" aria-label="مفعّل"></label>
       </div>
 
       <div id="msgs" class="mt-4 space-y-3">
@@ -169,7 +170,7 @@ $secPanel='admin';require APP_ROOT.'/includes/security-settings.php';
           <h2 class="font-extrabold">شريط المميزات المتحرك</h2>
           <p class="mt-1 text-xs text-neutral-500">الشريط الذي يمر أفقياً تحت السلايدر. حتى 6 عناصر، كل عنصر أيقونة ونص. اترك النص فارغاً لحذف العنصر.</p>
         </div>
-        <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="marquee_enabled" value="1" <?= ($posted ? !empty($_POST['marquee_enabled']) : setting('marquee_enabled','1')!=='0') ? 'checked' : '' ?> class="h-4 w-4"> ظاهر</label>
+        <label class="flex items-center gap-2 text-sm font-bold"><input type="checkbox" name="marquee_enabled" value="1" <?= ($posted ? !empty($_POST['marquee_enabled']) : setting('marquee_enabled','1')!=='0') ? 'checked' : '' ?> class="panel-switch" aria-label="ظاهر"></label>
       </div>
       <div id="mq-rows" class="mt-4 space-y-2">
         <?php foreach ($mqRows as $chip): ?>
@@ -189,7 +190,7 @@ $secPanel='admin';require APP_ROOT.'/includes/security-settings.php';
       </label>
     </div>
 
-    <div class="fixed bottom-3 left-4 right-4 lg:right-72 z-20 flex flex-wrap items-center gap-3 rounded-2xl border bg-white p-3 shadow-lg"><span id="save-state" class="text-xs font-bold">كل التعديلات محفوظة</span><button class="admin-btn">حفظ الإعدادات</button></div>
+    <div class="fixed bottom-4 left-4 right-4 lg:right-72 z-20 flex flex-wrap items-center justify-start gap-3 rounded-2xl border bg-white p-3 shadow-lg"><button class="admin-btn"><?=icon('save',16)?> حفظ الإعدادات</button><span id="save-state" class="text-xs font-bold">كل التعديلات محفوظة</span></div>
   </form>
 </div>
 <style>

@@ -48,7 +48,7 @@ function coupon_status(array $c, string $today): array {
 }
 admin_header('أكواد الخصم', 'coupons.php');
 ?>
-<h1 class="text-2xl font-black sm:text-3xl">أكواد الخصم</h1>
+<h1 class="text-2xl font-black sm:text-3xl">أكواد الخصم</h1><p class="mt-1 text-sm text-neutral-500">أنشئ كوبونات تسويقية — الزبون يطبقها عند إتمام الطلب</p>
 <?php admin_msg(); ?>
 <div class="mt-6">
   <?php program_panel('welcome', 'كوبون الترحيب للزبائن الجدد', 'يُنشأ تلقائياً لكل زبون عند التسجيل، خاص به وحده ويظهر في صفحة حسابه.', $prog['welcome_enabled'], [
@@ -66,9 +66,9 @@ admin_header('أكواد الخصم', 'coupons.php');
     <button type="button" data-chip="<?= $k ?>" class="coupon-chip rounded-full px-4 py-2 text-xs font-bold transition <?= $k === 'all' ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-500' ?>"><?= $label ?></button>
   <?php endforeach; ?>
 </div>
-<div class="mt-4 grid gap-5 lg:grid-cols-3">
-  <div class="admin-card h-fit p-6">
-    <h2 class="font-extrabold"><?= $edit ? 'تعديل كود' : 'كود جديد' ?></h2>
+<div class="mt-4 grid gap-6 lg:grid-cols-3">
+  <div class="order-2 admin-card h-fit p-6 lg:sticky lg:top-8">
+    <h2 class="font-extrabold"><?= $edit ? 'تعديل كود' : 'إنشاء كود خصم' ?></h2>
     <form method="post" class="mt-4 space-y-3">
       <input type="hidden" name="action" value="save"><input type="hidden" name="id" value="<?= (int)($edit['id'] ?? 0) ?>">
       <label class="block text-sm font-bold">الكود<input name="code" required dir="ltr" value="<?= e($edit['code'] ?? '') ?>" class="admin-input mt-1 text-left uppercase" placeholder="ISTORE10"></label>
@@ -90,37 +90,13 @@ admin_header('أكواد الخصم', 'coupons.php');
       <?php if ($edit): ?><a href="<?= e(admin_url('coupons.php')) ?>" class="admin-btn-ghost w-full justify-center">إلغاء التعديل</a><?php endif; ?>
     </form>
   </div>
-  <div class="admin-card overflow-x-auto lg:col-span-2">
-    <table class="admin-table w-full">
-      <thead><tr><th>الكود</th><th>الخصم</th><th>الحد الأدنى</th><th>الفترة</th><th>الاستخدام</th><th>مفعّل</th><th></th></tr></thead>
-      <tbody>
-      <?php foreach ($coupons as $c): [$stKey, $stLabel, $stCls] = coupon_status($c, $today); ?>
-        <tr class="coupon-row <?= $c['active'] ? '' : 'opacity-60' ?>" data-code="<?= e(mb_strtolower($c['code'])) ?>" data-status="<?= $stKey ?>" data-customer="<?= $c['customer_id'] ? '1' : '' ?>">
-          <td dir="ltr" class="font-black"><?= e($c['code']) ?><br><span class="rounded-full px-2 py-0.5 text-[11px] font-bold <?= $stCls ?>"><?= $stLabel ?></span></td>
-          <td><?= $c['kind'] === 'percent' ? rtrim(rtrim(number_format((float)$c['value'], 2), '0'), '.') . '%' : e(format_price((float)$c['value'])) ?></td>
-          <td><?= (float)$c['min_total'] > 0 ? e(format_price((float)$c['min_total'])) : '—' ?></td>
-          <td class="text-xs"><?= e(($c['starts_at'] ? 'من ' . $c['starts_at'] . ' ' : '') . ($c['expires_at'] ? 'حتى ' . $c['expires_at'] : ($c['starts_at'] ? '' : '—'))) ?></td>
-          <td class="text-xs">
-            <?= (int)$c['used_count'] ?><?= (int)$c['max_uses'] > 0 ? ' من ' . (int)$c['max_uses'] : ' (بلا حد)' ?>
-            <?php if ((int)$c['max_uses'] > 0): ?>
-              <div class="mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-neutral-100"><div class="h-full rounded-full bg-neutral-900" style="width: <?= min(100, (int)round($c['used_count'] / $c['max_uses'] * 100)) ?>%"></div></div>
-            <?php endif; ?>
-            <?php if ($c['customer_id']): ?><br><span class="text-neutral-400">خاص بـ <?= e($c['customer_name'] ?: '#' . $c['customer_id']) ?></span><?php endif; ?>
-          </td>
-          <td><form method="post" class="inline"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>"><button title="<?= $c['active'] ? 'تعطيل' : 'تفعيل' ?>" class="<?= $c['active'] ? 'text-emerald-600' : 'text-neutral-300' ?>"><?= icon('check', 18) ?></button></form></td>
-          <td class="whitespace-nowrap">
-            <button type="button" class="copy-code mr-2 inline-block align-middle text-neutral-500 hover:text-neutral-900" data-code="<?= e($c['code']) ?>" title="نسخ الكود"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
-            <a href="https://wa.me/?text=<?= rawurlencode(($c['kind'] === 'percent' ? 'خصم ' . rtrim(rtrim(number_format((float)$c['value'], 2), '0'), '.') . '%' : 'خصم ' . format_price((float)$c['value'])) . ' في ' . setting('store_name', 'آي ستور') . '! استعمل الكود: ' . $c['code'] . ' عند إتمام طلبك') ?>" target="_blank" rel="noopener" class="mr-2 inline-block align-middle text-emerald-600 hover:text-emerald-700" title="مشاركة عبر واتساب"><?= icon('whatsapp', 16) ?></a>
-            <a href="<?= e(admin_url('coupons.php?edit=' . (int)$c['id'])) ?>" class="mr-2 inline-block align-middle text-neutral-500 hover:text-violet-700" title="تعديل"><?= icon('edit', 17) ?></a>
-            <form method="post" class="inline" onsubmit="return confirm('حذف الكود؟')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>"><button class="align-middle text-neutral-400 hover:text-red-600"><?= icon('trash', 17) ?></button></form>
-          </td>
-        </tr>
-      <?php endforeach; ?>
-      <?php if (!$coupons): ?><tr><td colspan="7" class="py-10 text-center text-neutral-400">لا توجد أكواد</td></tr><?php endif; ?>
-      </tbody>
-    </table>
-    <p id="noCouponResults" class="hidden py-10 text-center text-sm text-neutral-400">لا نتائج مطابقة</p>
-  </div>
+<div class="order-1 space-y-3 lg:col-span-2">
+<?php foreach($coupons as $c):[$stKey,$stLabel,$stCls]=coupon_status($c,$today); ?>
+<div class="coupon-row flex flex-wrap items-center gap-3 rounded-3xl bg-white p-5 shadow-sm" data-code="<?=e(mb_strtolower($c['code']))?>" data-status="<?=$stKey?>" data-customer="<?=$c['customer_id']?'1':''?>"><span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-black text-white"><?=icon('ticket',19)?></span><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><p class="font-extrabold" dir="ltr"><?=e($c['code'])?></p><span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold <?=$stCls?>"><?=$stLabel?></span></div><p class="mt-0.5 text-xs text-neutral-500"><?=e($c['kind']==='percent'?'خصم '.(float)$c['value'].'%':'خصم '.format_price($c['value']))?><?php if((float)$c['min_total']>0): ?> — حد أدنى <?=e(format_price($c['min_total']))?><?php endif; ?><?php if($c['starts_at']): ?> — من <?=e($c['starts_at'])?><?php endif; ?><?php if($c['expires_at']): ?> — حتى <?=e($c['expires_at'])?><?php endif; ?> — استُخدم <?=(int)$c['used_count']?><?=$c['max_uses']?' من '.(int)$c['max_uses']:' (بلا حد)'?><?php if($c['customer_id']): ?> — خاص بالزبون <?=e($c['customer_name']?:'#'.$c['customer_id'])?><?php endif; ?></p>
+<?php if($c['max_uses']>0): ?><div class="mt-1.5 h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-neutral-100"><div class="h-full rounded-full bg-black" style="width:<?=min(100,round($c['used_count']/$c['max_uses']*100))?>%"></div></div><?php endif; ?></div>
+<div class="flex flex-wrap items-center gap-2"><button type="button" class="copy-code grid h-9 w-9 place-items-center rounded-full bg-neutral-100" data-code="<?=e($c['code'])?>" title="نسخ الكود"><?=icon('copy',15)?></button><a href="https://wa.me/?text=<?=rawurlencode('استعمل الكود: '.$c['code'])?>" target="_blank" rel="noopener" class="grid h-9 w-9 place-items-center rounded-full bg-neutral-100" title="مشاركة عبر واتساب"><?=icon('share',15)?></a><a href="<?=e(admin_url('coupons.php?edit='.(int)$c['id']))?>" class="grid h-9 w-9 place-items-center rounded-full bg-neutral-100" title="تعديل"><?=icon('edit',15)?></a><form method="post"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?=(int)$c['id']?>"><button class="rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-bold text-neutral-600"><?=$c['active']?'تعطيل':'تفعيل'?></button></form><form method="post" onsubmit="return confirm('حذف الكود؟')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?=(int)$c['id']?>"><button class="grid h-9 w-9 place-items-center rounded-full bg-red-50 text-red-500"><?=icon('trash',15)?></button></form></div></div>
+<?php endforeach; ?>
+<p id="noCouponResults" class="<?=count($coupons)?'hidden':''?> rounded-3xl bg-white p-10 text-center text-sm text-neutral-400 shadow-sm"><?=count($coupons)?'لا نتائج مطابقة':'لا توجد أكواد خصم بعد'?></p></div>
 </div>
 <script>
 (function () {
@@ -140,7 +116,7 @@ admin_header('أكواد الخصم', 'coupons.php');
       r.style.display = ok ? '' : 'none';
       if (ok) shown++;
     });
-    if (empty) empty.classList.toggle('hidden', shown !== 0 || rows.length === 0);
+    if (empty) empty.classList.toggle('hidden', shown !== 0);
   }
   chips.forEach(function (b) {
     b.addEventListener('click', function () {

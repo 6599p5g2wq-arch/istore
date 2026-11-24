@@ -1,5 +1,5 @@
 Options -Indexes
-<FilesMatch "(?i)(^\.|^config\.php$|\.(sql|log|bak|old|zip|key|env|md|txt)$)">
+<FilesMatch "(?i)(^\.|^config\.php$|\.(sql|log|bak|old|zip|key|env|md)$|^(?!robots\.txt$).*\.txt$)">
 Require all denied
 </FilesMatch>
 <IfModule mod_headers.c>
@@ -9,6 +9,18 @@ Header always set Referrer-Policy "no-referrer"
 </IfModule>
 <IfModule mod_rewrite.c>
 RewriteEngine On
+RewriteRule ^robots\.txt$ robots.php [L]
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+# Preserve shared Next URLs after switching this deployment to PHP.
+RewriteRule ^products/?$ products.php [R=301,L,QSA]
+RewriteRule ^product/([^/]+)/?$ product.php?slug=$1 [R=301,L,QSA,B]
+RewriteRule ^(cart|checkout|account|wishlist|track|about|brands)/?$ $1.php [R=301,L,QSA]
+RewriteRule ^order-success/([^/]+)/?$ order-success.php?code=$1 [R=301,L,QSA,B]
+RewriteRule ^admin/login/?$ admin/login.php [R=301,L,QSA]
+RewriteRule ^control/login/?$ control/login.php [R=301,L,QSA]
+RewriteRule ^admin/orders/([0-9]+)/?$ admin/order.php?id=$1 [R=301,L,QSA]
+RewriteRule ^admin/products/([0-9]+)/?$ admin/product-form.php?id=$1 [R=301,L,QSA]
+RewriteRule ^admin/(products|orders|customers|categories|brands|coupons|loyalty|reviews|leads|shipping|settings|admins|banners|hero|stock-alerts)/?$ admin/$1.php [R=301,L,QSA]
 RewriteRule ^favicon\.ico$ favicon.php?ico=1 [L]
 RewriteRule ^apple-touch-icon(?:-precomposed)?\.png$ favicon.php?s=180 [L]
 </IfModule>

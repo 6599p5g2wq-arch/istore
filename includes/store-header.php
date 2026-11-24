@@ -23,15 +23,14 @@ if (maintenance_on()) {
 <title><?= e($title) ?></title>
 <meta name="description" content="<?= e($desc) ?>">
 <meta name="theme-color" content="#12082e">
+<?php require APP_ROOT.'/includes/seo-head.php'; ?>
 <?php require APP_ROOT . '/includes/favicon-head.php'; ?>
 <script>
 // تطبيق الثيم قبل الرسم لتفادي الوميض
 try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}document.documentElement.classList.toggle('light',t==='light');var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',t==='light'?'#eef1fb':'#12082e');}catch(e){}
 </script>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = { future: { hoverOnlyWhenSupported: true }, corePlugins: { preflight: true }, theme: { extend: {} } };
-</script>
+<link rel="stylesheet" href="<?=e(url('assets/css/tailwind.css'))?>">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
@@ -39,7 +38,7 @@ tailwind.config = { future: { hoverOnlyWhenSupported: true }, corePlugins: { pre
 <style>body{font-family:'Cairo',ui-sans-serif,system-ui,sans-serif}</style>
 <script>window.BASE=<?= json_encode(BASE_URL) ?>;window.CURRENCY=<?= json_encode($s['currency'] ?? 'د.ل') ?>;window.PRICEFMT=<?= json_encode(['pos' => price_opts()['pos'], 'dec' => price_opts()['dec']]) ?>;</script>
 </head>
-<body class="page-in min-h-screen">
+<body class="min-h-screen">
 
 <?php require_once APP_ROOT . '/includes/announcement.php'; announce_render(); ?>
 
@@ -62,7 +61,7 @@ tailwind.config = { future: { hoverOnlyWhenSupported: true }, corePlugins: { pre
         <?php endforeach; ?>
       </nav>
       <div class="flex items-center gap-1">
-        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="hidden h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)] sm:grid"><span data-theme-icon>☀️</span></button>
+        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="hidden h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)] sm:grid"><span data-theme-icon><?=icon('sun',18)?></span></button>
         <button onclick="toggleSearch(true)" aria-label="بحث" class="grid h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><?= icon('search') ?></button>
         <a href="<?= e(url('wishlist.php')) ?>" aria-label="المفضلة" class="relative grid h-10 w-10 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]">
           <?= icon('heart') ?>
@@ -94,7 +93,7 @@ document.getElementById('back-btn').addEventListener('click', function () {
 
 <!-- قائمة الجوال -->
 <div id="mobile-menu" class="menu-overlay drawer-overlay fixed inset-0 z-50 bg-black/40" onclick="if(event.target===this)toggleMenu(false)">
-  <div class="menu-panel sheet-h sheet-scroll sheet-pad-b absolute left-0 top-0 w-80 max-w-[85vw] bg-[var(--surface)] p-6 shadow-2xl backdrop-blur-xl">
+  <div class="menu-panel sheet-h sheet-scroll sheet-pad-b absolute left-0 top-0 w-80 max-w-[85vw] bg-[var(--surface)] p-6 shadow-2xl">
     <div class="mb-8 flex items-center justify-between">
       <span class="flex items-center gap-2 text-lg font-extrabold text-white"><?php if (($s['intro_logo'] ?? '') !== ''): ?><span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[var(--border)] bg-[var(--chip)] p-1"><img src="<?= e(img_url($s['intro_logo'])) ?>" alt="" class="h-full w-full object-contain"></span><?php endif; ?><?= e($s['store_name'] ?? 'آي ستور') ?></span>
       <button onclick="toggleMenu(false)" aria-label="إغلاق" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text-dim)] hover:bg-[var(--chip)]"><?= icon('x', 18) ?></button>
@@ -104,7 +103,7 @@ document.getElementById('back-btn').addEventListener('click', function () {
       <a href="<?= e(url('track.php')) ?>" onclick="toggleMenu(false)" class="rounded-lg px-3 py-2.5 text-[var(--text-dim)] hover:bg-[var(--chip)]">تتبع طلبك</a>
       <div class="flex items-center justify-between rounded-lg px-3 py-2.5 text-[var(--text-dim)]">
         <span>المظهر</span>
-        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><span data-theme-icon>☀️</span></button>
+        <button onclick="toggleTheme()" aria-label="تبديل المظهر" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text)] transition-colors hover:bg-[var(--chip)]"><span data-theme-icon><?=icon('sun',18)?></span></button>
       </div>
 
       <div class="my-2 border-t border-[var(--border)]"></div>
@@ -121,16 +120,16 @@ document.getElementById('back-btn').addEventListener('click', function () {
 
 <!-- سلة التسوق الجانبية -->
 <div id="cart-drawer" class="drawer-overlay fixed inset-0 z-50 bg-black/40" onclick="if(event.target===this)Cart.closeDrawer()">
-  <div class="drawer-panel sheet-h absolute left-0 top-0 flex w-96 max-w-[92vw] flex-col bg-[var(--surface)] shadow-2xl backdrop-blur-xl">
+  <div class="drawer-panel sheet-h absolute left-0 top-0 flex w-96 max-w-[92vw] flex-col bg-[var(--surface)] shadow-2xl">
     <div class="flex items-center justify-between border-b border-[var(--border)] p-5">
       <span class="text-lg font-extrabold text-white">سلة التسوق</span>
       <button onclick="Cart.closeDrawer()" aria-label="إغلاق" class="grid h-9 w-9 place-items-center rounded-full text-[var(--text-dim)] hover:bg-[var(--chip)]"><?= icon('x', 18) ?></button>
     </div>
-    <div id="cart-drawer-items" class="flex-1 space-y-3 overflow-y-auto p-4"></div>
+    <div id="cart-drawer-items" class="flex-1 overflow-y-auto p-5"></div>
     <div id="cart-drawer-footer" class="sheet-pad-b hidden border-t border-[var(--border)] p-5">
       <div class="mb-4 flex items-center justify-between text-base font-extrabold">
-        <span>الإجمالي</span>
-        <span id="cart-drawer-total">0</span>
+        <span class="text-[var(--text-dim)]">المجموع الفرعي</span>
+        <span class="text-xl font-extrabold text-white" id="cart-drawer-total">0</span>
       </div>
       <a href="<?= e(url('checkout.php')) ?>" class="glow-btn block rounded-full py-3.5 text-center font-bold transition hover:scale-[1.02]">إتمام الطلب</a>
       <a href="<?= e(url('cart.php')) ?>" class="mt-2 block rounded-full border border-[var(--border)] py-3 text-center text-sm font-bold text-[var(--text-dim)] transition hover:bg-[var(--chip)]">عرض السلة</a>
@@ -140,7 +139,7 @@ document.getElementById('back-btn').addEventListener('click', function () {
 
 <!-- نافذة البحث -->
 <div id="search-overlay" class="search-overlay fixed inset-0 z-50 bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="بحث المنتجات" onclick="if(event.target===this)toggleSearch(false)">
- <div class="search-box mx-auto mt-20 w-full max-w-2xl overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl backdrop-blur-xl">
+ <div class="search-box mx-auto mt-20 w-full max-w-2xl overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl">
   <form id="live-search-form" action="<?=e(url('products.php'))?>" method="get" class="flex items-center gap-3 border-b border-[var(--border)] px-5 py-4">
    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 text-[var(--text-faint)]" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
    <input id="live-search-input" name="q" type="text" maxlength="120" autocomplete="off" aria-label="ابحث عن منتج" aria-controls="live-search-results" placeholder="ابحث عن منتج… آيفون، سماعة، شاحن" class="min-w-0 flex-1 bg-transparent text-lg text-[var(--text)] outline-none placeholder:text-[var(--text-dim)]">

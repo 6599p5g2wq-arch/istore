@@ -1,0 +1,2 @@
+<?php
+require __DIR__.'/includes/bootstrap.php';header('Content-Type: text/plain; charset=utf-8');$base=rtrim(setting('site_url',''),'/');if(!filter_var($base,FILTER_VALIDATE_URL)||!preg_match('#^https?://#i',$base))$base='';echo "User-agent: *\nAllow: /\nDisallow: ".BASE_URL."/admin\nDisallow: ".BASE_URL."/api\nDisallow: ".BASE_URL."/control\nDisallow: ".BASE_URL."/cart.php\nDisallow: ".BASE_URL."/checkout.php\nDisallow: ".BASE_URL."/account.php\nDisallow: ".BASE_URL."/order-success.php\n";if($base)echo "Sitemap: $base/sitemap.xml\n";

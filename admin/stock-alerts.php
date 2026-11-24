@@ -19,7 +19,7 @@ foreach ($alerts as $a) {
 $notifiedCount = count(array_filter($alerts, fn($a) => $a['notified']));
 admin_header('إشعارات التوفر', 'stock-alerts.php');
 ?>
-<h1 class="text-2xl font-black sm:text-3xl">إشعارات التوفر</h1>
+<h1 class="text-2xl font-black sm:text-3xl">طلبات إشعار التوفر</h1>
 <p class="mt-1 text-sm text-neutral-500">زبائن طلبوا تنبيههم عند توفر منتج نفد — يُرسل بريد تلقائياً لمن ترك إيميله عند إعادة التخزين، وأرقام الهواتف تُشعَر يدوياً بواتساب</p>
 <?php admin_msg(); ?>
 <div class="mt-4 flex flex-wrap items-center gap-2">

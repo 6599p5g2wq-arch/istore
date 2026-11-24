@@ -246,7 +246,7 @@ function resend_send(string $to, string $subject, string $html): bool {
     ]);
     $resp = @curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    if ($resp === false || $code >= 400) error_log('Resend send failed (' . $code . ') to ' . $to . ': ' . (string)$resp);
+    if ($resp === false || $code >= 400) error_log('Resend send failed with HTTP status ' . $code);
     curl_close($ch);
     return $resp !== false && $code >= 200 && $code < 300;
 }
@@ -363,3 +363,13 @@ function client_ip(): string {
 }
 
 function safe_nav_url(string $value,string $fallback='#'):string {$s=trim($value);if(preg_match('/[\x00-\x20\\\\]/',$s))return $fallback;if(preg_match('#^/(?!/)#',$s)||preg_match('#^https?://#i',$s))return $s;return $fallback;}
+
+// Finish the committed checkout response before best-effort notification work on PHP-FPM.
+// Other SAPIs retain the bounded synchronous fallback. No delivery claim is made.
+function after_checkout_response(callable $job): void {
+    register_shutdown_function(function()use($job){
+        if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
+        if(function_exists('fastcgi_finish_request')){fastcgi_finish_request();}
+        try{$job();}catch(Throwable $e){error_log('Checkout notification attempt failed');}
+    });
+}
