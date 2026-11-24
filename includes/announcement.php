@@ -83,10 +83,10 @@ function announce_render(): void {
 @keyframes annM{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.ann-track{animation:none}}
 </style>
-<div id="ann-bar" class="on-dark relative z-40 px-10 py-2 text-center text-xs font-bold sm:text-sm" style="background:<?= e($c['bg']) ?>;color:<?= e($c['color']) ?>">
+<div id="ann-bar" class="on-dark relative z-40 overflow-hidden <?= $c['effect'] === 'marquee' ? '' : 'px-10' ?> py-2 text-center text-xs font-bold sm:text-sm" style="background:<?= e($c['bg']) ?>;color:<?= e($c['color']) ?>">
   <div class="flex items-center justify-center gap-3">
     <div id="ann-wrap" class="min-w-0 flex-1 overflow-hidden"><a id="ann-text" class="inline-block" style="color:inherit"></a></div>
-    <span id="ann-cd" dir="rtl" class="hidden shrink-0 rounded-full px-2.5 py-0.5 text-xs font-extrabold tabular-nums" style="background:rgba(255,255,255,.2)"></span>
+    <span id="ann-cd" dir="rtl" class="<?= $c['effect'] === 'marquee' ? 'absolute right-2 top-1/2 -translate-y-1/2' : '' ?> hidden shrink-0 rounded-full px-2.5 py-0.5 text-xs font-extrabold tabular-nums" style="background:rgba(255,255,255,.2)"></span>
   </div>
   <button id="ann-x" type="button" aria-label="إغلاق" class="absolute left-3 top-1/2 hidden -translate-y-1/2 opacity-70 hover:opacity-100" style="color:inherit">✕</button>
 </div>
