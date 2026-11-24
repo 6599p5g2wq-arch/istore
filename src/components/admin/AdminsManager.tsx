@@ -1,65 +1,20 @@
 "use client";
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Plus, Loader2, KeyRound, User } from "lucide-react";
-import DeleteButton from "./DeleteButton";
-
-type Admin = { id: number; username: string; created_at: string };
-
-export default function AdminsManager({ admins }: { admins: Admin[] }) {
-  const router = useRouter();
-  const [form, setForm] = useState({ username: "", password: "" });
-  const [pw, setPw] = useState<Record<number, string>>({});
-  const [loading, setLoading] = useState(false);
-
-  const add = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const r = await fetch("/api/admin/admins", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-    setLoading(false);
-    if (r.ok) { setForm({ username: "", password: "" }); router.refresh(); } else {
-      const d = await r.json().catch(() => ({}));
-      alert(d.error || "حدث خطأ");
-    }
-  };
-
-  const changePw = async (id: number) => {
-    if (!pw[id] || pw[id].length < 6) { alert("كلمة المرور 6 أحرف على الأقل"); return; }
-    const r = await fetch(`/api/admin/admins/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pw[id] }) });
-    if (r.ok) { setPw({ ...pw, [id]: "" }); alert("تم تغيير كلمة المرور"); } else {
-      const d = await r.json().catch(() => ({}));
-      alert(d.error || "حدث خطأ");
-    }
-  };
-
-  const inputCls = "rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-black";
-
-  return (
-    <div className="mt-6 grid gap-6 lg:grid-cols-3">
-      <div className="space-y-4 lg:col-span-2">
-        {admins.map((a) => (
-          <div key={a.id} className="flex flex-wrap items-center gap-4 rounded-3xl bg-white p-5 shadow-sm">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-neutral-900 text-white"><User size={20} /></span>
-            <div className="min-w-0 flex-1">
-              <p className="font-extrabold" dir="ltr">{a.username}</p>
-              <p className="text-xs text-neutral-400">أنشئ {a.created_at}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <input type="password" dir="ltr" placeholder="كلمة مرور جديدة" value={pw[a.id] || ""} onChange={(e) => setPw({ ...pw, [a.id]: e.target.value })} className={`w-40 text-left ${inputCls}`} />
-              <button onClick={() => changePw(a.id)} aria-label="تغيير كلمة المرور" className="grid h-10 w-10 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white"><KeyRound size={16} /></button>
-              <DeleteButton resource="admins" id={a.id} label={a.username} />
-            </div>
-          </div>
-        ))}
-      </div>
-      <form onSubmit={add} className="h-fit space-y-4 rounded-3xl bg-white p-6 shadow-sm lg:sticky lg:top-8">
-        <h2 className="font-extrabold">مشرف جديد</h2>
-        <label className="block text-sm font-bold">اسم المستخدم *<input dir="ltr" required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} className={`mt-1.5 w-full text-left ${inputCls}`} /></label>
-        <label className="block text-sm font-bold">كلمة المرور *<input dir="ltr" required type="password" minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className={`mt-1.5 w-full text-left ${inputCls}`} /></label>
-        <button disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-full bg-black py-3 font-bold text-white disabled:opacity-60">
-          {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />} إضافة مشرف
-        </button>
-      </form>
-    </div>
-  );
+import React, {useState} from "react";
+import {useRouter} from "next/navigation";
+type Admin={id:number;username:string;created_at:string};
+const input="mt-2 w-full min-w-0 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-black";
+function PasswordFields({prefix,password,confirm,onPassword,onConfirm}:{prefix:string;password:string;confirm:string;onPassword:(s:string)=>void;onConfirm:(s:string)=>void}){
+ const [show,setShow]=useState(false);const strength=password.length<6?"6 أحرف على الأقل":password.length>=12&&/[0-9]/.test(password)&&/[^a-zA-Z0-9]/.test(password)?"قوية":"يمكن تقويتها: استخدم 12 حرفاً مع أرقام ورموز";
+ return <><label className="block text-sm font-bold">{prefix}<input aria-label={prefix} required minLength={6} maxLength={128} autoComplete="new-password" dir="ltr" type={show?"text":"password"} value={password} onChange={e=>onPassword(e.target.value)} className={input}/></label><p className="text-xs text-neutral-500">{strength}</p><label className="block text-sm font-bold">تأكيد كلمة المرور<input aria-label="تأكيد كلمة المرور" required minLength={6} maxLength={128} autoComplete="new-password" dir="ltr" type={show?"text":"password"} value={confirm} onChange={e=>onConfirm(e.target.value)} className={input}/></label><label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={show} onChange={e=>setShow(e.target.checked)}/>إظهار كلمات المرور</label></>;
+}
+export default function AdminsManager({admins,currentId}:{admins:Admin[];currentId:number}){
+ const router=useRouter();const [username,setUsername]=useState("");const [password,setPassword]=useState("");const [confirmPassword,setConfirmPassword]=useState("");const [busy,setBusy]=useState<number|null>(null);const [notes,setNotes]=useState<Record<number,string>>({});const [errors,setErrors]=useState<Record<number,boolean>>({});const [open,setOpen]=useState<number|null>(null);const [pw,setPw]=useState("");const [cp,setCp]=useState("");const [loggedOut,setLoggedOut]=useState(false);
+ const note=(id:number,text:string,error=false)=>{setNotes(n=>({...n,[id]:text}));setErrors(n=>({...n,[id]:error}));};
+ const request=async(id:number,url:string,method:string,data?:unknown)=>{setBusy(id);note(id,"");try{let r=await fetch(url,{method,headers:{"Content-Type":"application/json"},body:data?JSON.stringify(data):undefined});let d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"تعذر إتمام العملية");return d;}catch(e){note(id,e instanceof Error&&e.message!=="Failed to fetch"?e.message:"تعذر الاتصال. لم يتم تأكيد العملية، تحقق وحاول مجدداً",true);return null;}finally{setBusy(null);}};
+ const add=async(e:React.FormEvent)=>{e.preventDefault();if(password!==confirmPassword){note(0,"كلمتا المرور غير متطابقتين",true);return;}let d=await request(0,"/api/admin/admins","POST",{username,password,confirm_password:confirmPassword});if(d){note(0,`تمت إضافة ${username}`);setUsername("");setPassword("");setConfirmPassword("");router.refresh();}};
+ const change=async(e:React.FormEvent,a:Admin)=>{e.preventDefault();if(pw!==cp){note(a.id,"كلمتا المرور غير متطابقتين",true);return;}if(!confirm(`تغيير كلمة مرور «${a.username}»؟ سيتم إنهاء كل جلساته${a.id===currentId?" وتحتاج لتسجيل الدخول مجدداً":""}.`))return;let d=await request(a.id,`/api/admin/admins/${a.id}`,"PUT",{password:pw,confirm_password:cp});if(d){setPw("");setCp("");setOpen(null);if(d.relogin){setLoggedOut(true);}else{note(a.id,`تم تغيير كلمة مرور ${a.username} وإنهاء جلساته`);router.refresh();}}};
+ const del=async(a:Admin)=>{if(!confirm(`حذف حساب «${a.username}» نهائياً وإنهاء جلساته؟`))return;let d=await request(a.id,`/api/admin/admins/${a.id}`,"DELETE");if(d)router.refresh();};
+ const message=(id:number)=>notes[id]&&<p role={errors[id]?"alert":"status"} className={`rounded-xl p-3 text-sm ${errors[id]?"bg-red-50 text-red-700":"bg-emerald-50 text-emerald-700"}`}>{notes[id]}</p>;
+ if(loggedOut)return <div role="status" className="mt-6 rounded-3xl bg-white p-6"><h2 className="font-bold">تم تغيير كلمة مرورك وإنهاء كل جلساتك</h2><p className="mt-2 text-sm">سجّل دخولك بكلمة المرور الجديدة للمتابعة.</p><a href="/admin/login" className="mt-4 inline-block rounded-full bg-black px-5 py-3 text-sm text-white">تسجيل الدخول مجدداً</a></div>;
+ return <><div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">كل المشرفين لديهم وصول كامل لإدارة المتجر. حسابات /control منفصلة. أضف الأشخاص الموثوقين فقط.<p className="mt-2 font-bold">عدد المشرفين: {admins.length}</p></div><div className="mt-6 grid gap-6 lg:grid-cols-3"><div className="space-y-4 lg:col-span-2">{admins.map(a=><article key={a.id} className="min-w-0 rounded-3xl bg-white p-5 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div className="min-w-0"><p className="break-all font-extrabold"><bdi>{a.username}</bdi> {a.id===currentId&&<span className="rounded-full bg-violet-100 px-2 py-1 text-xs text-violet-700">أنت</span>}</p><p className="mt-2 text-xs text-neutral-500">أنشئ {new Intl.DateTimeFormat("ar-LY",{dateStyle:"medium",timeStyle:"short",timeZone:"Africa/Tripoli"}).format(new Date(a.created_at.replace(" ","T")+"Z"))}</p></div><div className="flex flex-wrap gap-2"><button type="button" disabled={busy!==null} onClick={()=>{setOpen(open===a.id?null:a.id);setPw("");setCp("");}} className="rounded-full border px-4 py-2 text-xs font-bold">{open===a.id?"إلغاء":"تغيير كلمة المرور"}</button><button type="button" disabled={busy!==null||a.id===currentId||admins.length<=1} onClick={()=>del(a)} className="rounded-full bg-red-50 px-4 py-2 text-xs font-bold text-red-700 disabled:opacity-40">{busy===a.id?"جارٍ التنفيذ...":"حذف المشرف"}</button></div></div>{(a.id===currentId||admins.length<=1)&&<p className="mt-3 text-xs text-neutral-500">{a.id===currentId?"لا يمكنك حذف حسابك الحالي.":"يجب أن يبقى مشرف واحد على الأقل."}</p>}{open===a.id&&<form onSubmit={e=>change(e,a)} className="mt-4 space-y-3 rounded-2xl bg-neutral-50 p-4"><PasswordFields prefix="كلمة مرور جديدة" password={pw} confirm={cp} onPassword={setPw} onConfirm={setCp}/><p className="text-xs text-neutral-500">سيتم إنهاء كل جلسات هذا المشرف بعد الحفظ.</p><button disabled={busy!==null} className="rounded-full bg-black px-5 py-3 text-sm font-bold text-white disabled:opacity-50">{busy===a.id?"جارٍ الحفظ...":"حفظ كلمة المرور"}</button></form>}<div className="mt-3">{message(a.id)}</div></article>)}</div><form onSubmit={add} className="h-fit space-y-4 rounded-3xl bg-white p-6 shadow-sm lg:sticky lg:top-8"><h2 className="font-extrabold">مشرف جديد</h2><label className="block text-sm font-bold">اسم المستخدم<input aria-label="اسم المستخدم" required maxLength={100} dir="ltr" value={username} onChange={e=>setUsername(e.target.value)} className={input}/></label><PasswordFields prefix="كلمة المرور" password={password} confirm={confirmPassword} onPassword={setPassword} onConfirm={setConfirmPassword}/>{message(0)}<button disabled={busy!==null} className="w-full rounded-full bg-black py-3 text-sm font-bold text-white disabled:opacity-50">{busy===0?"جارٍ الإضافة...":"إضافة مشرف"}</button></form></div></>;
 }

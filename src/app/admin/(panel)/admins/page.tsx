@@ -1,4 +1,5 @@
 import React from "react";
+import { getSessionAdmin } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import AdminsManager from "@/components/admin/AdminsManager";
 
@@ -10,7 +11,7 @@ export default function AdminAdmins() {
     <div>
       <h1 className="text-2xl font-black sm:text-3xl">المشرفون</h1>
       <p className="mt-1 text-sm text-neutral-500">حسابات الدخول للوحة التحكم — غيّر كلمة المرور الافتراضية فوراً</p>
-      <AdminsManager admins={admins} />
+      <AdminsManager admins={admins} currentId={getSessionAdmin()?.id || 0} />
     </div>
   );
 }
