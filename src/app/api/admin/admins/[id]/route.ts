@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import {revokePrincipal} from "@/lib/security";
 import { requireAdmin, bad } from "@/lib/admin-api";
 import { getDb } from "@/lib/db";
 import { getSessionAdmin, hashPassword } from "@/lib/auth";
@@ -17,6 +18,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const salt = crypto.randomBytes(16).toString("hex");
   db.prepare("UPDATE admin_users SET pass_hash = ?, salt = ? WHERE id = ?").run(hashPassword(String(b.password), salt), salt, params.id);
   db.prepare("DELETE FROM sessions WHERE admin_id = ?").run(params.id);
+  revokePrincipal("admin",params.id);
   return NextResponse.json({ ok: true, relogin: self });
 }
 
@@ -27,6 +29,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if(!db.prepare("SELECT id FROM admin_users WHERE id=?").get(params.id))return bad("المشرف غير موجود",404);
   const count = (db.prepare("SELECT COUNT(*) c FROM admin_users").get() as { c: number }).c;
   if (count <= 1) return bad("لا يمكن حذف آخر مشرف");
+  revokePrincipal("admin",params.id);
   db.prepare("DELETE FROM admin_users WHERE id = ?").run(params.id);
   return NextResponse.json({ ok: true });
 }

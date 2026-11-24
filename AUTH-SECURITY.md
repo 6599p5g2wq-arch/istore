@@ -1,0 +1,11 @@
+# Admin/control login security
+
+Defaults: five failed attempts in a 15-minute window, lock for 15 minutes, idle logout after 30 minutes, optional seven-day remembered session. Change policy from /control with the current control password. Session cookies are used unless remember-me is checked. Browser session restoration can preserve them, so browser-close logout cannot be guaranteed. Client idle logout is complemented by server-side last-activity expiry.
+
+Five additive SQLite tables are created on first auth request: auth_attempts, auth_activity, auth_sessions, auth_totp, auth_challenges. Existing admin/control sessions are intentionally invalidated; customer sessions are untouched. Back up the DB before upgrade. Old session tables can remain but are no longer trusted by admin/control authentication.
+
+AUTH_ENCRYPTION_KEY must be a persistent environment secret with 64 random hex characters. It encrypts TOTP keys with AES-256-GCM; no real accounts are enrolled automatically. Each account enables its own authenticator in Settings after entering its current password and a valid TOTP. Eight single-use recovery codes are shown once. Save them securely. TOTP enrollment/removal invalidates the account's sessions. Replayed TOTP codes are rejected. Challenge tokens expire after five minutes and five attempts. Login history stores time, supplied username, panel, user agent and result for 90 days, latest 100 visible in /control; no passwords or codes are logged.
+
+IMPORTANT: Render's current ephemeral SQLite storage resets on deployment. This can erase 2FA enrollments, login history, lock counters, configured policies, settings and logos. The environment key survives, but does not make the database persistent. This hosting setup is not durable production MFA until persistent database storage is provisioned. Do not claim deploy-safe MFA with the present DB. No paid storage upgrade was authorized or purchased as part of this update.
+
+Forgot-password email is not implemented. A configured Resend API key alone does not establish a verified recovery address for either admin/control account or prove message delivery. Build a verified recovery identity flow before enabling password resets.
