@@ -170,6 +170,7 @@ require APP_ROOT . '/includes/store-header.php';
             <span class="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400"><?= icon('badge-check', 12) ?> مشترٍ موثق</span>
           </div>
           <?php if ($r['comment']): ?><p class="mt-3 text-sm leading-7 text-[var(--text-dim)]"><?= e($r['comment']) ?></p><?php endif; ?>
+          <?php if (!empty($r['reply'])): ?><p class="mt-3 rounded-xl bg-white/[0.06] px-4 py-3 text-sm leading-7 text-[var(--text-dim)]"><span class="font-extrabold text-white">رد المتجر: </span><?= e($r['reply']) ?></p><?php endif; ?>
         </div>
         <?php endforeach; ?>
       </div>

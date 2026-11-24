@@ -28,6 +28,14 @@ function migrate_brands_description(PDO $pdo): void {
     try { $pdo->exec("ALTER TABLE brands ADD COLUMN description TEXT NOT NULL DEFAULT '' AFTER slug"); } catch (PDOException $e) { /* العمود موجود مسبقاً */ }
 }
 
+// ترقية التقييمات: عمود رد المتجر. آمنة للتكرار
+function migrate_reviews_reply(PDO $pdo): void {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    try { $pdo->exec("ALTER TABLE reviews ADD COLUMN reply TEXT NULL AFTER comment"); } catch (PDOException $e) { /* العمود موجود مسبقاً */ }
+}
+
 // ترقية الطلبات: ملاحظات الأدمن الداخلية + سجل الحالات. آمنة للتكرار
 function migrate_orders_admin(PDO $pdo): void {
     static $done = false;
