@@ -84,15 +84,16 @@ admin_header('الإعدادات', 'settings.php');
       <div id="msgs" class="mt-4 space-y-3">
         <?php foreach ($c['messages'] as $m): ?>
         <div class="msg rounded-2xl bg-neutral-50 p-3">
-          <div class="flex gap-2">
-            <input name="msg_text[]" maxlength="200" value="<?= e($m['text']) ?>" placeholder="نص الرسالة" class="admin-input">
-            <button type="button" class="rm admin-btn-ghost admin-btn-danger" title="حذف">🗑</button>
+          <div class="flex items-center gap-2">
+            <span class="msg-num grid h-6 w-6 shrink-0 place-items-center rounded-full bg-black text-[11px] font-extrabold text-white">1</span>
+            <input name="msg_text[]" maxlength="200" value="<?= e($m['text']) ?>" placeholder="نص الرسالة" class="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:border-black">
+            <button type="button" class="rm grid h-9 w-9 shrink-0 place-items-center rounded-full text-neutral-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-30" aria-label="حذف الرسالة"><?= icon('trash', 16) ?></button>
           </div>
-          <input name="msg_link[]" maxlength="500" value="<?= e($m['link']) ?>" placeholder="رابط عند الضغط (اختياري): /products أو https://..." dir="ltr" class="admin-input mt-2">
+          <input name="msg_link[]" maxlength="500" value="<?= e($m['link']) ?>" placeholder="رابط عند الضغط (اختياري): /products أو https://..." dir="ltr" class="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-left text-xs outline-none focus:border-black">
         </div>
         <?php endforeach; ?>
       </div>
-      <button type="button" id="add" class="admin-btn-ghost mt-3">+ إضافة رسالة</button>
+      <button type="button" id="add" class="mt-3 flex items-center gap-1.5 rounded-full border border-dashed border-neutral-300 px-4 py-2 text-sm font-bold text-neutral-600 transition hover:bg-neutral-50"><?= icon('plus', 15) ?> إضافة رسالة</button>
 
       <div class="mt-5 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
         <label class="block text-sm font-bold">لون الخلفية <input type="color" name="bg" value="<?= e($c['bg']) ?>" class="mt-1 block h-10 w-20 cursor-pointer rounded-lg border border-neutral-300"></label>
@@ -156,9 +157,9 @@ admin_header('الإعدادات', 'settings.php');
       <p class="mt-1 text-xs text-neutral-500">الشرائح الصغيرة تحت الوصف في أول شاشة من الصفحة الرئيسية، حتى 6. اترك النص فارغاً لحذف الشريحة. باقي نصوص المقدمة والشعار من /control.</p>
       <div id="intro-rows" class="mt-4 space-y-2">
         <?php foreach ($chipRows as $chip): ?>
-        <div class="flex gap-2">
-          <select name="intro_icon[]" class="admin-input !w-32 shrink-0"><?php foreach (INTRO_ICON_LABELS as $k => $lb): ?><option value="<?= e($k) ?>" <?= $chip['icon'] === $k ? 'selected' : '' ?>><?= e($lb) ?></option><?php endforeach; ?></select>
-          <input name="intro_text[]" value="<?= e($chip['text']) ?>" maxlength="40" class="admin-input">
+        <div class="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 p-2">
+          <select name="intro_icon[]" class="rounded-xl border border-neutral-200 bg-white px-2 py-2.5 text-sm font-bold"><?php foreach (INTRO_ICON_LABELS as $k => $lb): ?><option value="<?= e($k) ?>" <?= $chip['icon'] === $k ? 'selected' : '' ?>><?= e($lb) ?></option><?php endforeach; ?></select>
+          <input name="intro_text[]" value="<?= e($chip['text']) ?>" maxlength="40" placeholder="النص" class="min-w-0 flex-1 basis-32 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-black focus:ring-4 focus:ring-black/5">
         </div>
         <?php endforeach; ?>
       </div>
@@ -174,9 +175,9 @@ admin_header('الإعدادات', 'settings.php');
       </div>
       <div id="mq-rows" class="mt-4 space-y-2">
         <?php foreach ($mqRows as $chip): ?>
-        <div class="flex gap-2">
-          <select name="mq_icon[]" class="admin-input !w-32 shrink-0"><?php foreach (MARQUEE_ICON_LABELS as $k => $lb): ?><option value="<?= e($k) ?>" <?= $chip['icon'] === $k ? 'selected' : '' ?>><?= e($lb) ?></option><?php endforeach; ?></select>
-          <input name="mq_text[]" value="<?= e($chip['text']) ?>" maxlength="40" class="admin-input">
+        <div class="flex flex-wrap items-center gap-2 rounded-xl bg-neutral-50 p-2">
+          <select name="mq_icon[]" class="rounded-xl border border-neutral-200 bg-white px-2 py-2.5 text-sm font-bold"><?php foreach (MARQUEE_ICON_LABELS as $k => $lb): ?><option value="<?= e($k) ?>" <?= $chip['icon'] === $k ? 'selected' : '' ?>><?= e($lb) ?></option><?php endforeach; ?></select>
+          <input name="mq_text[]" value="<?= e($chip['text']) ?>" maxlength="40" placeholder="النص" class="min-w-0 flex-1 basis-32 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-black focus:ring-4 focus:ring-black/5">
         </div>
         <?php endforeach; ?>
       </div>
