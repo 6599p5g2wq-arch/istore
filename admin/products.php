@@ -185,7 +185,7 @@ admin_header('المنتجات', 'products.php');
       <img src="<?= e(img_url($p['image'])) ?>" class="h-16 w-16 shrink-0 rounded-2xl bg-neutral-100 object-cover" alt="">
       <div class="min-w-0 flex-1">
         <a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="block truncate font-bold hover:text-violet-700"><?= e($p['name']) ?></a>
-        <p class="mt-0.5 flex items-center gap-1 text-xs text-neutral-400"><?=icon('star',11,'text-amber-400')?> <?=number_format((float)$p['rating'],1)?><?php if($p['badge']): ?><span class="mr-1 rounded bg-neutral-100 px-1.5 py-0.5"><?=e($p['badge'])?></span><?php endif; ?></p>
+        <p class="mt-0.5 flex items-center gap-1 text-xs text-neutral-400"><span class="star-fill inline-flex"><?=icon('star',11,'text-amber-400')?></span> <?=number_format((float)$p['rating'],1)?><?php if($p['badge']): ?><span class="mr-1 rounded bg-neutral-100 px-1.5 py-0.5"><?=e($p['badge'])?></span><?php endif; ?></p>
         <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
           <span class="font-extrabold"><?= e(format_price((float)$p['price'])) ?></span>
           <span class="rounded-full px-2.5 py-0.5 text-xs font-extrabold <?= $p['stock'] == 0 ? 'bg-red-100 text-red-600' : ($p['stock'] <= LOW_STOCK ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700') ?>"><?= (int)$p['stock'] ?></span>
@@ -194,15 +194,14 @@ admin_header('المنتجات', 'products.php');
       </div>
     </div>
     <div class="mt-3 flex items-center justify-between border-t border-neutral-100 pt-3">
-      <div class="flex items-center gap-2">
-        <span class="text-[11px] font-bold text-neutral-500">ظاهر</span><form method="post" class="inline"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="relative h-6 w-11 rounded-full transition <?= $p['active'] ? 'bg-emerald-500' : 'bg-neutral-300' ?>" title="إظهار/إخفاء"><span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow" style="inset-inline-start:<?=$p['active']?'calc(100% - 22px)':'2px'?>"></span></button></form>
-        <form method="post" class="inline"><input type="hidden" name="action" value="toggle_featured"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="relative h-6 w-11 rounded-full transition <?= $p['featured'] ? 'bg-emerald-500' : 'bg-neutral-300' ?>" title="تمييز"><span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow" style="inset-inline-start:<?=$p['featured']?'calc(100% - 22px)':'2px'?>"></span></button></form>
+      <div class="flex items-center gap-3 text-[11px] font-bold text-neutral-500">
+        <span class="flex items-center gap-1.5">ظاهر <form method="post" class="inline"><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="relative h-6 w-11 rounded-full transition <?= $p['active'] ? 'bg-emerald-500' : 'bg-neutral-300' ?>" title="إظهار/إخفاء"><span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow" style="inset-inline-start:<?=$p['active']?'calc(100% - 22px)':'2px'?>"></span></button></form></span>
+        <span class="flex items-center gap-1.5">مميز <form method="post" class="inline"><input type="hidden" name="action" value="toggle_featured"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="relative h-6 w-11 rounded-full transition <?= $p['featured'] ? 'bg-emerald-500' : 'bg-neutral-300' ?>" title="تمييز"><span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow" style="inset-inline-start:<?=$p['featured']?'calc(100% - 22px)':'2px'?>"></span></button></form></span>
       </div>
       <div class="flex items-center gap-2">
-        <a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="تعديل"><?= icon('edit', 17) ?></a>
-        <form method="post" class="inline" onsubmit="return confirm('نسخ المنتج بكل بياناته؟')"><input type="hidden" name="action" value="duplicate"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="نسخ المنتج"><?= icon('copy', 17) ?></button></form>
-        <a href="<?=e(url('product.php?slug='.rawurlencode($p['slug'])))?>" target="_blank" class="inline-grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="عرض"><?=icon('eye',17)?></a>
-        <form method="post" class="inline" onsubmit="return confirm('حذف المنتج نهائياً؟')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="inline-grid h-9 w-9 place-items-center rounded-full bg-red-50 text-red-500 transition hover:bg-red-600 hover:text-white" title="حذف"><?= icon('trash', 17) ?></button></form>
+        <a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="تعديل"><?= icon('edit', 15) ?></a>
+        <form method="post" class="inline" onsubmit="return confirm('نسخ المنتج بكل بياناته؟')"><input type="hidden" name="action" value="duplicate"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="grid h-9 w-9 place-items-center rounded-full bg-neutral-100 transition hover:bg-black hover:text-white" title="نسخ المنتج"><?= icon('copy', 15) ?></button></form>
+        <form method="post" class="inline" onsubmit="return confirm('حذف المنتج نهائياً؟')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= (int)$p['id'] ?>"><button class="grid h-9 w-9 place-items-center rounded-full bg-red-50 text-red-500 transition hover:bg-red-600 hover:text-white" title="حذف"><?= icon('trash', 15) ?></button></form>
       </div>
     </div>
   </div>
@@ -218,7 +217,7 @@ admin_header('المنتجات', 'products.php');
     <?php foreach ($products as $p): ?>
       <tr class="js-product-row <?= $p['active'] ? '' : 'opacity-50' ?>">
         <td><input type="checkbox" class="js-bulk" value="<?= (int)$p['id'] ?>" title="تحديد"></td>
-        <td><div class="flex items-center gap-3"><img src="<?= e(img_url($p['image'])) ?>" class="h-12 w-12 rounded-xl bg-neutral-100 object-cover" alt=""><div class="min-w-0"><a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="line-clamp-1 font-bold hover:text-violet-700"><?= e($p['name']) ?></a><p class="flex items-center gap-1 text-xs text-neutral-400"><?=icon('star',11,'text-amber-400')?> <?=number_format((float)$p['rating'],1)?><?php if($p['badge']): ?><span class="mr-1 rounded bg-neutral-100 px-1.5 py-0.5"><?=e($p['badge'])?></span><?php endif; ?></p></div></div></td>
+        <td><div class="flex items-center gap-3"><img src="<?= e(img_url($p['image'])) ?>" class="h-12 w-12 rounded-xl bg-neutral-100 object-cover" alt=""><div class="min-w-0"><a href="<?= e(admin_url('product-form.php?id=' . (int)$p['id'])) ?>" class="line-clamp-1 font-bold hover:text-violet-700"><?= e($p['name']) ?></a><p class="flex items-center gap-1 text-xs text-neutral-400"><span class="star-fill inline-flex"><?=icon('star',11,'text-amber-400')?></span> <?=number_format((float)$p['rating'],1)?><?php if($p['badge']): ?><span class="mr-1 rounded bg-neutral-100 px-1.5 py-0.5"><?=e($p['badge'])?></span><?php endif; ?></p></div></div></td>
         <td><?= e($p['cat'] ?? '—') ?></td>
         <td class="font-bold"><?= e(format_price((float)$p['price'])) ?><?php if ($p['old_price']): ?><span class="block text-xs font-normal text-neutral-400 line-through"><?= e(format_price((float)$p['old_price'])) ?></span><?php endif; ?></td>
         <td><span class="rounded-full px-2.5 py-1 text-xs font-extrabold <?= $p['stock'] == 0 ? 'bg-red-100 text-red-600' : ($p['stock'] <= LOW_STOCK ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700') ?>"><?= (int)$p['stock'] ?></span></td>
@@ -310,4 +309,5 @@ admin_header('المنتجات', 'products.php');
   sync();
 })();
 </script>
+<style>.star-fill svg{fill:currentColor}</style>
 <?php admin_footer(); ?>

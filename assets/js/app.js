@@ -139,8 +139,10 @@
   window.fmtPrice = function (v) {
     var cur = window.CURRENCY || 'د.ل';
     var f = window.PRICEFMT || {};
-    var n = f.dec === '0' ? String(Math.round(v)) : f.dec === '2' ? v.toFixed(2) : ((Math.floor(v) === v) ? String(v) : v.toFixed(2));
-    n = n.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    var d = f.dec === '0' ? { minimumFractionDigits: 0, maximumFractionDigits: 0 }
+      : f.dec === '2' ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+      : { maximumFractionDigits: v % 1 === 0 ? 0 : 2 };
+    var n; try { n = new Intl.NumberFormat('ar-LY', d).format(v); } catch (e) { n = String(v); }
     return f.pos === 'before' ? cur + ' ' + n : n + ' ' + cur;
   };
 

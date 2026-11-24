@@ -107,10 +107,10 @@ $storeName = setting('store_name', 'آي ستور');
 <body>
 <header class="sticky top-0 z-40 border-b border-neutral-200 bg-white/85 backdrop-blur">
   <div class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-8">
-    <div class="flex items-center gap-2.5 font-extrabold"><span class="grid h-9 w-9 place-items-center rounded-xl bg-black text-white"><?=icon('sliders',17)?></span>إعدادات موقع <?=e($storeName)?></div>
+    <div class="flex items-center gap-2.5 font-extrabold"><span class="grid h-9 w-9 place-items-center rounded-xl bg-black text-white"><?=icon('sliders-horizontal',17)?></span>إعدادات موقع <?=e($storeName)?></div>
     <div class="flex items-center gap-2">
-      <a href="<?= e(url('index.php')) ?>" target="_blank" class="rounded-full border border-neutral-300 bg-white px-4 py-1.5 text-sm font-bold text-neutral-600 hover:bg-neutral-100">عرض المتجر</a>
-      <a href="<?= e(url('control/logout.php')) ?>" class="rounded-full border border-neutral-300 bg-white px-4 py-1.5 text-sm font-bold text-red-600 hover:bg-red-50">خروج</a>
+      <a href="<?= e(url('index.php')) ?>" target="_blank" class="flex items-center gap-1.5 rounded-full border border-neutral-200 px-4 py-2 text-xs font-bold transition hover:bg-neutral-100"><?=icon('external-link',14)?> عرض المتجر</a>
+      <a href="<?= e(url('control/logout.php')) ?>" class="flex items-center gap-1.5 rounded-full bg-neutral-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-700"><?=icon('log-out',14)?> خروج</a>
     </div>
   </div>
 </header>

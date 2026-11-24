@@ -56,8 +56,8 @@ admin_header('الزبائن', 'customers.php');
 <div class="flex flex-wrap items-center justify-between gap-3">
   <h1 class="text-2xl font-black sm:text-3xl">الزبائن</h1>
   <div class="flex flex-wrap items-center gap-2">
-    <button type="button" id="new-cust-open" class="admin-btn"><?= icon('plus', 16) ?> زبون جديد</button>
-    <a href="<?= e(admin_url('customers-export.php?tab=' . $tab)) ?>" class="admin-btn-ghost"><?= icon('download', 16) ?> تصدير CSV</a>
+    <button type="button" id="new-cust-open" class="admin-btn" style="background:#000;gap:.5rem;padding:.625rem 1.25rem;font-size:.875rem;line-height:1.25rem"><?= icon('plus', 16) ?> زبون جديد</button>
+    <a href="<?= e(admin_url('customers-export.php?tab=' . $tab)) ?>" class="admin-btn-ghost shadow-sm" style="gap:.5rem;padding:.625rem 1.25rem;font-size:.875rem;line-height:1.25rem"><?= icon('download', 16) ?> تصدير CSV</a>
   </div>
 </div>
 <?php admin_msg(); ?>

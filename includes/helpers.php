@@ -40,9 +40,9 @@ function format_price($value, ?string $currency = null): string {
     $currency = $currency ?? (setting('currency', 'د.ل') ?: 'د.ل');
     $o = price_opts();
     $v = (float)$value;
-    if ($o['dec'] === '0') $n = number_format($v, 0);
-    elseif ($o['dec'] === '2') $n = number_format($v, 2);
-    else $n = (floor($v) == $v) ? number_format($v, 0) : number_format($v, 2);
+    if ($o['dec'] === '0') $n = number_format($v, 0, ',', '.');
+    elseif ($o['dec'] === '2') $n = number_format($v, 2, ',', '.');
+    else $n = (floor($v) == $v) ? number_format($v, 0, ',', '.') : rtrim(rtrim(number_format($v, 2, ',', '.'), '0'), ',');
     return $o['pos'] === 'before' ? $currency . ' ' . $n : $n . ' ' . $currency;
 }
 
@@ -50,7 +50,7 @@ function format_price($value, ?string $currency = null): string {
 function format_secondary($value): string {
     $o = price_opts();
     if ($o['sym2'] === '' || !$o['rate2']) return '';
-    $n = number_format((float)$value / $o['rate2'], 2);
+    $n = number_format((float)$value / $o['rate2'], 2, ',', '.');
     return $o['pos'] === 'before' ? '≈ ' . $o['sym2'] . ' ' . $n : '≈ ' . $n . ' ' . $o['sym2'];
 }
 
