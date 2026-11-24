@@ -63,7 +63,7 @@ require APP_ROOT . '/includes/store-header.php';
   </div>
   <?php if (count($slides) > 1): ?><div class="hp-dots"><?php foreach ($slides as $i => $sl): ?><button type="button" data-dot="<?= $i ?>" class="<?= $i === 0 ? 'active' : '' ?>" aria-label="شريحة <?= $i + 1 ?>"></button><?php endforeach; ?></div><?php endif; ?>
 </section>
-<script type="module" src="<?= e(url('assets/js/hero-motion.js')) ?>?v=3"></script>
+<script type="module" src="<?= e(url('assets/js/hero-motion.js')) ?>?v=6"></script>
 <?php endif; ?>
 
 <!-- شريط المميزات المتحرك -->
