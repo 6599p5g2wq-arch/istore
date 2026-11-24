@@ -1,3 +1,4 @@
+import {clientIp,tooMany} from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { bad } from "@/lib/admin-api";
@@ -9,11 +10,13 @@ export const dynamic = "force-dynamic";
  * containing this product. Approved automatically when verified.
  */
 export async function POST(req: NextRequest) {
+  if (tooMany("review:"+clientIp(req),8)) return NextResponse.json({error:"محاولات كثيرة، حاول لاحقا"},{status:429});
   const b = await req.json().catch(() => ({}));
   if (!b || typeof b!=="object" || ["name", "comment", "phone", "order_code"].some(k=>b[k]!==undefined && typeof b[k]!=="string")) return bad("بيانات غير صالحة");
   const productId = Number(b.product_id) || 0;
   const name = (b.name || "").trim().slice(0, 80);
-  const rating = Math.min(5, Math.max(1, Math.floor(Number(b.rating) || 0)));
+  const rating = Number(b.rating);
+  if (!Number.isInteger(rating) || rating<1 || rating>5) return bad("تقييم غير صالح");
   const comment = (b.comment || "").trim().slice(0, 1000);
   const phone = (b.phone || "").trim();
   const code = (b.order_code || "").trim().toUpperCase();

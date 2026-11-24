@@ -1,3 +1,4 @@
+import {clientIp,tooMany} from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { orderAccessCookie } from "@/lib/order-access";
@@ -17,6 +18,7 @@ export const dynamic = "force-dynamic";
 type Item = { id: number; qty: number; variant_id?: number | null };
 
 export async function POST(req: NextRequest) {
+  if (tooMany("checkout:"+clientIp(req),10)) return NextResponse.json({error:"محاولات كثيرة، حاول لاحقا"},{status:429});
   if (getSetting("maintenance_enabled") === "1" && !(await getSessionAdmin())) {
     return NextResponse.json({ error: getSetting("maintenance_message") || "المتجر مغلق مؤقتاً للصيانة" }, { status: 503 });
   }
@@ -142,6 +144,6 @@ export async function POST(req: NextRequest) {
     response.cookies.set(orderAccessCookie(code));
     return response;
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : "حدث خطأ" }, { status: 400 });
+    return NextResponse.json({ error: e instanceof Error && !("code" in e) ? e.message : "تعذر إتمام الطلب، حاول لاحقا" }, { status: 400 });
   }
 }

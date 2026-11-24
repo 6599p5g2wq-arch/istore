@@ -115,6 +115,7 @@ const BANNERS = [
 export function seedIfEmpty(db: Database.Database) {
   const count = (db.prepare("SELECT COUNT(*) AS c FROM settings").get() as { c: number }).c;
   if (count > 0) return;
+  if (process.env.NODE_ENV === "production" && (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === "admin123")) throw new Error("Set a non-default ADMIN_PASSWORD before production initialization");
 
   const insertSetting = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
   for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) insertSetting.run(k, v);

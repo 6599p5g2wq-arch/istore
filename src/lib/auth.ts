@@ -19,7 +19,7 @@ export function verifyAdmin(username: string, password: string): number | null {
   const row = db.prepare("SELECT id, pass_hash, salt FROM admin_users WHERE username = ?").get(username) as
     | { id: number; pass_hash: string; salt: string }
     | undefined;
-  if (!row) return null;
+  if (!row || (process.env.NODE_ENV === "production" && password === "admin123")) return null;
   const hash = hashPassword(password, row.salt);
   const a = Buffer.from(hash, "hex");
   const b = Buffer.from(row.pass_hash, "hex");

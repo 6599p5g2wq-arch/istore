@@ -25,7 +25,7 @@ export default function TrackForm() {
     e.preventDefault();
     setLoading(true); setError(""); setResult(null);
     try {
-      const r = await fetch(`/api/track?code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone)}`);
+      const r = await fetch("/api/track", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,phone})});
       const d = await r.json();
       if (!r.ok) setError(d.error || "لم يتم العثور على الطلب");
       else setResult(d.order);

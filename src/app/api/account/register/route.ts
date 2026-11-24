@@ -19,12 +19,13 @@ export async function POST(req: NextRequest) {
   if (!name) return bad("الاسم مطلوب");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return bad("البريد الإلكتروني غير صحيح");
   if (!phone) return bad("رقم الهاتف غير صحيح (مثال: 0912345678)");
+  if (password.length > 1024 || email.length > 254) return bad("بيانات غير صالحة");
   if (password.length < MIN_PASSWORD) return bad(`كلمة المرور ${MIN_PASSWORD} أحرف على الأقل`);
   const r = registerCustomer(name, email, phone, password);
   if ("error" in r) return bad(r.error);
   try { createWelcomeCoupon(getDb(), r.id); } catch { /* لا يمنع التسجيل */ }
   const token = createCustomerSession(r.id);
   const res = NextResponse.json({ ok: true });
-  res.cookies.set("customer_session", token, { httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 30, path: "/" });
+  res.cookies.set("customer_session", token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", maxAge: 60 * 60 * 24 * 30, path: "/" });
   return res;
 }

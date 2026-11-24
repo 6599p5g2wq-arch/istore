@@ -1,3 +1,4 @@
+import {clientIp,tooMany} from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import type { Order, OrderItem } from "@/lib/types";
@@ -8,9 +9,12 @@ function normalizePhone(p: string) {
   return p.replace(/[^\d+]/g, "").replace(/^\+?218/, "0");
 }
 
-export function GET(req: NextRequest) {
-  const code = (req.nextUrl.searchParams.get("code") || "").trim().toUpperCase();
-  const phone = (req.nextUrl.searchParams.get("phone") || "").trim();
+export async function POST(req: NextRequest) {
+  if(tooMany("tracking:"+clientIp(req),8))return NextResponse.json({error:"محاولات كثيرة، حاول لاحقا"},{status:429});
+  const b=await req.json().catch(()=>null);
+  if(!b||typeof b.code!=="string"||typeof b.phone!=="string"||b.code.length>40||b.phone.length>40)return NextResponse.json({error:"بيانات غير صالحة"},{status:400});
+  const code = b.code.trim().toUpperCase();
+  const phone = b.phone.trim();
   if (!code || !phone) return NextResponse.json({ error: "أدخل رقم الطلب ورقم الهاتف" }, { status: 400 });
   const db = getDb();
   const order = db.prepare("SELECT * FROM orders WHERE UPPER(code) = ?").get(code) as Order | undefined;

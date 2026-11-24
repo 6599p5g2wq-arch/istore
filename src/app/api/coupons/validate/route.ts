@@ -1,3 +1,4 @@
+import {clientIp,tooMany} from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { bad } from "@/lib/admin-api";
@@ -7,6 +8,7 @@ import { getSessionCustomer } from "@/lib/customer-auth";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  if (tooMany("coupon-check:"+clientIp(req),30)) return NextResponse.json({error:"محاولات كثيرة، حاول لاحقا"},{status:429});
   const b = await req.json().catch(() => ({}));
   if (!b || typeof b!=="object" || ["code"].some(k=>b[k]!==undefined && typeof b[k]!=="string")) return bad("بيانات غير صالحة");
   const code = (b.code || "").trim();

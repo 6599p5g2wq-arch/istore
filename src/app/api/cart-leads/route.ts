@@ -1,3 +1,4 @@
+import {clientIp,tooMany} from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { bad } from "@/lib/admin-api";
@@ -6,7 +7,9 @@ export const dynamic = "force-dynamic";
 
 /** Records a checkout that started (phone captured) but was never completed. */
 export async function POST(req: NextRequest) {
+  if (tooMany("lead:"+clientIp(req),20)) return NextResponse.json({error:"محاولات كثيرة، حاول لاحقا"},{status:429});
   const b = await req.json().catch(() => ({}));
+  if (!b || typeof b!=="object" || ["phone"].some(k=>b[k]!==undefined && (typeof b[k]!=="string" || b[k].length>254))) return bad("بيانات غير صالحة");
   const phone = (b.phone || "").trim();
   const items = Array.isArray(b.items) ? b.items.slice(0, 30) : [];
   const total = Number(b.total) || 0;

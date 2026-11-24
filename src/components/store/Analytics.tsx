@@ -5,6 +5,9 @@ import Script from "next/script";
 
 /** Meta Pixel, TikTok Pixel, GA4 (when IDs are set in admin settings) + built-in page-view beacon. */
 export default function Analytics({ metaPixel, tiktokPixel, gaId }: { metaPixel: string; tiktokPixel: string; gaId: string }) {
+  metaPixel = /^\d{5,30}$/.test(metaPixel) ? metaPixel : "";
+  tiktokPixel = /^[A-Za-z0-9]{5,40}$/.test(tiktokPixel) ? tiktokPixel : "";
+  gaId = /^G-[A-Z0-9]{4,30}$/.test(gaId) ? gaId : "";
   const pathname = usePathname();
 
   useEffect(() => {

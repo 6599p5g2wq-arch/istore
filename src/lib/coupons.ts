@@ -2,6 +2,7 @@ import type Database from "better-sqlite3";
 import type { Coupon } from "./types";
 
 export function validateCoupon(db: Database.Database, code: string, subtotal: number, customerId: number | null = null): { ok: true; discount: number; coupon: Coupon } | { ok: false; error: string } {
+  if (!Number.isFinite(subtotal) || subtotal < 0) return {ok:false,error:"مبلغ غير صالح"};
   const c = db.prepare("SELECT * FROM coupons WHERE UPPER(code) = UPPER(?)").get(code.trim()) as Coupon | undefined;
   if (!c || !c.active) return { ok: false, error: "كود الخصم غير صالح" };
   // كوبون خاص بزبون محدد (مثل كوبون الترحيب)
@@ -12,6 +13,6 @@ export function validateCoupon(db: Database.Database, code: string, subtotal: nu
   if (c.max_uses > 0 && c.used_count >= c.max_uses) return { ok: false, error: "انتهى عدد مرات استخدام هذا الكود" };
   if (subtotal < c.min_total) return { ok: false, error: `هذا الكود يتطلب حد أدنى للطلب ${c.min_total} د.ل` };
   const discount = c.kind === "percent" ? Math.round(subtotal * (c.value / 100)) : Math.min(c.value, subtotal);
-  if (discount <= 0) return { ok: false, error: "كود الخصم غير صالح" };
+  if (!Number.isFinite(discount) || discount <= 0 || discount > subtotal) return { ok: false, error: "كود الخصم غير صالح" };
   return { ok: true, discount, coupon: c };
 }

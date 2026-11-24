@@ -16,6 +16,7 @@ function creds() {
 
 export function verifyControl(username: string, password: string): boolean {
   const c = creds();
+  if (process.env.NODE_ENV === "production" && (!process.env.SETTINGS_PASSWORD || c.password === "control123")) return false;
   const a = crypto.createHash("sha256").update(`${username}:${password}`).digest();
   const b = crypto.createHash("sha256").update(`${c.username}:${c.password}`).digest();
   if (a.length !== b.length) return false;

@@ -1,4 +1,5 @@
 import React from "react";
+import {safeLink} from "@/lib/safe-link";
 import Link from "next/link";
 import { ChevronLeft, Flame, Grid3X3, Star, BadgePercent } from "lucide-react";
 import { getDb } from "@/lib/db";
@@ -30,7 +31,7 @@ export default function HomePage() {
   return (
     <div>
       {intro.enabled && <Intro cfg={intro} />}
-      <HeroSlider slides={slides} asH2={intro.enabled} />
+      <HeroSlider slides={slides.map(s=>({...s,cta_link:safeLink(s.cta_link)}))} asH2={intro.enabled} />
       {marquee.enabled && <Marquee items={marquee.items} />}
 
       {/* Categories */}
@@ -85,7 +86,7 @@ export default function HomePage() {
           <div className={`grid gap-4 ${banners.length === 1 ? "" : banners.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
             {banners.map((b, i) => (
               <Reveal key={b.id} delay={i * 0.1}>
-                <Link href={b.link} className="group relative flex items-center gap-4 overflow-hidden rounded-3xl border border-[var(--border)] bg-gradient-to-l from-neutral-900 to-neutral-800 p-7 text-white shadow-lg">
+                <Link href={safeLink(b.link)} className="group relative flex items-center gap-4 overflow-hidden rounded-3xl border border-[var(--border)] bg-gradient-to-l from-neutral-900 to-neutral-800 p-7 text-white shadow-lg">
                   <div className="absolute -left-10 -top-10 h-36 w-36 rounded-full bg-[var(--accent)] opacity-25 blur-2xl transition group-hover:opacity-40" />
                   {b.image ? (
                     // eslint-disable-next-line @next/next/no-img-element

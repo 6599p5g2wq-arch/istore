@@ -1,4 +1,5 @@
 import React from "react";
+import {safeLink} from "@/lib/safe-link";
 import Link from "next/link";
 import { Store, Phone, Mail, MapPin, Facebook, Instagram, Music2, Clock } from "lucide-react";
 import { getSettings } from "@/lib/settings";
@@ -21,10 +22,10 @@ export default function Footer() {
             </div>
             <p className="mt-4 text-sm leading-7 text-neutral-400">{s.store_tagline}</p>
             <div className="mt-5 flex gap-2">
-              {s.facebook && <a href={s.facebook} target="_blank" rel="noreferrer" aria-label="فيسبوك" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><Facebook size={18} /></a>}
-              {s.instagram && <a href={s.instagram} target="_blank" rel="noreferrer" aria-label="انستغرام" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><Instagram size={18} /></a>}
-              {s.tiktok && <a href={s.tiktok} target="_blank" rel="noreferrer" aria-label="تيك توك" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><Music2 size={18} /></a>}
-              {s.map_url && <a href={s.map_url} target="_blank" rel="noreferrer" aria-label="موقع المحل على الخريطة" title="موقع المحل على الخريطة" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><MapPin size={18} /></a>}
+              {s.facebook && <a href={safeLink(s.facebook,"#")} target="_blank" rel="noreferrer" aria-label="فيسبوك" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><Facebook size={18} /></a>}
+              {s.instagram && <a href={safeLink(s.instagram,"#")} target="_blank" rel="noreferrer" aria-label="انستغرام" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><Instagram size={18} /></a>}
+              {s.tiktok && <a href={safeLink(s.tiktok,"#")} target="_blank" rel="noreferrer" aria-label="تيك توك" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><Music2 size={18} /></a>}
+              {s.map_url && <a href={safeLink(s.map_url,"#")} target="_blank" rel="noreferrer" aria-label="موقع المحل على الخريطة" title="موقع المحل على الخريطة" className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-neutral-300 transition hover:-translate-y-0.5 hover:bg-white/20 hover:text-white"><MapPin size={18} /></a>}
             </div>
           </div>
           <div>

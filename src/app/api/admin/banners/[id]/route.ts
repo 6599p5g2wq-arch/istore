@@ -1,3 +1,4 @@
+import {safeLink} from "@/lib/safe-link";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireAdmin, bad } from "@/lib/admin-api";
@@ -10,7 +11,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
   const b = await req.json().catch(() => ({}));
   if (!b.title?.trim()) return bad("العنوان مطلوب");
   getDb().prepare("UPDATE banners SET title=?, subtitle=?, image=?, link=?, sort_order=?, active=? WHERE id=?")
-    .run(b.title.trim(), b.subtitle || "", b.image || "", b.link || "/products", Number(b.sort_order) || 99, b.active ? 1 : 0, params.id);
+    .run(b.title.trim(), b.subtitle || "", b.image || "", safeLink(b.link), Number(b.sort_order) || 99, b.active ? 1 : 0, params.id);
   return NextResponse.json({ ok: true });
 }
 
